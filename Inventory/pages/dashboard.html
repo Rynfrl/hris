@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Dashboard Manajemen Inventory Inventoria">
+  <title>Dashboard - Inventoria</title>
+  <link rel="stylesheet" href="../assets/css/base.css">
+  <link rel="stylesheet" href="../assets/css/layout.css">
+  <link rel="stylesheet" href="../assets/css/components.css">
+  <link rel="stylesheet" href="../assets/css/pages.css">
+  <link rel="stylesheet" href="../assets/css/responsive.css">
+</head>
+<body>
+
+<div class="app-container">
+  <!-- SIDEBAR -->
+  <aside class="sidebar" aria-label="Navigasi Utama">
+    <a href="dashboard.html" class="sidebar-brand">
+      <div class="sidebar-brand-logo">
+        <img src="../assets/images/logo.svg" alt="Inventoria Logo" width="36" height="36">
+      </div>
+      <div class="sidebar-brand-text">
+        <span class="sidebar-brand-title">Inventoria</span>
+        <span class="sidebar-brand-subtitle">Inventory System</span>
+      </div>
+    </a>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-title">Menu Utama</div>
+      <a href="dashboard.html" class="nav-item active" aria-current="page">
+        <svg class="nav-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+        <span>Dashboard</span>
+      </a>
+      <a href="products.html" class="nav-item">
+        <svg class="nav-icon" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+        <span>Produk</span>
+      </a>
+
+      <div class="nav-section-title">Transaksi Stok</div>
+      <a href="stock-in.html" class="nav-item">
+        <svg class="nav-icon" viewBox="0 0 24 24"><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path></svg>
+        <span>Stok Masuk</span>
+      </a>
+      <a href="stock-out.html" class="nav-item">
+        <svg class="nav-icon" viewBox="0 0 24 24"><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path></svg>
+        <span>Stok Keluar</span>
+      </a>
+      <a href="stock-history.html" class="nav-item">
+        <svg class="nav-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+        <span>Riwayat Stok</span>
+      </a>
+
+      <div class="nav-section-title">Master Data</div>
+      <a href="suppliers.html" class="nav-item">
+        <svg class="nav-icon" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+        <span>Supplier</span>
+      </a>
+      <a href="categories.html" class="nav-item">
+        <svg class="nav-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+        <span>Kategori</span>
+      </a>
+
+      <div class="nav-section-title">Lainnya</div>
+      <a href="reports.html" class="nav-item">
+        <svg class="nav-icon" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+        <span>Laporan</span>
+      </a>
+      <a href="settings.html" class="nav-item">
+        <svg class="nav-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        <span>Pengaturan</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-snippet">
+        <div class="user-avatar" aria-hidden="true">AP</div>
+        <div class="user-info">
+          <span class="user-name">Andi Pratama</span>
+          <span class="user-role">Admin Gudang</span>
+        </div>
+      </div>
+      <a href="../../logout.php" class="logout-link" title="Keluar dari sistem">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+        <span>Keluar Sistem</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- MAIN WRAPPER -->
+  <div class="main-wrapper">
+    <!-- HEADER -->
+    <header class="app-header">
+      <div class="header-actions">
+        <div class="header-user-profile">
+          <div class="header-user-avatar">AP</div>
+          <span class="header-user-name text-bold" style="font-size: var(--font-size-xs);">Andi Pratama</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- CONTENT -->
+    <main class="content-area">
+      <!-- Page Header -->
+      <div class="page-header">
+        <div class="page-title-group">
+          <h1>Ringkasan Dashboard</h1>
+          <p>Kondisi umum stok barang dan pergerakan inventory terkini.</p>
+        </div>
+        <div class="page-actions">
+          <a href="product-form.html" class="btn btn-primary">
+            <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            <span>Tambah Produk</span>
+          </a>
+          <a href="stock-in.html" class="btn btn-secondary">
+            <svg viewBox="0 0 24 24"><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            <span>Stok Masuk</span>
+          </a>
+          <a href="stock-out.html" class="btn btn-secondary">
+            <svg viewBox="0 0 24 24"><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+            <span>Stok Keluar</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Stat Cards -->
+      <section class="grid grid-cols-4" aria-label="Statistik Utama">
+        <div class="stat-card">
+          <div class="stat-info">
+            <span class="stat-label">Total Produk</span>
+            <span class="stat-value">128</span>
+            <span class="stat-trend positive">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
+              +12 bulan ini
+            </span>
+          </div>
+          <div class="stat-icon-wrapper primary">
+            <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-info">
+            <span class="stat-label">Total Nilai Stok</span>
+            <span class="stat-value">Rp184.5M</span>
+            <span class="stat-trend neutral">Berdasarkan harga beli</span>
+          </div>
+          <div class="stat-icon-wrapper info">
+            <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-info">
+            <span class="stat-label">Stok Masuk Bulan Ini</span>
+            <span class="stat-value">342 unit</span>
+            <span class="stat-trend positive">38 transaksi penerimaan</span>
+          </div>
+          <div class="stat-icon-wrapper primary">
+            <svg viewBox="0 0 24 24"><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path></svg>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-info">
+            <span class="stat-label">Produk Hampir Habis</span>
+            <span class="stat-value" style="color: var(--color-danger);">7 item</span>
+            <span class="stat-trend warning">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+              Perlu pengadaan segera
+            </span>
+          </div>
+          <div class="stat-icon-wrapper danger">
+            <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+          </div>
+        </div>
+      </section>
+
+      <!-- Dashboard Main Section: 2 Kolom -->
+      <div class="grid grid-dashboard-main" style="margin-top: var(--spacing-xl);">
+        <!-- Kolom Kiri: Tabel Stok Kritis -->
+        <section class="card">
+          <div class="card-header">
+            <div>
+              <h2 class="card-title">Perhatian Stok Kritis & Rendah</h2>
+              <p class="card-subtitle">Daftar produk yang telah menyentuh batas minimum stok gudang</p>
+            </div>
+            <a href="products.html" class="btn btn-secondary btn-sm">Lihat Semua</a>
+          </div>
+          <div class="table-container" style="border: none; border-radius: 0;">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th scope="col">SKU</th>
+                  <th scope="col">Nama Produk</th>
+                  <th scope="col">Kategori</th>
+                  <th scope="col" style="text-align: right;">Sisa Stok</th>
+                  <th scope="col" style="text-align: right;">Batas Min</th>
+                  <th scope="col">Status</th>
+                  <th scope="col">Aksi</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><span class="table-sku">AT-002</span></td>
+                  <td><strong>Kursi Kantor Ergonomis</strong></td>
+                  <td>Perabot</td>
+                  <td style="text-align: right; color: var(--color-danger); font-weight: bold;">0</td>
+                  <td style="text-align: right;">2</td>
+                  <td><span class="badge badge-out"><span class="badge-dot"></span>Habis</span></td>
+                  <td><a href="stock-in.html" class="btn btn-primary btn-sm">Restock</a></td>
+                </tr>
+                <tr>
+                  <td><span class="table-sku">EL-004</span></td>
+                  <td><strong>Keyboard Mechanical</strong></td>
+                  <td>Elektronik</td>
+                  <td style="text-align: right; color: var(--color-warning); font-weight: bold;">3</td>
+                  <td style="text-align: right;">4</td>
+                  <td><span class="badge badge-low"><span class="badge-dot"></span>Hampir habis</span></td>
+                  <td><a href="stock-in.html" class="btn btn-secondary btn-sm">Restock</a></td>
+                </tr>
+                <tr>
+                  <td><span class="table-sku">EL-002</span></td>
+                  <td><strong>Mouse Wireless M1</strong></td>
+                  <td>Elektronik</td>
+                  <td style="text-align: right; color: var(--color-warning); font-weight: bold;">4</td>
+                  <td style="text-align: right;">5</td>
+                  <td><span class="badge badge-low"><span class="badge-dot"></span>Hampir habis</span></td>
+                  <td><a href="stock-in.html" class="btn btn-secondary btn-sm">Restock</a></td>
+                </tr>
+                <tr>
+                  <td><span class="table-sku">AK-002</span></td>
+                  <td><strong>Tinta Printer Hitam</strong></td>
+                  <td>Alat Kantor</td>
+                  <td style="text-align: right; font-weight: bold;">7</td>
+                  <td style="text-align: right;">5</td>
+                  <td><span class="badge badge-available"><span class="badge-dot"></span>Tersedia</span></td>
+                  <td><a href="product-detail.html" class="btn btn-secondary btn-sm">Detail</a></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Kolom Kanan: Distribusi Kategori & Aktivitas -->
+        <div style="display: flex; flex-direction: column; gap: var(--spacing-lg);">
+          <!-- Distribusi Kategori Card -->
+          <section class="card">
+            <div class="card-header">
+              <h2 class="card-title">Distribusi Kategori</h2>
+              <a href="categories.html" class="btn btn-secondary btn-sm">Kelola</a>
+            </div>
+            <div class="card-body">
+              <div class="category-chart-wrapper">
+                <div class="chart-bar-item">
+                  <div class="chart-bar-meta">
+                    <span class="chart-bar-name">Elektronik</span>
+                    <span class="chart-bar-count">42% (54 item)</span>
+                  </div>
+                  <div class="chart-bar-track">
+                    <div class="chart-bar-fill fill-primary" style="width: 42%;"></div>
+                  </div>
+                </div>
+
+                <div class="chart-bar-item">
+                  <div class="chart-bar-meta">
+                    <span class="chart-bar-name">Perabot</span>
+                    <span class="chart-bar-count">25% (32 item)</span>
+                  </div>
+                  <div class="chart-bar-track">
+                    <div class="chart-bar-fill fill-info" style="width: 25%;"></div>
+                  </div>
+                </div>
+
+                <div class="chart-bar-item">
+                  <div class="chart-bar-meta">
+                    <span class="chart-bar-name">Alat Kantor</span>
+                    <span class="chart-bar-count">20% (26 item)</span>
+                  </div>
+                  <div class="chart-bar-track">
+                    <div class="chart-bar-fill fill-warning" style="width: 20%;"></div>
+                  </div>
+                </div>
+
+                <div class="chart-bar-item">
+                  <div class="chart-bar-meta">
+                    <span class="chart-bar-name">Perlengkapan</span>
+                    <span class="chart-bar-count">13% (16 item)</span>
+                  </div>
+                  <div class="chart-bar-track">
+                    <div class="chart-bar-fill fill-purple" style="width: 13%;"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Aktivitas Terbaru Card -->
+          <section class="card">
+            <div class="card-header">
+              <h2 class="card-title">Aktivitas Stok Terbaru</h2>
+              <a href="stock-history.html" class="btn btn-secondary btn-sm">Riwayat</a>
+            </div>
+            <div class="card-body" style="padding-top: 0; padding-bottom: 0;">
+              <div class="activity-list">
+                <div class="activity-item">
+                  <div class="activity-icon-box in">
+                    <svg viewBox="0 0 24 24"><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                  </div>
+                  <div class="activity-content">
+                    <span class="activity-title">Laptop ThinkPad X1</span>
+                    <span class="activity-subtitle">Penerimaan dari PT Teknologi Nusantara</span>
+                  </div>
+                  <div class="activity-meta">
+                    <span class="text-bold" style="color: var(--color-success);">+10 unit</span>
+                    <div>Hari ini, 10:30</div>
+                  </div>
+                </div>
+
+                <div class="activity-item">
+                  <div class="activity-icon-box out">
+                    <svg viewBox="0 0 24 24"><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                  </div>
+                  <div class="activity-content">
+                    <span class="activity-title">Kabel LAN 20m</span>
+                    <span class="activity-subtitle">Pengeluaran - Dept. IT Kantor</span>
+                  </div>
+                  <div class="activity-meta">
+                    <span class="text-bold" style="color: var(--color-danger);">-5 roll</span>
+                    <div>Hari ini, 09:15</div>
+                  </div>
+                </div>
+
+                <div class="activity-item">
+                  <div class="activity-icon-box in">
+                    <svg viewBox="0 0 24 24"><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                  </div>
+                  <div class="activity-content">
+                    <span class="activity-title">Paper A4 80gsm</span>
+                    <span class="activity-subtitle">Restock CV Sinar Kantor</span>
+                  </div>
+                  <div class="activity-meta">
+                    <span class="text-bold" style="color: var(--color-success);">+50 rim</span>
+                    <div>Kemarin</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="app-footer">
+      <div>&copy; 2026 <strong>Inventoria</strong> - Prototype Sistem Manajemen Inventory</div>
+    </footer>
+  </div>
+</div>
+
+<script src="../assets/js/dashboard.js"></script>
+</body>
+</html>

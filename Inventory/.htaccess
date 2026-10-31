@@ -1,0 +1,6 @@
+Options -Indexes
+DirectoryIndex index.php
+RewriteEngine On
+
+RewriteRule ^(?:Index|index)\.html$ index.php [R=302,L,NC]
+RewriteRule ^pages/[A-Za-z0-9-]+\.html$ page.php [QSA,L,NC]

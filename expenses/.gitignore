@@ -1,0 +1,5 @@
+.env
+storage/receipts/*
+!storage/receipts/.gitkeep
+storage/logs/*
+!storage/logs/.gitkeep

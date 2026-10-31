@@ -1,0 +1,189 @@
+/**
+ * purchasing.css
+ * Custom overrides layered on top of AdminLTE. Kept intentionally small -
+ * almost everything visual should come from AdminLTE/Bootstrap utilities
+ * so this module stays visually consistent with the rest of the ERP once
+ * it is combined with other modules.
+ */
+
+:root {
+  --pur-accent: #2f6f4f; /* muted procurement green, used sparingly for emphasis */
+}
+
+/* ---------------------------------------------------------------------
+ * Small-caps module badge next to the brand, so this shell is visibly
+ * "the Purchasing module" while it is being reviewed on its own, and can
+ * be removed once folded into a shared ERP shell.
+ * ------------------------------------------------------------------- */
+.pur-module-badge {
+  font-size: 0.65rem;
+  letter-spacing: 0.02em;
+  padding: 0.15rem 0.45rem;
+  border-radius: 0.25rem;
+  background: rgba(255, 255, 255, 0.12);
+  margin-left: 0.4rem;
+  vertical-align: middle;
+}
+
+.pur-avatar-circle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: var(--pur-accent);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+/* ---------------------------------------------------------------------
+ * Metric cards on the dashboard
+ * ------------------------------------------------------------------- */
+.pur-metric-card {
+  border: 1px solid var(--bs-border-color);
+  border-radius: 0.5rem;
+  transition: box-shadow 0.15s ease-in-out;
+}
+.pur-metric-card:hover {
+  box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.08);
+}
+.pur-metric-icon {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 0.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+}
+.pur-metric-value {
+  font-size: 1.6rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+/* ---------------------------------------------------------------------
+ * Item table on the create-transaction form
+ * ------------------------------------------------------------------- */
+.pur-item-table td {
+  vertical-align: middle;
+}
+.pur-item-table .pur-line-subtotal {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.pur-remove-row-btn {
+  color: var(--bs-danger);
+}
+
+.pur-totals-box {
+  max-width: 380px;
+  margin-left: auto;
+}
+.pur-totals-box .row + .row {
+  margin-top: 0.35rem;
+}
+.pur-totals-box .pur-grand-total {
+  font-size: 1.35rem;
+  font-weight: 700;
+}
+
+/* ---------------------------------------------------------------------
+ * States: loading / empty / error
+ * ------------------------------------------------------------------- */
+.pur-state-box {
+  padding: 2.5rem 1rem;
+  text-align: center;
+  color: var(--bs-secondary-color);
+}
+.pur-state-box i {
+  font-size: 2.25rem;
+  display: block;
+  margin-bottom: 0.5rem;
+  opacity: 0.6;
+}
+.pur-skeleton {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--bs-tertiary-bg);
+  border-radius: 0.25rem;
+}
+.pur-skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+  animation: pur-shimmer 1.4s infinite;
+}
+@keyframes pur-shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* ---------------------------------------------------------------------
+ * Invoice (detail-transaction.html)
+ * ------------------------------------------------------------------- */
+.pur-invoice-box {
+  border: 1px solid var(--bs-border-color);
+  border-radius: 0.5rem;
+}
+.pur-invoice-header {
+  border-bottom: 2px solid var(--bs-border-color);
+}
+.pur-invoice-logo {
+  font-weight: 700;
+  font-size: 1.25rem;
+  letter-spacing: 0.01em;
+}
+.pur-invoice-meta dt {
+  color: var(--bs-secondary-color);
+  font-weight: 500;
+  font-size: 0.82rem;
+}
+.pur-invoice-meta dd {
+  margin-bottom: 0.5rem;
+}
+
+/* Disabled "coming soon" nav items used as integration placeholders for
+ * other ERP modules (Master Data, etc.) that this module will sit next
+ * to once combined into a shared shell. */
+.pur-nav-disabled {
+  opacity: 0.55;
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
+/* ---------------------------------------------------------------------
+ * Print styles - invoice only
+ * ------------------------------------------------------------------- */
+@media print {
+  .app-header,
+  .app-sidebar,
+  .app-footer,
+  .app-content-header nav,
+  .pur-no-print,
+  #pur-toast-container {
+    display: none !important;
+  }
+  .app-main {
+    margin: 0 !important;
+  }
+  .app-content {
+    padding: 0 !important;
+  }
+  body,
+  .app-wrapper {
+    background: #fff !important;
+  }
+  .pur-invoice-box {
+    border: none !important;
+  }
+  a[href]::after {
+    content: '' !important;
+  }
+}

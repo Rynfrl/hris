@@ -1,0 +1,15 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Direct static file access to public/assets
+    RewriteCond %{REQUEST_URI} !^.*/public/assets/
+    RewriteRule ^assets/(.*)$ public/assets/$1 [L,QSA]
+
+    # If the requested file or directory exists, serve directly
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # Route all other requests to public/index.php
+    RewriteRule ^ public/index.php [L,QSA]
+</IfModule>

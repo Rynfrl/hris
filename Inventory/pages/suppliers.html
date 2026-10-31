@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Manajemen Pemasok & Mitra Supplier - Inventoria">
+  <title>Daftar Supplier - Inventoria</title>
+  <link rel="stylesheet" href="../assets/css/base.css">
+  <link rel="stylesheet" href="../assets/css/layout.css">
+  <link rel="stylesheet" href="../assets/css/components.css">
+  <link rel="stylesheet" href="../assets/css/pages.css">
+  <link rel="stylesheet" href="../assets/css/responsive.css">
+</head>
+<body>
+
+<div class="app-container">
+  <!-- SIDEBAR -->
+  <aside class="sidebar" aria-label="Navigasi Utama">
+    <a href="dashboard.html" class="sidebar-brand">
+      <div class="sidebar-brand-logo">
+        <img src="../assets/images/logo.svg" alt="Inventoria Logo" width="36" height="36">
+      </div>
+      <div class="sidebar-brand-text">
+        <span class="sidebar-brand-title">Inventoria</span>
+        <span class="sidebar-brand-subtitle">Inventory System</span>
+      </div>
+    </a>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-title">Menu Utama</div>
+      <a href="dashboard.html" class="nav-item">
+        <svg class="nav-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+        <span>Dashboard</span>
+      </a>
+      <a href="products.html" class="nav-item">
+        <svg class="nav-icon" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+        <span>Produk</span>
+      </a>
+
+      <div class="nav-section-title">Transaksi Stok</div>
+      <a href="stock-in.html" class="nav-item">
+        <svg class="nav-icon" viewBox="0 0 24 24"><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path></svg>
+        <span>Stok Masuk</span>
+      </a>
+      <a href="stock-out.html" class="nav-item">
+        <svg class="nav-icon" viewBox="0 0 24 24"><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path></svg>
+        <span>Stok Keluar</span>
+      </a>
+      <a href="stock-history.html" class="nav-item">
+        <svg class="nav-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+        <span>Riwayat Stok</span>
+      </a>
+
+      <div class="nav-section-title">Master Data</div>
+      <a href="suppliers.html" class="nav-item active" aria-current="page">
+        <svg class="nav-icon" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+        <span>Supplier</span>
+      </a>
+      <a href="categories.html" class="nav-item">
+        <svg class="nav-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+        <span>Kategori</span>
+      </a>
+
+      <div class="nav-section-title">Lainnya</div>
+      <a href="reports.html" class="nav-item">
+        <svg class="nav-icon" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+        <span>Laporan</span>
+      </a>
+      <a href="settings.html" class="nav-item">
+        <svg class="nav-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        <span>Pengaturan</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-snippet">
+        <div class="user-avatar">AP</div>
+        <div class="user-info">
+          <span class="user-name">Andi Pratama</span>
+          <span class="user-role">Admin Gudang</span>
+        </div>
+      </div>
+      <a href="../../logout.php" class="logout-link">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+        <span>Keluar Sistem</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- MAIN WRAPPER -->
+  <div class="main-wrapper">
+    <header class="app-header">
+      <div class="header-actions">
+        <div class="header-user-profile">
+          <div class="header-user-avatar">AP</div>
+          <span class="header-user-name text-bold" style="font-size: var(--font-size-xs);">Andi Pratama</span>
+        </div>
+      </div>
+    </header>
+
+    <main class="content-area">
+      <!-- Breadcrumb & Header -->
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a href="dashboard.html">Dashboard</a>
+        <span class="breadcrumb-separator">/</span>
+        <span>Supplier</span>
+      </nav>
+
+      <div class="page-header">
+        <div class="page-title-group">
+          <h1>Daftar Pemasok (Supplier)</h1>
+          <p>Kelola kontak rekanan vendor, alamat operasional, dan riwayat pasokan barang.</p>
+        </div>
+        <div class="page-actions">
+          <button type="button" class="btn btn-primary" onclick="alert('Form modal tambah supplier akan tersedia di fase berikutnya.');">
+            <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            <span>Tambah Supplier</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Toolbar Filter -->
+      <div class="card" style="margin-bottom: var(--spacing-lg);">
+        <div class="card-body" style="padding: var(--spacing-md);">
+          <div class="toolbar" style="margin-bottom: 0;">
+            <div class="toolbar-filters">
+              <input type="text" class="filter-input" placeholder="Cari nama supplier atau kota..." style="width: 260px;">
+              <select class="filter-select" aria-label="Filter Status Pemasok">
+                <option value="">Semua Status</option>
+                <option value="aktif">Aktif</option>
+                <option value="nonaktif">Non-Aktif</option>
+              </select>
+            </div>
+            <div style="font-size: var(--font-size-xs); color: var(--color-text-muted);">
+              Menampilkan <strong>3 Supplier Terverifikasi</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabel Supplier Sesuai Spesifikasi -->
+      <div class="table-container">
+        <table class="table">
+          <caption>Rekanan Pemasok Aktif</caption>
+          <thead>
+            <tr>
+              <th scope="col">Nama Supplier</th>
+              <th scope="col">Kontak Person</th>
+              <th scope="col">Nomor Telepon</th>
+              <th scope="col">Email</th>
+              <th scope="col">Alamat Kota</th>
+              <th scope="col" style="text-align: center;">Jumlah Produk</th>
+              <th scope="col">Status</th>
+              <th scope="col" style="text-align: right;">Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Supplier 1 -->
+            <tr>
+              <td>
+                <div class="text-bold">PT Teknologi Nusantara</div>
+                <span class="text-muted" style="font-size: 11px;">Hardware & IT Peripheral</span>
+              </td>
+              <td>Budi Santoso</td>
+              <td><a href="tel:081234567890">0812-3456-7890</a></td>
+              <td><a href="mailto:sales@teknusantara.co.id">sales@teknusantara.co.id</a></td>
+              <td>Jakarta Barat, DKI Jakarta</td>
+              <td style="text-align: center; font-weight: bold;">5 produk</td>
+              <td><span class="badge badge-available"><span class="badge-dot"></span>Aktif</span></td>
+              <td style="text-align: right;">
+                <div class="table-actions" style="justify-content: flex-end;">
+                  <button type="button" class="btn btn-secondary btn-sm" onclick="alert('Detail supplier: PT Teknologi Nusantara');">Lihat</button>
+                  <button type="button" class="btn btn-secondary btn-sm" onclick="alert('Edit supplier: PT Teknologi Nusantara');">Edit</button>
+                </div>
+              </td>
+            </tr>
+
+            <!-- Supplier 2 -->
+            <tr>
+              <td>
+                <div class="text-bold">CV Sinar Kantor Sejahtera</div>
+                <span class="text-muted" style="font-size: 11px;">Stationery & Office Supplies</span>
+              </td>
+              <td>Siti Rahma</td>
+              <td><a href="tel:081398765432">0813-9876-5432</a></td>
+              <td><a href="mailto:info@sinarkantor.com">info@sinarkantor.com</a></td>
+              <td>Bandung, Jawa Barat</td>
+              <td style="text-align: center; font-weight: bold;">2 produk</td>
+              <td><span class="badge badge-available"><span class="badge-dot"></span>Aktif</span></td>
+              <td style="text-align: right;">
+                <div class="table-actions" style="justify-content: flex-end;">
+                  <button type="button" class="btn btn-secondary btn-sm" onclick="alert('Detail supplier: CV Sinar Kantor Sejahtera');">Lihat</button>
+                  <button type="button" class="btn btn-secondary btn-sm" onclick="alert('Edit supplier: CV Sinar Kantor Sejahtera');">Edit</button>
+                </div>
+              </td>
+            </tr>
+
+            <!-- Supplier 3 -->
+            <tr>
+              <td>
+                <div class="text-bold">Mitra Furnitur Indonesia</div>
+                <span class="text-muted" style="font-size: 11px;">Office Ergonomics & Furniture</span>
+              </td>
+              <td>Hendro Wijaya</td>
+              <td><a href="tel:081122334455">0811-2233-4455</a></td>
+              <td><a href="mailto:contact@mitrafurnitur.id">contact@mitrafurnitur.id</a></td>
+              <td>Jepara, Jawa Tengah</td>
+              <td style="text-align: center; font-weight: bold;">2 produk</td>
+              <td><span class="badge badge-available"><span class="badge-dot"></span>Aktif</span></td>
+              <td style="text-align: right;">
+                <div class="table-actions" style="justify-content: flex-end;">
+                  <button type="button" class="btn btn-secondary btn-sm" onclick="alert('Detail supplier: Mitra Furnitur Indonesia');">Lihat</button>
+                  <button type="button" class="btn btn-secondary btn-sm" onclick="alert('Edit supplier: Mitra Furnitur Indonesia');">Edit</button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+
+    <footer class="app-footer">
+      <div>&copy; 2026 <strong>Inventoria</strong> - Prototype Sistem Manajemen Inventory</div>
+      <div>Modul: Pemasok (Supplier)</div>
+    </footer>
+  </div>
+</div>
+
+</body>
+</html>

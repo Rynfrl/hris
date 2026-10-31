@@ -1,0 +1,185 @@
+/* ==========================================================================
+   RESPONSIVE.CSS - Breakpoints: Tablet (1024px) & Mobile (768px, 480px)
+   Inventoria - Web Manajemen Inventory
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Tablet (max-width: 1024px)
+   -------------------------------------------------------------------------- */
+@media (max-width: 1024px) {
+  :root {
+    --sidebar-width: 220px;
+    --spacing-xl: 20px;
+  }
+
+  .grid-cols-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .grid-dashboard-main {
+    grid-template-columns: 1fr;
+  }
+
+  .product-detail-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .header-search {
+    width: 240px;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Ponsel & Layar Kecil (max-width: 768px)
+   -------------------------------------------------------------------------- */
+@media (max-width: 768px) {
+  .app-container {
+    flex-direction: column;
+  }
+
+  /* Navigasi Sidebar berubah menjadi Navigation Bar Atas */
+  .sidebar {
+    width: 100%;
+    height: auto;
+    position: relative;
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .sidebar-brand {
+    padding: var(--spacing-sm) var(--spacing-md);
+  }
+
+  .nav-section-title {
+    display: none;
+  }
+
+  .sidebar-nav {
+    flex-direction: row;
+    overflow-x: auto;
+    padding: 6px var(--spacing-sm);
+    gap: 6px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .sidebar-nav::-webkit-scrollbar {
+    height: 4px;
+  }
+
+  .sidebar-nav::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+  }
+
+  .nav-item {
+    padding: 8px 12px;
+    white-space: nowrap;
+    font-size: var(--font-size-xs);
+  }
+
+  .sidebar-footer {
+    display: none;
+  }
+
+  /* Header pada Mobile */
+  .app-header {
+    padding: 0 var(--spacing-md);
+    height: 60px;
+  }
+
+  .header-search {
+    width: 160px;
+  }
+
+  /* Konten */
+  .content-area {
+    padding: var(--spacing-md);
+  }
+
+  .grid-cols-4,
+  .grid-cols-3,
+  .grid-cols-2 {
+    grid-template-columns: 1fr;
+  }
+
+  .form-grid-2 {
+    grid-template-columns: 1fr;
+  }
+
+  .detail-specs-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .quick-actions-bar {
+    flex-direction: column;
+  }
+
+  .quick-actions-bar .btn {
+    width: 100%;
+  }
+
+  .table-container {
+    margin-left: calc(-1 * var(--spacing-md));
+    margin-right: calc(-1 * var(--spacing-md));
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+    width: calc(100% + (2 * var(--spacing-md)));
+  }
+
+  .table th,
+  .table td {
+    padding: 10px 12px;
+  }
+
+  .pagination-wrapper {
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-sm);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Layar Sangat Kecil (max-width: 480px)
+   -------------------------------------------------------------------------- */
+@media (max-width: 480px) {
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .page-actions {
+    width: 100%;
+  }
+
+  .page-actions .btn {
+    width: 100%;
+  }
+
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .toolbar-filters {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .filter-input,
+  .filter-select {
+    width: 100%;
+  }
+
+  .form-actions {
+    flex-direction: column-reverse;
+  }
+
+  .form-actions .btn {
+    width: 100%;
+  }
+
+  .header-search {
+    display: none;
+  }
+}

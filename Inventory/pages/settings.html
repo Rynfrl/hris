@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Konfigurasi Pengaturan Sistem Inventory - Inventoria">
+  <title>Pengaturan Sistem - Inventoria</title>
+  <link rel="stylesheet" href="../assets/css/base.css">
+  <link rel="stylesheet" href="../assets/css/layout.css">
+  <link rel="stylesheet" href="../assets/css/components.css">
+  <link rel="stylesheet" href="../assets/css/pages.css">
+  <link rel="stylesheet" href="../assets/css/responsive.css">
+</head>
+<body>
+
+<div class="app-container">
+  <!-- SIDEBAR -->
+  <aside class="sidebar" aria-label="Navigasi Utama">
+    <a href="dashboard.html" class="sidebar-brand">
+      <div class="sidebar-brand-logo">
+        <img src="../assets/images/logo.svg" alt="Inventoria Logo" width="36" height="36">
+      </div>
+      <div class="sidebar-brand-text">
+        <span class="sidebar-brand-title">Inventoria</span>
+        <span class="sidebar-brand-subtitle">Inventory System</span>
+      </div>
+    </a>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-title">Menu Utama</div>
+      <a href="dashboard.html" class="nav-item">
+        <svg class="nav-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+        <span>Dashboard</span>
+      </a>
+      <a href="products.html" class="nav-item">
+        <svg class="nav-icon" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+        <span>Produk</span>
+      </a>
+
+      <div class="nav-section-title">Transaksi Stok</div>
+      <a href="stock-in.html" class="nav-item">
+        <svg class="nav-icon" viewBox="0 0 24 24"><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path></svg>
+        <span>Stok Masuk</span>
+      </a>
+      <a href="stock-out.html" class="nav-item">
+        <svg class="nav-icon" viewBox="0 0 24 24"><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path></svg>
+        <span>Stok Keluar</span>
+      </a>
+      <a href="stock-history.html" class="nav-item">
+        <svg class="nav-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+        <span>Riwayat Stok</span>
+      </a>
+
+      <div class="nav-section-title">Master Data</div>
+      <a href="suppliers.html" class="nav-item">
+        <svg class="nav-icon" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+        <span>Supplier</span>
+      </a>
+      <a href="categories.html" class="nav-item">
+        <svg class="nav-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+        <span>Kategori</span>
+      </a>
+
+      <div class="nav-section-title">Lainnya</div>
+      <a href="reports.html" class="nav-item">
+        <svg class="nav-icon" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+        <span>Laporan</span>
+      </a>
+      <a href="settings.html" class="nav-item active" aria-current="page">
+        <svg class="nav-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        <span>Pengaturan</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-snippet">
+        <div class="user-avatar">AP</div>
+        <div class="user-info">
+          <span class="user-name">Andi Pratama</span>
+          <span class="user-role">Admin Gudang</span>
+        </div>
+      </div>
+      <a href="../../logout.php" class="logout-link">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+        <span>Keluar Sistem</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- MAIN WRAPPER -->
+  <div class="main-wrapper">
+    <header class="app-header">
+      <div class="header-actions">
+        <div class="header-user-profile">
+          <div class="header-user-avatar">AP</div>
+          <span class="header-user-name text-bold" style="font-size: var(--font-size-xs);">Andi Pratama</span>
+        </div>
+      </div>
+    </header>
+
+    <main class="content-area">
+      <!-- Breadcrumb & Header -->
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a href="dashboard.html">Dashboard</a>
+        <span class="breadcrumb-separator">/</span>
+        <span>Pengaturan</span>
+      </nav>
+
+      <div class="page-header">
+        <div class="page-title-group">
+          <h1>Pengaturan Sistem</h1>
+          <p>Konfigurasi profil instansi, preferensi mata uang, format tanggal, dan batas notifikasi stok.</p>
+        </div>
+      </div>
+
+      <!-- Form Pengaturan -->
+      <div class="form-card">
+        <form action="#" method="post" onsubmit="alert('Pengaturan sistem berhasil disimpan secara lokal.'); return false;">
+          <!-- Seksi 1: Profil Perusahaan -->
+          <div class="settings-section">
+            <h2 class="settings-section-title">1. Informasi Perusahaan / Gudang</h2>
+            <div class="form-grid-2">
+              <div class="form-group">
+                <label for="company_name" class="form-label">Nama Perusahaan / Organisasi</label>
+                <input type="text" id="company_name" name="company_name" class="form-input" value="PT Inventoria Solusi Nusantara">
+              </div>
+
+              <div class="form-group">
+                <label for="company_npwp" class="form-label">Nomor Pokok Wajib Pajak (NPWP)</label>
+                <input type="text" id="company_npwp" name="company_npwp" class="form-input" value="01.234.567.8-901.000">
+              </div>
+
+              <div class="form-group">
+                <label for="company_email" class="form-label">Email Operasional</label>
+                <input type="email" id="company_email" name="company_email" class="form-input" value="inventory@inventoria.id">
+              </div>
+
+              <div class="form-group">
+                <label for="company_phone" class="form-label">Nomor Telepon Hotline</label>
+                <input type="tel" id="company_phone" name="company_phone" class="form-input" value="(021) 555-0192">
+              </div>
+
+              <div class="form-group form-grid-full">
+                <label for="company_address" class="form-label">Alamat Fasilitas Gudang Utama</label>
+                <textarea id="company_address" name="company_address" class="form-textarea" style="min-height: 70px;">Kawasan Industri Surya Cipta Kav. 18, Karawang Timur, Jawa Barat 41361</textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- Seksi 2: Format & Lokalisasi -->
+          <div class="settings-section">
+            <h2 class="settings-section-title">2. Format Mata Uang & Tanggal</h2>
+            <div class="form-grid-2">
+              <div class="form-group">
+                <label for="currency" class="form-label">Mata Uang Acuan</label>
+                <select id="currency" name="currency" class="form-select">
+                  <option value="idr" selected>IDR (Rp) - Indonesian Rupiah</option>
+                  <option value="usd">USD ($) - US Dollar</option>
+                  <option value="sgd">SGD (S$) - Singapore Dollar</option>
+                </select>
+                <span class="form-hint">Digunakan pada seluruh rekap harga beli, jual, dan valuasi aset.</span>
+              </div>
+
+              <div class="form-group">
+                <label for="date_format" class="form-label">Format Tampilan Tanggal</label>
+                <select id="date_format" name="date_format" class="form-select">
+                  <option value="d-m-y" selected>DD MMMM YYYY (Contoh: 16 September 2026)</option>
+                  <option value="d/m/y">DD/MM/YYYY (Contoh: 16/09/2026)</option>
+                  <option value="y-m-d">YYYY-MM-DD (Standar ISO: 2026-09-16)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Seksi 3: Kebijakan Stok & Notifikasi -->
+          <div class="settings-section">
+            <h2 class="settings-section-title">3. Ambang Batas Stok & Notifikasi</h2>
+            <div class="form-grid-2">
+              <div class="form-group">
+                <label for="default_threshold" class="form-label">Batas Default Produk Hampir Habis</label>
+                <input type="number" id="default_threshold" name="default_threshold" class="form-input" value="5" min="1">
+                <span class="form-hint">Nilai minimum stok default saat menambahkan produk baru tanpa konfigurasi manual.</span>
+              </div>
+
+              <div class="form-group">
+                <label for="theme_pref" class="form-label">Preferensi Tema Antarmuka</label>
+                <select id="theme_pref" name="theme_pref" class="form-select">
+                  <option value="light" selected>Light Mode (Standar Profesional)</option>
+                  <option value="dark">Dark Mode (Tersedia di versi berikutnya)</option>
+                  <option value="system">Mengikuti Pengaturan OS</option>
+                </select>
+              </div>
+
+              <div class="form-group form-grid-full">
+                <label class="checkbox-group" for="notify_low">
+                  <input type="checkbox" id="notify_low" name="notify_low" checked>
+                  <span class="text-bold">Tampilkan peringatan visual di header jika ada stok yang menipis/habis</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="form-actions">
+            <button type="reset" class="btn btn-secondary">Reset Pengaturan</button>
+            <button type="submit" class="btn btn-primary">
+              <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+              <span>Simpan Pengaturan</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </main>
+
+    <footer class="app-footer">
+      <div>&copy; 2026 <strong>Inventoria</strong> - Prototype Sistem Manajemen Inventory</div>
+      <div>Modul: Pengaturan Sistem</div>
+    </footer>
+  </div>
+</div>
+
+</body>
+</html>

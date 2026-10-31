@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Manajemen Kategori Produk - Inventoria">
+  <title>Kategori Produk - Inventoria</title>
+  <link rel="stylesheet" href="../assets/css/base.css">
+  <link rel="stylesheet" href="../assets/css/layout.css">
+  <link rel="stylesheet" href="../assets/css/components.css">
+  <link rel="stylesheet" href="../assets/css/pages.css">
+  <link rel="stylesheet" href="../assets/css/responsive.css">
+</head>
+<body>
+
+<div class="app-container">
+  <!-- SIDEBAR -->
+  <aside class="sidebar" aria-label="Navigasi Utama">
+    <a href="dashboard.html" class="sidebar-brand">
+      <div class="sidebar-brand-logo">
+        <img src="../assets/images/logo.svg" alt="Inventoria Logo" width="36" height="36">
+      </div>
+      <div class="sidebar-brand-text">
+        <span class="sidebar-brand-title">Inventoria</span>
+        <span class="sidebar-brand-subtitle">Inventory System</span>
+      </div>
+    </a>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-title">Menu Utama</div>
+      <a href="dashboard.html" class="nav-item">
+        <svg class="nav-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+        <span>Dashboard</span>
+      </a>
+      <a href="products.html" class="nav-item">
+        <svg class="nav-icon" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+        <span>Produk</span>
+      </a>
+
+      <div class="nav-section-title">Transaksi Stok</div>
+      <a href="stock-in.html" class="nav-item">
+        <svg class="nav-icon" viewBox="0 0 24 24"><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path></svg>
+        <span>Stok Masuk</span>
+      </a>
+      <a href="stock-out.html" class="nav-item">
+        <svg class="nav-icon" viewBox="0 0 24 24"><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path></svg>
+        <span>Stok Keluar</span>
+      </a>
+      <a href="stock-history.html" class="nav-item">
+        <svg class="nav-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+        <span>Riwayat Stok</span>
+      </a>
+
+      <div class="nav-section-title">Master Data</div>
+      <a href="suppliers.html" class="nav-item">
+        <svg class="nav-icon" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+        <span>Supplier</span>
+      </a>
+      <a href="categories.html" class="nav-item active" aria-current="page">
+        <svg class="nav-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+        <span>Kategori</span>
+      </a>
+
+      <div class="nav-section-title">Lainnya</div>
+      <a href="reports.html" class="nav-item">
+        <svg class="nav-icon" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+        <span>Laporan</span>
+      </a>
+      <a href="settings.html" class="nav-item">
+        <svg class="nav-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        <span>Pengaturan</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-snippet">
+        <div class="user-avatar">AP</div>
+        <div class="user-info">
+          <span class="user-name">Andi Pratama</span>
+          <span class="user-role">Admin Gudang</span>
+        </div>
+      </div>
+      <a href="../../logout.php" class="logout-link">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+        <span>Keluar Sistem</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- MAIN WRAPPER -->
+  <div class="main-wrapper">
+    <header class="app-header">
+      <div class="header-actions">
+        <div class="header-user-profile">
+          <div class="header-user-avatar">AP</div>
+          <span class="header-user-name text-bold" style="font-size: var(--font-size-xs);">Andi Pratama</span>
+        </div>
+      </div>
+    </header>
+
+    <main class="content-area">
+      <!-- Breadcrumb & Header -->
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a href="dashboard.html">Dashboard</a>
+        <span class="breadcrumb-separator">/</span>
+        <span>Kategori</span>
+      </nav>
+
+      <div class="page-header">
+        <div class="page-title-group">
+          <h1>Kategori Barang</h1>
+          <p>Pengelompokan barang untuk memudahkan filter inventaris dan analisis valuasi stok.</p>
+        </div>
+        <div class="page-actions">
+          <button type="button" class="btn btn-primary" onclick="alert('Form modal tambah kategori akan dibuka di fase selanjutnya.');">
+            <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            <span>Tambah Kategori</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Kartu Ringkasan Kategori (Grid 4 Kolom) -->
+      <div class="grid grid-cols-4" style="margin-bottom: var(--spacing-xl);">
+        <!-- 1. Elektronik -->
+        <div class="category-card">
+          <div class="category-top">
+            <div>
+              <h2 class="category-name">Elektronik</h2>
+              <span class="text-muted" style="font-size: 11px;">Kode: KAT-ELK</span>
+            </div>
+            <div class="category-icon">
+              <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+            </div>
+          </div>
+          <p class="category-desc">Laptop, mouse, keyboard mechanical, monitor resolusi tinggi, dan peripheral IT.</p>
+          <div class="category-footer">
+            <span class="category-item-count">4 Produk Terdaftar</span>
+            <a href="products.html" class="btn btn-secondary btn-sm">Lihat Produk</a>
+          </div>
+        </div>
+
+        <!-- 2. Perabot -->
+        <div class="category-card">
+          <div class="category-top">
+            <div>
+              <h2 class="category-name">Perabot</h2>
+              <span class="text-muted" style="font-size: 11px;">Kode: KAT-PBT</span>
+            </div>
+            <div class="category-icon" style="background-color: var(--color-info-light); color: var(--color-info);">
+              <svg viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"></path><rect x="3" y="3" width="18" height="18" rx="2"></rect></svg>
+            </div>
+          </div>
+          <p class="category-desc">Meja kerja workstation, kursi kantor ergonomis, lemari berkas, dan partisi ruangan.</p>
+          <div class="category-footer">
+            <span class="category-item-count">2 Produk Terdaftar</span>
+            <a href="products.html" class="btn btn-secondary btn-sm">Lihat Produk</a>
+          </div>
+        </div>
+
+        <!-- 3. Alat Kantor -->
+        <div class="category-card">
+          <div class="category-top">
+            <div>
+              <h2 class="category-name">Alat Kantor</h2>
+              <span class="text-muted" style="font-size: 11px;">Kode: KAT-ATK</span>
+            </div>
+            <div class="category-icon" style="background-color: var(--color-warning-light); color: var(--color-warning);">
+              <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+            </div>
+          </div>
+          <p class="category-desc">Kertas A4 berbagai gramatur, tinta printer, binder, dan perlengkapan tulis harian.</p>
+          <div class="category-footer">
+            <span class="category-item-count">2 Produk Terdaftar</span>
+            <a href="products.html" class="btn btn-secondary btn-sm">Lihat Produk</a>
+          </div>
+        </div>
+
+        <!-- 4. Perlengkapan -->
+        <div class="category-card">
+          <div class="category-top">
+            <div>
+              <h2 class="category-name">Perlengkapan</h2>
+              <span class="text-muted" style="font-size: 11px;">Kode: KAT-PKP</span>
+            </div>
+            <div class="category-icon" style="background-color: #EBF4FF; color: #6B46C1;">
+              <svg viewBox="0 0 24 24"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path><line x1="12" y1="2" x2="12" y2="12"></line></svg>
+            </div>
+          </div>
+          <p class="category-desc">Kabel LAN jaringan UTP Cat6, stop kontak listrik, surge protector, dan konektor RJ45.</p>
+          <div class="category-footer">
+            <span class="category-item-count">2 Produk Terdaftar</span>
+            <a href="products.html" class="btn btn-secondary btn-sm">Lihat Produk</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabel Detail Kategori & Aksi Pengelolaan -->
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h2 class="card-title">Tabel Rincian Kategori</h2>
+            <p class="card-subtitle">Pengaturan nama, slug, dan deskripsi kategori inventaris</p>
+          </div>
+        </div>
+        <div class="table-container" style="border: none; border-radius: 0;">
+          <table class="table">
+            <thead>
+              <tr>
+                <th scope="col">Nama Kategori</th>
+                <th scope="col">Deskripsi</th>
+                <th scope="col" style="text-align: center;">Jumlah Barang</th>
+                <th scope="col" style="text-align: right;">Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Elektronik</strong></td>
+                <td>Laptop, peripheral, komputer, monitor layar, dan aksesoris audio/video.</td>
+                <td style="text-align: center; font-weight: bold;">4 item</td>
+                <td style="text-align: right;">
+                  <div class="table-actions" style="justify-content: flex-end;">
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="alert('Edit kategori Elektronik');">Edit</button>
+                    <button type="button" class="btn btn-secondary btn-sm" style="color: var(--color-danger);" onclick="alert('Hapus kategori Elektronik');">Hapus</button>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><strong>Perabot</strong></td>
+                <td>Perlengkapan meja, kursi staf, filing cabinet, dan perabot kantor lainnya.</td>
+                <td style="text-align: center; font-weight: bold;">2 item</td>
+                <td style="text-align: right;">
+                  <div class="table-actions" style="justify-content: flex-end;">
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="alert('Edit kategori Perabot');">Edit</button>
+                    <button type="button" class="btn btn-secondary btn-sm" style="color: var(--color-danger);" onclick="alert('Hapus kategori Perabot');">Hapus</button>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><strong>Alat Kantor</strong></td>
+                <td>Alat tulis kantor (ATK), kertas cetak, toner, dan tinta printer.</td>
+                <td style="text-align: center; font-weight: bold;">2 item</td>
+                <td style="text-align: right;">
+                  <div class="table-actions" style="justify-content: flex-end;">
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="alert('Edit kategori Alat Kantor');">Edit</button>
+                    <button type="button" class="btn btn-secondary btn-sm" style="color: var(--color-danger);" onclick="alert('Hapus kategori Alat Kantor');">Hapus</button>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><strong>Perlengkapan</strong></td>
+                <td>Kabel jaringan Ethernet, extension daya listrik, dan perlengkapan utilitas gudang.</td>
+                <td style="text-align: center; font-weight: bold;">2 item</td>
+                <td style="text-align: right;">
+                  <div class="table-actions" style="justify-content: flex-end;">
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="alert('Edit kategori Perlengkapan');">Edit</button>
+                    <button type="button" class="btn btn-secondary btn-sm" style="color: var(--color-danger);" onclick="alert('Hapus kategori Perlengkapan');">Hapus</button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+
+    <footer class="app-footer">
+      <div>&copy; 2026 <strong>Inventoria</strong> - Prototype Sistem Manajemen Inventory</div>
+      <div>Modul: Kategori Barang</div>
+    </footer>
+  </div>
+</div>
+
+</body>
+</html>

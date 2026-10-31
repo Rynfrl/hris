@@ -1,0 +1,314 @@
+/**
+ * Expenses - Custom Project CSS
+ * Design tokens and responsive styles
+ */
+
+:root {
+    --gt-primary: #2563EB;
+    --gt-primary-hover: #1D4ED8;
+    --gt-primary-subtle: #EFF6FF;
+    --gt-bg: #F8FAFC;
+    --gt-surface: #FFFFFF;
+    --gt-text-primary: #0F172A;
+    --gt-text-secondary: #64748B;
+    --gt-border: #E2E8F0;
+    --gt-success: #15803D;
+    --gt-warning: #B45309;
+    --gt-danger: #B91C1C;
+    --gt-info: #0369A1;
+    --gt-font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+body {
+    background-color: var(--gt-bg);
+    color: var(--gt-text-primary);
+    font-family: var(--gt-font-sans);
+    min-height: 100vh;
+}
+
+/* Layout */
+.app-wrapper {
+    display: flex;
+    min-height: 100vh;
+}
+
+.sidebar {
+    width: 260px;
+    background-color: var(--gt-surface);
+    border-right: 1px solid var(--gt-border);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    transition: all 0.2s ease-in-out;
+}
+
+.sidebar-brand {
+    padding: 1.25rem 1.5rem;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--gt-primary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-bottom: 1px solid var(--gt-border);
+    text-decoration: none;
+}
+
+.sidebar-nav {
+    padding: 1rem 0.75rem;
+    flex: 1;
+    overflow-y: auto;
+}
+
+.nav-section-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--gt-text-secondary);
+    padding: 0.75rem 0.75rem 0.25rem 0.75rem;
+}
+
+.sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.625rem 0.75rem;
+    color: var(--gt-text-secondary);
+    text-decoration: none;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    font-size: 0.9375rem;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.sidebar-link:hover {
+    background-color: var(--gt-primary-subtle);
+    color: var(--gt-primary);
+}
+
+.sidebar-link.active {
+    background-color: var(--gt-primary-subtle);
+    color: var(--gt-primary);
+    font-weight: 600;
+}
+
+.main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.top-navbar {
+    background-color: var(--gt-surface);
+    border-bottom: 1px solid var(--gt-border);
+    padding: 0.75rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.content-body {
+    padding: 1.75rem;
+    flex: 1;
+}
+
+/* Cards & Surface */
+.card-gt {
+    background-color: var(--gt-surface);
+    border: 1px solid var(--gt-border);
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+}
+
+.metric-card {
+    padding: 1.25rem;
+    border-radius: 0.75rem;
+    background: var(--gt-surface);
+    border: 1px solid var(--gt-border);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.metric-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.metric-label {
+    font-size: 0.8125rem;
+    color: var(--gt-text-secondary);
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+}
+
+.metric-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--gt-text-primary);
+}
+
+/* Status Badges */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.625rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: 9999px;
+    line-height: 1;
+}
+
+.badge-draft {
+    background-color: #F1F5F9;
+    color: #475569;
+    border: 1px solid #CBD5E1;
+}
+
+.badge-submitted {
+    background-color: #FEF3C7;
+    color: #92400E;
+    border: 1px solid #FDE68A;
+}
+
+.badge-approved {
+    background-color: #DCFCE7;
+    color: #166534;
+    border: 1px solid #BBF7D0;
+}
+
+.badge-refused {
+    background-color: #FEE2E2;
+    color: #991B1B;
+    border: 1px solid #FECACA;
+}
+
+.badge-posted {
+    background-color: #E0E7FF;
+    color: #3730A3;
+    border: 1px solid #C7D2FE;
+}
+
+.badge-reimbursement-pending {
+    background-color: #FFEDD5;
+    color: #9A3412;
+    border: 1px solid #FED7AA;
+}
+
+.badge-paid {
+    background-color: #D1FAE5;
+    color: #065F46;
+    border: 1px solid #A7F3D0;
+}
+
+.badge-cancelled {
+    background-color: #F3F4F6;
+    color: #6B7280;
+    border: 1px solid #E5E7EB;
+}
+
+/* Buttons */
+.btn-primary {
+    background-color: var(--gt-primary);
+    border-color: var(--gt-primary);
+}
+
+.btn-primary:hover, .btn-primary:focus {
+    background-color: var(--gt-primary-hover);
+    border-color: var(--gt-primary-hover);
+}
+
+.btn-outline-primary {
+    color: var(--gt-primary);
+    border-color: var(--gt-primary);
+}
+
+.btn-outline-primary:hover {
+    background-color: var(--gt-primary);
+    color: #FFF;
+}
+
+/* Forms */
+.form-label {
+    font-weight: 500;
+    font-size: 0.875rem;
+    color: var(--gt-text-primary);
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--gt-primary);
+    box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.15);
+}
+
+/* Tables */
+.table-gt th {
+    font-size: 0.8125rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--gt-text-secondary);
+    background-color: #F8FAFC;
+    border-bottom: 1px solid var(--gt-border);
+    font-weight: 600;
+}
+
+.table-gt td {
+    vertical-align: middle;
+    font-size: 0.875rem;
+    border-bottom: 1px solid var(--gt-border);
+}
+
+/* Timeline */
+.timeline {
+    position: relative;
+    padding-left: 1.5rem;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0.4rem;
+    width: 2px;
+    background-color: var(--gt-border);
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 1.25rem;
+}
+
+.timeline-dot {
+    position: absolute;
+    left: -1.5rem;
+    top: 0.25rem;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: var(--gt-primary);
+    border: 2px solid #FFF;
+    box-shadow: 0 0 0 2px var(--gt-primary-subtle);
+}
+
+/* Responsive */
+@media (max-width: 991.98px) {
+    .sidebar {
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        left: -260px;
+        z-index: 1045;
+    }
+    .sidebar.show {
+        left: 0;
+    }
+    .sidebar-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.4);
+        z-index: 1040;
+    }
+}
