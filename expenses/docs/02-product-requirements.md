@@ -2,12 +2,12 @@
 
 ## 1. Sasaran rilis
 
-GT Expense MVP adalah modul web expense management/reimbursement untuk satu perusahaan, diintegrasikan ke database `erp_database` yang disediakan pengguna. UI berbahasa Indonesia, mata uang IDR, timezone `Asia/Jakarta`.
+GT Expense MVP adalah modul web expense management/reimbursement untuk satu perusahaan, diintegrasikan ke database `hris` (atau `erp_database` untuk setup standalone). UI berbahasa Indonesia, mata uang IDR, timezone `Asia/Jakarta`.
 
 ## 2. Asumsi operasional
 
 - PHP native 8.2+; MySQL 8.0+ melalui PDO; HTML5, Bootstrap 5.3, CSS proyek, JavaScript native.
-- Database baseline yang wajib dipakai ada di `database/erp_database.sql`; jangan menduplikasi tabel inti.
+- Database baseline yang wajib dipakai adalah `hris` (skema terpadu `Database/hris.sql`) atau `database/erp_database.sql` (skema baseline modul); jangan menduplikasi tabel inti.
 - Setiap akun karyawan dipetakan ke `employees` melalui `users.employee_id`. Manager langsung dibaca dari `employees.manager_id`.
 - Karyawan membuat expense individual dan mengelompokkannya ke report melalui `expense_report_items`.
 - Report adalah unit submit dan keputusan approval.

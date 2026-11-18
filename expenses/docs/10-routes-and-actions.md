@@ -95,4 +95,5 @@ Gunakan satu front controller `public/index.php` dan route eksplisit berdasarkan
 - Sort key dipetakan ke daftar kolom tetap; jangan menyisipkan input pengguna ke SQL.
 - Jangan melakukan perubahan data melalui GET.
 - Setiap endpoint menjalankan autentikasi, permission check, record-level authorization, dan CSRF untuk request state-changing.
+- Resolusi path menggunakan class helper `App\Core\Url::to()` yang secara otomatis mendeteksi base path, sehingga bekerja transparan baik saat diakses secara mandiri (`http://127.0.0.1:8000/`) maupun sebagai sub-modul terintegrasi (`http://localhost/hris/expenses/`).
 - Sesudah POST sukses, gunakan redirect + flash message. Unduh receipt harus mengambil path dari record database setelah izin diverifikasi, bukan dari parameter path bebas.

@@ -2,14 +2,15 @@
 
 ## 1. Aturan utama
 
-File database yang diberikan pengguna adalah sumber kebenaran skema: [`../database/erp_database.sql`](../database/erp_database.sql). Database bernama `erp_database`, target MySQL 8.0+, InnoDB, dan charset `utf8mb4`.
+Sumber kebenaran skema data terpadu adalah basis data `hris` ([`../../Database/hris.sql`](../../Database/hris.sql)) untuk seluruh ekosistem HRIS & ERP, serta skema baseline mandiri [`../database/erp_database.sql`](../database/erp_database.sql). Database menggunakan MySQL 8.0+, engine InnoDB, dan charset `utf8mb4`.
 
 **Jangan** membuat ulang versi alternatif dari `users`, `employees`, `roles`, `permissions`, `departments`, `expense_categories`, `expenses`, `expense_reports`, `expense_report_items`, `expense_approvals`, `reimbursements`, atau tabel audit. Gunakan nama kolom dan enum yang benar-benar ada pada SQL sumber. Jangan menjalankan ulang file SQL utama sebagai migration.
 
-Paket dokumentasi memuat dua perubahan tambahan yang disengaja:
+Paket migrasi dan seed tambahan yang melengkapi modul Expenses:
 
-- [`../database/seeds/gt_expense_roles_permissions.sql`](../database/seeds/gt_expense_roles_permissions.sql) menambahkan role `EMPLOYEE`, permission posting/reimbursement, dan mapping permission modul GT Expense.
-- [`../database/migrations/001_gt_expense_integrity.sql`](../database/migrations/001_gt_expense_integrity.sql) menambahkan unique constraint satu expense per report, satu reimbursement per report, dan tabel komentar laporan. Baca precheck dan buat backup sebelum menerapkan migration.
+- [`../database/seeds/gt_expense_roles_permissions.sql`](../database/seeds/gt_expense_roles_permissions.sql) menambahkan role `EMPLOYEE`, permission posting/reimbursement, dan mapping permission modul Expenses.
+- [`../database/migrations/001_gt_expense_integrity.sql`](../database/migrations/001_gt_expense_integrity.sql) menambahkan unique constraint satu expense per report, satu reimbursement per report, dan tabel komentar laporan (`expense_comments`).
+- [`../database/migrations/002_add_bank_name_to_expenses.sql`](../database/migrations/002_add_bank_name_to_expenses.sql) menambahkan kolom pilihan bank/rekening transfer (`bank_name VARCHAR(100) NULL AFTER payment_method`) pada tabel `expenses`.
 
 ## 2. Tabel autentikasi dan organisasi
 

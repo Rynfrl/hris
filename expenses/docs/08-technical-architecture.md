@@ -7,12 +7,12 @@ Arsitektur sederhana berlapis di PHP native: entry point/routing, middleware rin
 ## Struktur folder yang disarankan
 
 ```text
-gt-expense/
+gt-expense/ (atau expenses/ di dalam repositori HRIS)
 ├── app/
-│   ├── Core/                 # Router, Database, Session, View, CSRF, Flash
+│   ├── Core/                 # Router, Database, Session, View, CSRF, Flash, Url
 │   ├── Middleware/           # AuthRequired, Role/permission checks
 │   ├── Controllers/          # Request orchestration
-│   ├── Services/             # Workflow, Authorization, Upload, CSV, Audit
+│   ├── Services/             # Workflow, Authorization, Upload, CSV, Audit, Dashboard
 │   ├── Repositories/         # PDO queries
 │   └── Views/
 │       ├── layouts/
@@ -24,11 +24,11 @@ gt-expense/
 │       ├── reimbursements/
 │       ├── settings/
 │       └── errors/
-├── config/                   # App and DB configuration from environment
+├── config/                   # App and DB configuration from environment / parent
 ├── database/
 │   ├── erp_database.sql       # baseline dari pengguna; jangan re-import di runtime
-│   ├── migrations/            # migration tambahan, dicatat dalam schema_migrations
-│   └── seeds/                 # role/permission GT Expense + demo via PHP CLI
+│   ├── migrations/            # 001_gt_expense_integrity.sql & 002_add_bank_name_to_expenses.sql
+│   └── seeds/                 # gt_expense_roles_permissions.sql & seed demo via PHP CLI
 ├── public/
 │   ├── index.php             # Single entry point
 │   ├── .htaccess             # If Apache is used
@@ -76,7 +76,7 @@ gt-expense/
 
 ## Database dan konsistensi
 
-- Integrasikan ke `erp_database` yang disediakan pengguna; baca `docs/21-existing-database-integration.md` dan gunakan nama kolom/status nyata dari `database/erp_database.sql`. Jangan menciptakan versi kedua tabel expense.
+- Integrasikan ke database sentral `hris` (atau `erp_database` untuk pengujian standalone); baca `docs/21-existing-database-integration.md` dan gunakan nama kolom/status nyata dari `Database/hris.sql` dan `database/erp_database.sql`. Jangan menciptakan versi kedua tabel expense.
 - `expenses` terhubung ke `expense_reports` melalui `expense_report_items`; receipt tunggal menggunakan kolom `receipt_*`.
 - User role dibaca melalui `users.role_id → roles.role_id`; employee ownership melalui `users.employee_id`; direct manager melalui `employees.manager_id`.
 - Gunakan InnoDB.

@@ -31,7 +31,7 @@ Field: nomor report unik, title, employee, rentang tanggal opsional, deskripsi, 
 
 Aksi owner: buat report, masukkan expense draft milik employee yang sama, edit ketika draft, submit, revisi report refused, lihat timeline/comment. Detail item disimpan di `expense_report_items`; tidak ada kolom `expenses.report_id`.
 
-Aksi manager: antrean report `SUBMITTED`, lihat item dan receipt, approve/refuse dengan alasan wajib. Hanya manager yang terkait lewat `employees.manager_id` dan memiliki permission yang boleh membuat keputusan.
+Aksi manager: antrean report `SUBMITTED`, lihat item dan receipt, approve/refuse dengan alasan wajib. Hanya manager yang terkait lewat `employees.manager_id` dan memiliki permission yang boleh membuat keputusan. Sesuai keputusan D-018, peran Manager difokuskan murni sebagai peninjau/approver dan tidak memiliki akses untuk menambah pengeluaran baru maupun membuat laporan klaim pribadi demi menjaga pemisahan tugas (*segregation of duties*).
 
 ## E. Posting dan reimbursement
 

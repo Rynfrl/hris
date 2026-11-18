@@ -11,10 +11,10 @@ Implementasikan per fase. Database baseline sudah disediakan; jangan membuat ula
 
 ## Fase 1 — Audit dan integrasi database
 
-- Baca `database/erp_database.sql` dan verifikasi versi MySQL, tabel, kolom, foreign key, enum, serta index.
-- Sambungkan PDO ke `erp_database`; jangan generate ulang tabel baseline.
-- Jalankan seed role/permission GT Expense.
-- Buat migration tracking dan terapkan `001_gt_expense_integrity.sql` setelah precheck/backup.
+- Baca `Database/hris.sql` serta `database/erp_database.sql` dan verifikasi versi MySQL, tabel, kolom, foreign key, enum, serta index.
+- Sambungkan PDO ke `hris` (atau `erp_database` untuk standalone); jangan generate ulang tabel baseline.
+- Jalankan seed role/permission modul Expenses.
+- Buat migration tracking dan terapkan `001_gt_expense_integrity.sql` serta `002_add_bank_name_to_expenses.sql` via runner `php bin/migrate.php`.
 - Buat repository/query sesuai schema, `Database` wrapper, CSRF, flash, validation, dan audit foundation.
 
 **Exit criteria:** aplikasi terhubung ke database; query memakai nama kolom valid; seed tidak menimpa data; migration tercatat; tidak ada tabel duplikat.

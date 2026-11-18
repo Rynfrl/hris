@@ -12,6 +12,7 @@ Semua validasi penting harus dilakukan di PHP/server. JavaScript hanya membantu 
 - `notes`: opsional; batas ditetapkan aplikasi.
 - `currency`: tetapkan `IDR` untuk MVP meskipun kolomnya `CHAR(3)`.
 - `payment_method`: gunakan allowlist internal yang terdokumentasi karena kolom database berupa `VARCHAR(50)`.
+- `bank_name`: opsional maksimal 100 karakter (Migration 002) untuk mencatat nama bank / rekening pembayaran yang digunakan (default otomatis dari profil rekening karyawan).
 - `employee_id` dan `created_by` diisi berdasarkan session dan pemetaan `users.employee_id`, bukan dari browser.
 - Untuk menyederhanakan pembayaran MVP, expense baru diset `is_reimbursable = 1` dan `is_reinvoiceable = 0`; flags tidak boleh diubah melalui input bebas.
 - `expense_number` dibuat di server dan dijamin unik oleh constraint database.

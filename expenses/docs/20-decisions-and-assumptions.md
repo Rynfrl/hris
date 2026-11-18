@@ -10,7 +10,7 @@ Dokumen ini menyimpan keputusan produk/teknis yang memengaruhi implementasi. Tam
 | D-002 | Currency hanya IDR | Membatasi kompleksitas kurs dan pembulatan |
 | D-003 | PHP native tanpa framework | Persyaratan stack |
 | D-004 | Bootstrap 5.3 + JS native tanpa jQuery | Persyaratan stack frontend |
-| D-005 | Gunakan database `erp_database` dari SQL pengguna | Menjaga integrasi dengan skema existing dan menghindari tabel duplikat |
+| D-005 | Gunakan database terpadu `hris` (dengan fallback `erp_database` untuk pengujian standalone) | Menjaga integrasi satu pintu dengan skema HRIS & ERP serta menghindari tabel duplikat |
 | D-006 | Satu perusahaan per instalasi GT Expense | Scope MVP |
 | D-007 | Report adalah unit approval | Keputusan dibuat atas kumpulan expense |
 | D-008 | Manager scope berdasarkan `employees.manager_id` | Kolom manager berada di employee, bukan users/report |
@@ -24,6 +24,7 @@ Dokumen ini menyimpan keputusan produk/teknis yang memengaruhi implementasi. Tam
 | D-016 | Integrasi Chart.js 4.4 UMD mandiri (offline) untuk visualisasi Dashboard & Analitik | Menyediakan visualisasi tren bulanan dan komposisi kategori yang interaktif tanpa menambah dependensi npm/Composer atau CDN eksternal di runtime |
 | D-017 | Penambahan kolom pilihan bank (`bank_name VARCHAR(100) NULL`) di tabel expenses via Migration 002 | Memfasilitasi pilihan bank transaksi/rekening pembayaran saat pencatatan dan perbaikan pengeluaran (default sesuai bank profil karyawan) |
 | D-018 | Penghapusan fitur tambah pengeluaran dan buat laporan pada peran MANAGER | Memastikan pemisahan peran yang tegas (*strict segregation*); Manajer bertindak murni sebagai peninjau dan pemberi persetujuan (*Approver*) atas pengajuan tim bawahan |
+| D-019 | Standarisasi nama cookie sesi `expenses_session` dan integrasi SSO portal HRIS | Memungkinkan pengguna login satu pintu di portal utama HRIS dan langsung mengakses modul Expenses tanpa login ulang |
 
 ## Asumsi yang perlu dikonfirmasi sebelum skala besar
 

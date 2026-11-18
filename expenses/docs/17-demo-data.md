@@ -12,15 +12,15 @@ Seed ini hanya untuk development/demo; jangan menjalankannya terhadap database p
 
 ## Akun demo yang disarankan
 
-| Nama | Role DB | Email contoh | Employee mapping |
-|---|---|---|---|
-| Admin GT Expense | `ADMIN` | `admin@example.test` | Opsional |
-| Rina Manajer | `MANAGER` | `manager@example.test` | Employee manager |
-| Budi Santoso | `EMPLOYEE` | `budi@example.test` | Employee bawahannya Rina |
-| Sari Putri | `EMPLOYEE` | `sari@example.test` | Employee bawahannya Rina |
-| Dimas Finance | `FINANCE` | `finance@example.test` | Opsional |
+| Nama | Username | Role DB | Email contoh | Kata Sandi Standar | Employee mapping |
+|---|---|---|---|---|---|
+| Admin GT Expense | `admin_gte` | `ADMIN` | `admin@example.test` | `Password123!` | Opsional (EMP-0105) |
+| Rina Manajer | `rina_manager` | `MANAGER` | `manager@example.test` | `Password123!` | Employee manager (EMP-0101) |
+| Budi Santoso | `budi_employee` | `EMPLOYEE` | `budi@example.test` | `Password123!` | Employee bawahannya Rina (EMP-0102) |
+| Sari Putri | `sari_employee` | `EMPLOYEE` | `sari@example.test` | `Password123!` | Employee bawahannya Rina (EMP-0103) |
+| Dimas Finance | `dimas_finance` | `FINANCE` | `finance@example.test` | `Password123!` | Opsional (EMP-0104) |
 
-Semua password demo harus dummy, didokumentasikan untuk developer lokal, dan diganti sebelum deployment. Jangan menggunakan kredensial demo di production.
+Semua password demo harus dummy, didokumentasikan untuk developer lokal (`Password123!`), dan diganti sebelum deployment produksi. Jangan menggunakan kredensial demo di production.
 
 ## Data organisasi
 

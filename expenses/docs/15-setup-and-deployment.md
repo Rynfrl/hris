@@ -11,17 +11,19 @@
 
 ## Setup lokal
 
-1. Salin proyek dan masuk ke folder root.
-2. Buat database development terpisah atau gunakan server database baru untuk schema baseline.
-3. Baca `database/README.md`. SQL baseline mengandung operasi `DROP TABLE` pada beberapa tabel dan tidak aman untuk diimpor ulang ke database berisi data.
-4. Impor `database/erp_database.sql` satu kali, misalnya dengan `mysql -u root -p < database/erp_database.sql` atau phpMyAdmin Import. Script membuat/memilih `erp_database`.
-5. Jalankan `database/seeds/gt_expense_roles_permissions.sql`.
-6. Terapkan `database/migrations/001_gt_expense_integrity.sql` satu kali setelah menjalankan precheck dan backup.
-7. Konfigurasikan `.env`/environment dengan `DB_DATABASE=erp_database` dan user DB berizin minimum.
-8. Buat akun demo melalui seed PHP CLI dengan `password_hash()`; jangan memasukkan password plaintext ke SQL.
-9. Pastikan `storage/receipts` dan `storage/logs` writable oleh proses PHP tetapi tidak dapat diakses lewat HTTP.
-10. Jalankan web server dengan document root `public/`; secara lokal `php -S 127.0.0.1:8000 -t public` dapat dipakai.
-11. Uji login, receipt privacy, role scope, workflow status, dan acceptance test.
+1. Salin repositori proyek dan letakkan di root web server lokal (misalnya Laragon/XAMPP).
+2. Buat database `hris` (atau `erp_database` jika standalone).
+3. Baca `database/README.md`. File baseline mengandung operasi `DROP TABLE` pada beberapa tabel dan tidak aman untuk diimpor ulang ke database yang telah terisi data operasional.
+4. Impor skema data awal:
+   - Untuk sistem terintegrasi: impor `Database/hris.sql` ke database `hris`.
+   - Untuk standalone modul Expenses: impor `database/erp_database.sql`.
+5. Jalankan runner migrasi untuk menerapkan migrasi 001 dan migrasi 002: `php bin/migrate.php`.
+6. Terapkan seed role dan permission: `php bin/seed_roles.php`.
+7. Konfigurasikan file `.env` dengan `DB_DATABASE=hris` (atau `erp_database` untuk standalone).
+8. Buat akun demo melalui PHP CLI: `php bin/seed_demo.php` dengan kata sandi ter-hash `password_hash()`.
+9. Pastikan folder `storage/receipts` dan `storage/logs` memiliki izin tulis (writable) oleh proses PHP dan tidak dapat diakses langsung via HTTP.
+10. Jalankan aplikasi melalui portal web HRIS (`http://localhost/hris/`) atau jalankan mandiri dengan `php -S 127.0.0.1:8000 -t public`.
+11. Uji fungsionalitas dan alur kerja menggunakan suite acceptance test: `php tests/acceptance_test.php`.
 
 Jangan menjalankan SQL baseline setiap kali aplikasi start. Buat migration runner yang melacak migration tambahan melalui tabel `schema_migrations`.
 

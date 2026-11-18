@@ -4,10 +4,12 @@ Dokumen ini menjelaskan cara membangun GT Expense di atas file database ERP yang
 
 ## Sumber yang wajib diikuti
 
-- SQL baseline: [`../database/erp_database.sql`](../database/erp_database.sql)
-- Panduan impor: [`../database/README.md`](../database/README.md)
-- Seed permission GT Expense: [`../database/seeds/gt_expense_roles_permissions.sql`](../database/seeds/gt_expense_roles_permissions.sql)
+- Basis data sentral HRIS & ERP: [`../../Database/hris.sql`](../../Database/hris.sql)
+- SQL baseline modul standalone: [`../database/erp_database.sql`](../database/erp_database.sql)
+- Panduan impor basis data: [`../database/README.md`](../database/README.md)
+- Seed permission modul Expenses: [`../database/seeds/gt_expense_roles_permissions.sql`](../database/seeds/gt_expense_roles_permissions.sql)
 - Migration penambahan integritas: [`../database/migrations/001_gt_expense_integrity.sql`](../database/migrations/001_gt_expense_integrity.sql)
+- Migration penambahan rekening bank: [`../database/migrations/002_add_bank_name_to_expenses.sql`](../database/migrations/002_add_bank_name_to_expenses.sql)
 
 Baca file SQL sebenarnya, bukan hanya ringkasan dokumentasi. Bila nama/tipe kolom pada SQL sumber berbeda dari contoh pada dokumen lain, SQL sumber menjadi kontrak teknis dan dokumen yang bertentangan harus diperbaiki.
 
@@ -81,13 +83,16 @@ Status reimbursement (`PENDING`, `PROCESSING`, `PAID`, `FAILED`, `CANCELLED`) da
 
 ## Perubahan skema tambahan
 
-Migration `001_gt_expense_integrity.sql` menambah aturan yang tidak dijamin file asli:
+Migrasi tambahan melengkapi aturan dan kebutuhan data yang belum dijamin skema awal:
 
-- Satu `expense_id` paling banyak ada pada satu report.
-- Satu report paling banyak memiliki satu record reimbursement.
-- Report memiliki tabel komentar umum.
+1. **`001_gt_expense_integrity.sql`**:
+   - Satu `expense_id` paling banyak ada pada satu report (`uq_eri_expense_id`).
+   - Satu report paling banyak memiliki satu record reimbursement (`uq_reimbursements_report_id`).
+   - Report memiliki tabel komentar umum (`expense_comments`).
+2. **`002_add_bank_name_to_expenses.sql`**:
+   - Menambahkan kolom `bank_name VARCHAR(100) NULL` pada tabel `expenses` untuk memfasilitasi pilihan bank transaksi/rekening pembayaran karyawan.
 
-Sebelum menambahkan unique index pada database yang sudah berisi data, jalankan query precheck di awal migration dan tinjau hasilnya. Migration tidak boleh membersihkan konflik data secara otomatis.
+Sebelum menambahkan unique index pada database yang sudah berisi data, runner `php bin/migrate.php` menjalankan query precheck di awal migrasi. Migrasi tidak boleh membersihkan konflik data secara otomatis.
 
 ## Hal yang tidak boleh dilakukan AI
 

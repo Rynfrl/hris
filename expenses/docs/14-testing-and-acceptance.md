@@ -6,9 +6,11 @@ Uji aturan business/service, integrasi database, dan alur UI/HTTP. Test memakai 
 
 ## Database dan autentikasi
 
-- AC-DB-01: Aplikasi terhubung ke database `erp_database` dan memakai kolom yang benar-benar ada pada SQL sumber.
+- AC-DB-01: Aplikasi terhubung ke database `hris` (atau `erp_database` untuk standalone) dan memakai kolom yang benar-benar ada pada SQL sumber.
 - AC-DB-02: Setup tidak membuat tabel kedua `users`, `expenses`, `expense_reports`, atau `expense_categories`.
 - AC-DB-03: Seed GT Expense menambahkan role/permission/mapping tanpa menimpa akun atau password existing.
+- AC-MIG-01: Migration 001 tercatat dan tabel `expense_comments` tersedia.
+- AC-MIG-02: Migration 002 tercatat dan kolom `bank_name` tersedia pada tabel `expenses`.
 - AC-AUTH-01: Login kredensial valid membuat sesi setelah validasi `users.is_active`.
 - AC-AUTH-02: Password salah, akun tak dikenal, dan user nonaktif menghasilkan pesan aman.
 - AC-AUTH-03: Session ID berubah setelah login.
@@ -18,6 +20,7 @@ Uji aturan business/service, integrasi database, dan alur UI/HTTP. Test memakai 
 ## Expenses
 
 - AC-EXP-01: Employee aktif dengan `users.employee_id` valid dapat membuat expense draft dan data tersimpan.
+- AC-EXP-01c: Kolom `bank_name` tersimpan dan diperbarui dengan benar pada expense draft.
 - AC-EXP-02: Nominal nol/negatif, tanggal invalid, kategori nonaktif, atau deskripsi kosong ditolak oleh server.
 - AC-EXP-03: User tidak dapat mengubah/menghapus expense orang lain lewat manipulasi ID.
 - AC-EXP-04: Expense non-`DRAFT` tidak dapat diedit lewat endpoint draft.
@@ -46,15 +49,17 @@ Uji aturan business/service, integrasi database, dan alur UI/HTTP. Test memakai 
 - AC-PAY-05: Mark paid menyinkronkan record reimbursement, report, expense, tanggal, metode, aktor, dan audit secara atomik.
 - AC-PAY-06: Finance yang tidak memiliki scope/permission tidak bisa membayar laporan melalui POST langsung.
 
-## Roles, reports, export
+## Roles, reports, export, and visual analytics
 
 - AC-RBAC-01: Employee hanya dapat melihat expense/report sendiri.
 - AC-RBAC-02: Manager hanya dapat melihat/memutuskan report direct report.
 - AC-RBAC-03: Finance memiliki akses posting/reimbursement, bukan approval manager.
 - AC-RBAC-04: User non-admin mendapat 403 pada pengelolaan master data.
+- AC-RBAC-05: Peran Manager tidak memiliki hak membuat pengeluaran dan laporan klaim pribadi (D-018).
 - AC-CSV-01: Export menerapkan filter dan authorization scope yang sama dengan list.
-- AC-CSV-02: Teks mirip formula spreadsheet tidak dieksekusi.
+- AC-CSV-02: Teks mirip formula spreadsheet tidak dieksekusi (proteksi CSV injection).
 - AC-DASH-01: Angka dashboard cocok dengan query agregat yang mendasarinya.
+- AC-CHART-01 - AC-CHART-05: Integrasi Chart.js UMD mandiri (offline) dan visualisasi tren pengeluaran serta distribusi kategori di dashboard & analitik.
 
 ## Security regression checklist
 

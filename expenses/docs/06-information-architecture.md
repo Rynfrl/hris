@@ -2,31 +2,38 @@
 
 ## Navigasi utama
 
-### Semua pengguna yang login
+### Menu Umum (Semua Pengguna Login)
 
-- Dashboard
-- Pengeluaran Saya
-- Laporan Saya
-- Profil/Akun
+- Dashboard (disesuaikan dengan peran pengguna)
+- Profil Akun & Informasi Pegawai
+- Logout (POST + CSRF)
 
-### Manager
+### Employee (Karyawan)
 
-- Persetujuan Tim
-- Laporan Tim
+- Pengeluaran Saya (Pencatatan draft & unggah kuitansi)
+- Laporan Saya (Pembuatan, penggabungan expense, submit klaim, revisi refused)
 
-### Finance
+### Manager (Peninjau / Approver)
 
-- Menunggu Reimbursement
-- Laporan Pengeluaran
-- Laporan/Export
+- Persetujuan Tim (Antrean laporan berstatus `SUBMITTED` dari bawahan langsung)
+- Laporan Tim (Pemantauan riwayat laporan bawahan langsung)
+- Analitik Tim (Grafik pengeluaran khusus divisi yang dipimpin)
+*(Catatan: Sesuai D-018, Manajer tidak memiliki menu pencatatan pengeluaran atau pengajuan klaim pribadi).*
 
-### Admin
+### Finance (Keuangan)
 
-- Pengguna
-- Departemen
-- Kategori Pengeluaran
-- Audit Log
-- Pengaturan aplikasi sederhana
+- Pembukuan / Posting (Antrean laporan `APPROVED` yang menunggu pembukuan)
+- Reimbursement (Antrean laporan `POSTED`/`REIMBURSEMENT_PENDING` yang menunggu pembayaran)
+- Laporan Pengeluaran Organisasi
+- Analitik & Ekspor CSV
+
+### Admin (Administrator Sistem)
+
+- Manajemen Pengguna & Pemetaan Karyawan (`/settings/users`)
+- Master Kategori Pengeluaran (`/settings/categories`)
+- Master Departemen / Divisi (`/settings/departments`)
+- Audit Log & Rekam Jejak Keamanan (`/settings/audit-logs`)
+- Analitik Keseluruhan Perusahaan & Ekspor CSV (`/analytics`)
 
 Menu hanya dirender sesuai role, tetapi server tetap wajib memeriksa izin pada setiap route.
 

@@ -6,7 +6,8 @@ Dokumen ini berisi informasi lengkap mengenai akun demo (kredensial login), role
 
 ## 1. Informasi Umum Kredensial & Autentikasi
 
-- **Alamat URL Login:** [`http://127.0.0.1:8000/login`](http://127.0.0.1:8000/login)
+- **Alamat URL Login Terintegrasi (Portal HRIS):** [`http://localhost/hris/`](http://localhost/hris/) (otomatis berbagi sesi SSO ke modul Expenses) atau langsung di [`http://localhost/hris/expenses/`](http://localhost/hris/expenses/).
+- **Alamat URL Login Standalone:** [`http://127.0.0.1:8000/login`](http://127.0.0.1:8000/login) (jika dijalankan dengan `php -S 127.0.0.1:8000 -t public`).
 - **Fleksibilitas Login:** Sistem menerima input berupa **Username** maupun **Email**.
 - **Kata Sandi Global (Default):** `Password123!`
 - **Keamanan Kata Sandi:** Semua kata sandi akun demo disimpan dalam bentuk hash aman menggunakan fungsi bawaan PHP `password_hash()` dengan algoritma BCRYPT. Tidak ada kata sandi yang disimpan dalam bentuk teks polos (*plaintext*).
@@ -248,3 +249,11 @@ php bin/seed_demo.php
 ```
 
 Perintah di atas bersifat **idempoten** (aman dijalankan berulang kali tanpa menduplikasi data atau merusak data yang telah ada). Script akan secara otomatis menghasilkan seluruh 5 akun di atas dengan password hash terstandarisasi `Password123!`.
+
+---
+
+## 7. Tautan Dokumen Terkait
+
+- [Panduan Cara Menjalankan Expenses](CARA_MENJALANKAN.md)
+- [Spesifikasi Teknis Modul Expenses](README.md)
+- [README Utama HRIS & ERP](../README.md)

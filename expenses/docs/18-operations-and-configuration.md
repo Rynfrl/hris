@@ -2,7 +2,7 @@
 
 ## Konfigurasi environment yang disarankan
 
-`DB_DATABASE` harus menunjuk ke `erp_database`, yaitu database yang dibuat oleh SQL baseline. Jangan menggunakan nama database GT Expense terpisah untuk implementasi default.
+`DB_DATABASE` pada sistem terintegrasi menunjuk ke database sentral `hris` (atau `erp_database` jika berjalan dalam mode standalone).
 
 Sediakan `.env.example` atau daftar environment variable setara, tanpa secret nyata:
 
@@ -11,12 +11,12 @@ APP_ENV=development
 APP_DEBUG=true
 APP_URL=http://127.0.0.1:8000
 APP_TIMEZONE=Asia/Jakarta
-SESSION_NAME=gt_expense_session
+SESSION_NAME=expenses_session
 DB_HOST=127.0.0.1
 DB_PORT=3306
-DB_DATABASE=erp_database
-DB_USERNAME=gt_expense_app
-DB_PASSWORD=change_me
+DB_DATABASE=hris
+DB_USERNAME=root
+DB_PASSWORD=
 UPLOAD_MAX_BYTES=5242880
 STORAGE_PATH=../storage
 ```

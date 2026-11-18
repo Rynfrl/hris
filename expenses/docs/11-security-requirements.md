@@ -8,6 +8,7 @@ Dokumen ini adalah persyaratan minimum, bukan pengganti security review.
 - Jangan menyimpan password plaintext atau membuat hash sendiri.
 - Pesan login gagal generik; pertimbangkan rate limit/backoff untuk login gagal.
 - Setelah login, panggil `session_regenerate_id(true)`.
+- Nama cookie session terstandarisasi: `expenses_session` untuk mendukung pembagian sesi SSO (*Single Sign-On*) dengan portal utama HRIS.
 - Cookie session production harus `HttpOnly`, `Secure` saat HTTPS, dan `SameSite=Lax` atau lebih ketat sesuai kebutuhan.
 - Terapkan timeout idle dan logout server-side yang jelas.
 - Regenerasi/invalidasi sesi setelah perubahan kredensial/role yang relevan.

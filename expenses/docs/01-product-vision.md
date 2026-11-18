@@ -2,7 +2,7 @@
 
 ## Ringkasan
 
-**GT Expense** adalah aplikasi web internal untuk mencatat, mengajukan, meninjau, menyetujui, dan mengganti biaya operasional yang dikeluarkan karyawan untuk kepentingan organisasi.
+**GT Expense** adalah modul aplikasi web internal dalam ekosistem HRIS & ERP untuk mencatat, mengajukan, meninjau, menyetujui, dan mengganti biaya operasional (*reimbursement*) yang dikeluarkan karyawan untuk kepentingan organisasi.
 
 ## Masalah yang diselesaikan
 
