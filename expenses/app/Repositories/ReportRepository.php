@@ -70,6 +70,21 @@ class ReportRepository
         return $stmt->fetchAll();
     }
 
+    public function getReportEmployee(int $reportId, int $reportEmployeeId): ?array
+    {
+        $pdo = Database::pdo();
+        $stmt = $pdo->prepare('
+            SELECT ere.*, emp.full_name, emp.employee_number, emp.bank_name, emp.bank_account
+            FROM expense_report_employees ere
+            JOIN employees emp ON emp.employee_id = ere.employee_id
+            WHERE ere.report_employee_id = :re_id AND ere.report_id = :r_id
+            LIMIT 1
+        ');
+        $stmt->execute(['re_id' => $reportEmployeeId, 'r_id' => $reportId]);
+        $row = $stmt->fetch();
+        return $row ?: null;
+    }
+
     public function addReportEmployee(int $reportId, int $employeeId): int
     {
         $pdo = Database::pdo();

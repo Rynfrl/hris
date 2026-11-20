@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Core\Auth;
+use App\Core\Database;
 use App\Core\Flash;
 use App\Core\View;
 use App\Core\Url;
@@ -295,16 +296,13 @@ class ReportController
             Url::redirect('/reports/' . $reportId);
         }
 
-        // Fetch employee_id from report_employee_id
-        $pdo = Database::pdo();
-        $stmt = $pdo->prepare('SELECT employee_id FROM expense_report_employees WHERE report_employee_id = :re_id AND report_id = :r_id');
-        $stmt->execute(['re_id' => $reportEmployeeId, 'r_id' => $reportId]);
-        $employeeId = (int) $stmt->fetchColumn();
-
-        if ($employeeId <= 0) {
+        // Fetch employee from report_employee_id
+        $repEmp = $this->reportRepo->getReportEmployee($reportId, $reportEmployeeId);
+        if (!$repEmp || empty($repEmp['employee_id'])) {
             Flash::error('Karyawan tidak terdaftar pada laporan ini.');
             Url::redirect('/reports/' . $reportId);
         }
+        $employeeId = (int) $repEmp['employee_id'];
 
         try {
             // 1. Create expense
@@ -315,7 +313,7 @@ class ReportController
                 'description' => trim($_POST['description'] ?? ''),
                 'amount' => (float) ($_POST['amount'] ?? 0),
                 'payment_method' => $_POST['payment_method'] ?? 'BANK_TRANSFER',
-                'bank_name' => trim($_POST['bank_name'] ?? ''),
+                'bank_name' => trim($_POST['bank_name'] ?? ($repEmp['bank_name'] ?? '')),
                 'merchant' => trim($_POST['merchant'] ?? ''),
                 'notes' => trim($_POST['notes'] ?? ''),
             ];
