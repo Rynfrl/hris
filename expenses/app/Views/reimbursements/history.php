@@ -44,11 +44,11 @@ use App\Core\View;
                                 <div class="text-muted small"><?= View::e($item['report_title']) ?></div>
                             </td>
                             <td><?= View::e($item['employee_name']) ?></td>
-                            <td><strong class="text-success"><?= View::formatRupiah($item['amount']) ?></strong></td>
-                            <td><?= View::e($item['payment_method']) ?></td>
+                            <td><strong class="text-success"><?= View::formatRupiah($item['amount'] ?? 0) ?></strong></td>
+                            <td><?= View::e($item['payment_method'] ?? '-') ?></td>
                             <td><code><?= View::e($item['payment_reference'] ?? '-') ?></code></td>
-                            <td><?= View::formatDate($item['payment_date']) ?></td>
-                            <td><?= View::statusBadge($item['status']) ?></td>
+                            <td><?= View::formatDate($item['payment_date'] ?? null) ?></td>
+                            <td><?= View::statusBadge($item['status'] ?? 'PAID') ?></td>
                         </tr>
                     <?php endforeach; ?>
                 <?php endif; ?>

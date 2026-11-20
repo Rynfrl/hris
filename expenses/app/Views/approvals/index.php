@@ -63,10 +63,10 @@ use App\Core\View;
                                     </span>
                                 </div>
                             </td>
-                            <td><?= View::formatDate($item['submitted_at'], 'd M Y H:i') ?></td>
+                            <td><?= View::formatDate($item['submitted_at'] ?? null, 'd M Y H:i') ?></td>
                             <td><span class="badge bg-light text-dark border"><?= (int) ($item['item_count'] ?? 0) ?> item</span></td>
-                            <td><strong class="text-primary"><?= View::formatRupiah($item['total_amount']) ?></strong></td>
-                            <td><?= View::statusBadge($item['status']) ?></td>
+                            <td><strong class="text-primary"><?= View::formatRupiah($item['total_amount'] ?? 0) ?></strong></td>
+                            <td><?= View::statusBadge($item['status'] ?? 'SUBMITTED') ?></td>
                             <td class="text-end">
                                 <a href="/reports/<?= (int) $item['report_id'] ?>" class="btn btn-sm btn-primary">
                                     Tinjau Rincian

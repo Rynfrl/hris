@@ -176,12 +176,28 @@ class ReimbursementRepository
                    COALESCE(ere.employee_number_snapshot, emp.employee_number) as employee_number,
                    COALESCE(ere.department_name_snapshot, d.department_name) as department_name,
                    emp.bank_name, emp.bank_account,
-                   (SELECT COUNT(*) FROM expense_reimbursement_payments WHERE reimbursement_id = er.reimbursement_id) as payments_count
+                   (SELECT COUNT(*) FROM expense_reimbursement_payments WHERE reimbursement_id = er.reimbursement_id) as payments_count,
+                   COALESCE(
+                       (SELECT p.payment_method FROM expense_reimbursement_payments p WHERE p.reimbursement_id = er.reimbursement_id ORDER BY p.payment_id DESC LIMIT 1),
+                       rem_legacy.payment_method,
+                       'BANK_TRANSFER'
+                   ) as payment_method,
+                   COALESCE(
+                       (SELECT COALESCE(p.bank_reference, p.payment_number) FROM expense_reimbursement_payments p WHERE p.reimbursement_id = er.reimbursement_id ORDER BY p.payment_id DESC LIMIT 1),
+                       rem_legacy.payment_reference,
+                       '-'
+                   ) as payment_reference,
+                   COALESCE(
+                       (SELECT p.payment_date FROM expense_reimbursement_payments p WHERE p.reimbursement_id = er.reimbursement_id ORDER BY p.payment_id DESC LIMIT 1),
+                       rem_legacy.payment_date,
+                       DATE(er.updated_at)
+                   ) as payment_date
             FROM expense_reimbursements er
             JOIN expense_reports r ON r.report_id = er.report_id
             JOIN employees emp ON emp.employee_id = er.employee_id
             LEFT JOIN departments d ON d.department_id = emp.department_id
             LEFT JOIN expense_report_employees ere ON ere.report_employee_id = er.report_employee_id
+            LEFT JOIN reimbursements rem_legacy ON rem_legacy.reimbursement_id = er.reimbursement_id
             WHERE {$whereClause}
             ORDER BY er.reimbursement_id DESC
             LIMIT {$perPage} OFFSET {$offset}

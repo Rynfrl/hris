@@ -94,12 +94,12 @@ use App\Core\View;
                                     <?= View::e($item['expense_number']) ?>
                                 </a>
                             </td>
-                            <td><?= View::formatDate($item['expense_date']) ?></td>
+                            <td><?= View::formatDate($item['expense_date'] ?? null) ?></td>
                             <td><?= View::e($item['employee_name'] ?? '-') ?></td>
-                            <td><span class="badge bg-light text-dark border"><?= View::e($item['category_name']) ?></span></td>
+                            <td><span class="badge bg-light text-dark border"><?= View::e($item['category_name'] ?? '-') ?></span></td>
                             <td>
-                                <div class="text-truncate" style="max-width: 200px;" title="<?= View::e($item['description']) ?>">
-                                    <?= View::e($item['description']) ?>
+                                <div class="text-truncate" style="max-width: 200px;" title="<?= View::e($item['description'] ?? '') ?>">
+                                    <?= View::e($item['description'] ?? '-') ?>
                                 </div>
                                 <div class="d-flex align-items-center gap-1 mt-1">
                                     <?php if (!empty($item['merchant'])): ?>
@@ -110,7 +110,7 @@ use App\Core\View;
                                     <?php endif; ?>
                                 </div>
                             </td>
-                            <td><strong><?= View::formatRupiah($item['amount']) ?></strong></td>
+                            <td><strong><?= View::formatRupiah($item['amount'] ?? 0) ?></strong></td>
                             <td>
                                 <?php if (!empty($item['receipt_stored_name'])): ?>
                                     <a href="/expenses/<?= (int) $item['expense_id'] ?>/receipt" target="_blank" class="badge bg-info text-white text-decoration-none" title="Lihat Bukti">
@@ -120,7 +120,7 @@ use App\Core\View;
                                     <span class="text-muted small">-</span>
                                 <?php endif; ?>
                             </td>
-                            <td><?= View::statusBadge($item['status']) ?></td>
+                            <td><?= View::statusBadge($item['status'] ?? 'DRAFT') ?></td>
                             <td>
                                 <?php if (!empty($item['report_id'])): ?>
                                     <a href="/reports/<?= (int) $item['report_id'] ?>" class="text-decoration-none small">

@@ -138,6 +138,34 @@ $test('finance/posting.php sets form.action with basePath awareness', function (
     }
 });
 
+$test('ReimbursementController::history renders without undefined key warnings', function () {
+    $userRepo = new \App\Repositories\UserRepository();
+    $financeUser = $userRepo->findByUsernameOrEmail('finance@example.test');
+    if ($financeUser) {
+        $ref = new ReflectionClass(Auth::class);
+        $prop = $ref->getProperty('cachedUser');
+        $prop->setAccessible(true);
+        $prop->setValue(null, null);
+
+        Auth::login($financeUser);
+    }
+
+    // Set error handler that converts PHP notices/warnings to exceptions to catch any undefined key
+    set_error_handler(function ($severity, $message, $file, $line) {
+        throw new ErrorException($message, 0, $severity, $file, $line);
+    });
+
+    try {
+        $controller = new \App\Controllers\ReimbursementController();
+        $html = $controller->history();
+        if (empty($html)) {
+            throw new Exception('Empty HTML returned for reimbursement history');
+        }
+    } finally {
+        restore_error_handler();
+    }
+});
+
 echo "\n========================================================\n";
 echo "TEST RESULTS: {$passCount} PASSED, {$failCount} FAILED\n";
 echo "========================================================\n";

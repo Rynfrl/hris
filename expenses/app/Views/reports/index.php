@@ -100,9 +100,9 @@ use App\Core\View;
                                 </div>
                             </td>
                             <td><span class="badge bg-light text-dark border"><?= (int) ($item['item_count'] ?? 0) ?> item</span></td>
-                            <td><strong><?= View::formatRupiah($item['total_amount']) ?></strong></td>
-                            <td><?= View::statusBadge($item['status']) ?></td>
-                            <td><?= View::formatDate($item['created_at']) ?></td>
+                            <td><strong><?= View::formatRupiah($item['total_amount'] ?? 0) ?></strong></td>
+                            <td><?= View::statusBadge($item['status'] ?? 'DRAFT') ?></td>
+                            <td><?= View::formatDate($item['created_at'] ?? null) ?></td>
                             <td class="text-end">
                                 <a href="/reports/<?= (int) $item['report_id'] ?>" class="btn btn-sm btn-outline-secondary">
                                     Buka Detail
