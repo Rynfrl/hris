@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Repositories;
 
 use App\Core\Database;
+use InvalidArgumentException;
 use PDO;
 
 class ReportRepository
@@ -14,13 +15,20 @@ class ReportRepository
         $pdo = Database::pdo();
         $sql = '
             SELECT r.*,
+                   COALESCE(u.username, "admin") as creator_username,
+                   u.name as creator_name,
                    emp.full_name as employee_name, emp.employee_number, emp.manager_id,
                    d.department_name, d.department_code,
-                   reimb.reimbursement_id, reimb.status as reimbursement_status, reimb.payment_method, reimb.payment_date, reimb.payment_reference
+                   reimb.reimbursement_id, reimb.status as reimbursement_status, reimb.payment_method, reimb.payment_date, reimb.payment_reference,
+                   post.posting_id, post.journal_reference, post.posting_date, post.posted_at,
+                   (SELECT COUNT(*) FROM expense_report_employees WHERE report_id = r.report_id) as employee_count,
+                   (SELECT COUNT(*) FROM expense_report_items WHERE report_id = r.report_id) as item_count
             FROM expense_reports r
-            JOIN employees emp ON emp.employee_id = r.employee_id
+            LEFT JOIN users u ON u.user_id = r.created_by
+            LEFT JOIN employees emp ON emp.employee_id = r.employee_id
             LEFT JOIN departments d ON d.department_id = emp.department_id
             LEFT JOIN reimbursements reimb ON reimb.report_id = r.report_id
+            LEFT JOIN expense_postings post ON post.report_id = r.report_id
             WHERE r.report_id = :id
             LIMIT 1
         ';
@@ -34,18 +42,129 @@ class ReportRepository
         return $row ?: null;
     }
 
-    public function getReportItems(int $reportId): array
+    public function getReportEmployees(int $reportId): array
     {
         $pdo = Database::pdo();
         $stmt = $pdo->prepare('
-            SELECT e.*, c.category_name, c.category_code, eri.report_item_id
+            SELECT ere.*,
+                   emp.bank_name, emp.bank_account, emp.email, emp.position,
+                   (
+                       SELECT COUNT(*) 
+                       FROM expense_report_items eri 
+                       WHERE eri.report_employee_id = ere.report_employee_id
+                   ) as item_count,
+                   (
+                       SELECT COALESCE(SUM(exp.amount), 0.00)
+                       FROM expense_report_items eri
+                       JOIN expenses exp ON exp.expense_id = eri.expense_id
+                       WHERE eri.report_employee_id = ere.report_employee_id
+                   ) as subtotal_amount,
+                   er.reimbursement_id, er.approved_amount, er.paid_amount, er.status as reimbursement_status
+            FROM expense_report_employees ere
+            LEFT JOIN employees emp ON emp.employee_id = ere.employee_id
+            LEFT JOIN expense_reimbursements er ON er.report_employee_id = ere.report_employee_id
+            WHERE ere.report_id = :report_id
+            ORDER BY ere.report_employee_id ASC
+        ');
+        $stmt->execute(['report_id' => $reportId]);
+        return $stmt->fetchAll();
+    }
+
+    public function addReportEmployee(int $reportId, int $employeeId): int
+    {
+        $pdo = Database::pdo();
+        // Check if already in report
+        $chk = $pdo->prepare('SELECT report_employee_id FROM expense_report_employees WHERE report_id = :r_id AND employee_id = :e_id');
+        $chk->execute(['r_id' => $reportId, 'e_id' => $employeeId]);
+        $existing = $chk->fetchColumn();
+        if ($existing) {
+            return (int) $existing;
+        }
+
+        // Fetch employee snapshot
+        $empStmt = $pdo->prepare('
+            SELECT e.employee_number, e.full_name, e.status, d.department_name
+            FROM employees e
+            LEFT JOIN departments d ON d.department_id = e.department_id
+            WHERE e.employee_id = :e_id
+        ');
+        $empStmt->execute(['e_id' => $employeeId]);
+        $emp = $empStmt->fetch();
+        if (!$emp) {
+            throw new InvalidArgumentException('Data karyawan tidak ditemukan.');
+        }
+
+        if (($emp['status'] ?? 'ACTIVE') !== 'ACTIVE') {
+            throw new InvalidArgumentException('Karyawan yang tidak aktif tidak boleh dipilih untuk pengajuan laporan.');
+        }
+
+        $stmt = $pdo->prepare('
+            INSERT INTO expense_report_employees (
+                report_id, employee_id, employee_number_snapshot, employee_name_snapshot, department_name_snapshot
+            ) VALUES (
+                :report_id, :employee_id, :num, :name, :dept
+            )
+        ');
+        $stmt->execute([
+            'report_id' => $reportId,
+            'employee_id' => $employeeId,
+            'num' => $emp['employee_number'] ?? ('EMP-' . $employeeId),
+            'name' => $emp['full_name'] ?? 'Unknown Employee',
+            'dept' => $emp['department_name'] ?? null,
+        ]);
+
+        return (int) $pdo->lastInsertId();
+    }
+
+    public function removeReportEmployee(int $reportId, int $reportEmployeeId): bool
+    {
+        $pdo = Database::pdo();
+        // Unlink or remove items linked to this report employee
+        $stmtItems = $pdo->prepare('
+            DELETE FROM expense_report_items 
+            WHERE report_id = :report_id AND report_employee_id = :report_employee_id
+        ');
+        $stmtItems->execute([
+            'report_id' => $reportId,
+            'report_employee_id' => $reportEmployeeId,
+        ]);
+
+        $stmt = $pdo->prepare('
+            DELETE FROM expense_report_employees
+            WHERE report_id = :report_id AND report_employee_id = :report_employee_id
+        ');
+        $ok = $stmt->execute([
+            'report_id' => $reportId,
+            'report_employee_id' => $reportEmployeeId,
+        ]);
+
+        $this->recalculateTotal($reportId);
+        return $ok;
+    }
+
+    public function getReportItems(int $reportId, ?int $reportEmployeeId = null): array
+    {
+        $pdo = Database::pdo();
+        $sql = '
+            SELECT e.*, c.category_name, c.category_code, eri.report_item_id, eri.report_employee_id,
+                   ere.employee_name_snapshot, ere.employee_number_snapshot, ere.department_name_snapshot,
+                   emp.full_name as current_employee_name
             FROM expense_report_items eri
             JOIN expenses e ON e.expense_id = eri.expense_id
             JOIN expense_categories c ON c.category_id = e.category_id
+            LEFT JOIN expense_report_employees ere ON ere.report_employee_id = eri.report_employee_id
+            LEFT JOIN employees emp ON emp.employee_id = e.employee_id
             WHERE eri.report_id = :report_id
-            ORDER BY e.expense_date ASC, e.expense_id ASC
-        ');
-        $stmt->execute(['report_id' => $reportId]);
+        ';
+        $params = ['report_id' => $reportId];
+        if ($reportEmployeeId !== null) {
+            $sql .= ' AND eri.report_employee_id = :report_employee_id';
+            $params['report_employee_id'] = $reportEmployeeId;
+        }
+        $sql .= ' ORDER BY e.expense_date ASC, e.expense_id ASC';
+
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
         return $stmt->fetchAll();
     }
 
@@ -56,7 +175,7 @@ class ReportRepository
         $params = [];
 
         if (!empty($filters['employee_id'])) {
-            $where[] = 'r.employee_id = :employee_id';
+            $where[] = '(r.employee_id = :employee_id OR EXISTS (SELECT 1 FROM expense_report_employees ere WHERE ere.report_id = r.report_id AND ere.employee_id = :employee_id))';
             $params['employee_id'] = (int) $filters['employee_id'];
         } elseif (!empty($filters['employee_ids']) && is_array($filters['employee_ids'])) {
             $inPlaceholders = [];
@@ -66,7 +185,8 @@ class ReportRepository
                 $params[$key] = (int) $empId;
             }
             if (!empty($inPlaceholders)) {
-                $where[] = 'r.employee_id IN (' . implode(',', $inPlaceholders) . ')';
+                $inList = implode(',', $inPlaceholders);
+                $where[] = '(r.employee_id IN (' . $inList . ') OR EXISTS (SELECT 1 FROM expense_report_employees ere WHERE ere.report_id = r.report_id AND ere.employee_id IN (' . $inList . ')))';
             } else {
                 $where[] = '1=0';
             }
@@ -88,7 +208,7 @@ class ReportRepository
         }
 
         if (!empty($filters['search'])) {
-            $where[] = '(r.report_number LIKE :q OR r.title LIKE :q OR emp.full_name LIKE :q)';
+            $where[] = '(r.report_number LIKE :q OR r.title LIKE :q OR emp.full_name LIKE :q OR EXISTS (SELECT 1 FROM expense_report_employees ere WHERE ere.report_id = r.report_id AND ere.employee_name_snapshot LIKE :q))';
             $params['q'] = '%' . $filters['search'] . '%';
         }
 
@@ -106,9 +226,9 @@ class ReportRepository
 
         // Count total
         $countStmt = $pdo->prepare("
-            SELECT COUNT(*)
+            SELECT COUNT(DISTINCT r.report_id)
             FROM expense_reports r
-            JOIN employees emp ON emp.employee_id = r.employee_id
+            LEFT JOIN employees emp ON emp.employee_id = r.employee_id
             WHERE {$whereClause}
         ");
         $countStmt->execute($params);
@@ -120,11 +240,18 @@ class ReportRepository
             SELECT r.*,
                    emp.full_name as employee_name, emp.employee_number,
                    d.department_name,
-                   (SELECT COUNT(*) FROM expense_report_items WHERE report_id = r.report_id) as item_count
+                   (SELECT COUNT(*) FROM expense_report_items WHERE report_id = r.report_id) as item_count,
+                   (SELECT COUNT(*) FROM expense_report_employees WHERE report_id = r.report_id) as employee_count,
+                   (
+                       SELECT GROUP_CONCAT(DISTINCT ere.employee_name_snapshot SEPARATOR ', ')
+                       FROM expense_report_employees ere
+                       WHERE ere.report_id = r.report_id
+                   ) as employees_summary
             FROM expense_reports r
-            JOIN employees emp ON emp.employee_id = r.employee_id
+            LEFT JOIN employees emp ON emp.employee_id = r.employee_id
             LEFT JOIN departments d ON d.department_id = emp.department_id
             WHERE {$whereClause}
+            GROUP BY r.report_id
             ORDER BY {$orderCol} {$orderDir}, r.report_id DESC
             LIMIT {$perPage} OFFSET {$offset}
         ";
@@ -146,20 +273,34 @@ class ReportRepository
         $pdo = Database::pdo();
         $stmt = $pdo->prepare('
             INSERT INTO expense_reports (
-                report_number, employee_id, title, description, start_date, end_date, total_amount, status
+                report_number, employee_id, created_by, title, description, start_date, end_date, total_amount, status
             ) VALUES (
-                :report_number, :employee_id, :title, :description, :start_date, :end_date, 0.00, "DRAFT"
+                :report_number, :employee_id, :created_by, :title, :description, :start_date, :end_date, 0.00, "DRAFT"
             )
         ');
         $stmt->execute([
             'report_number' => $data['report_number'] ?? $this->generateReportNumber(),
-            'employee_id' => (int) $data['employee_id'],
+            'employee_id' => !empty($data['employee_id']) ? (int) $data['employee_id'] : null,
+            'created_by' => !empty($data['created_by']) ? (int) $data['created_by'] : null,
             'title' => trim($data['title']),
             'description' => !empty($data['description']) ? trim($data['description']) : null,
             'start_date' => !empty($data['start_date']) ? $data['start_date'] : null,
             'end_date' => !empty($data['end_date']) ? $data['end_date'] : null,
         ]);
-        return (int) $pdo->lastInsertId();
+        $reportId = (int) $pdo->lastInsertId();
+
+        // Attach employees if provided
+        if (!empty($data['employee_ids']) && is_array($data['employee_ids'])) {
+            foreach ($data['employee_ids'] as $empId) {
+                if ((int) $empId > 0) {
+                    $this->addReportEmployee($reportId, (int) $empId);
+                }
+            }
+        } elseif (!empty($data['employee_id'])) {
+            $this->addReportEmployee($reportId, (int) $data['employee_id']);
+        }
+
+        return $reportId;
     }
 
     public function update(int $id, array $data): bool
@@ -173,26 +314,48 @@ class ReportRepository
                 end_date = :end_date
             WHERE report_id = :id AND status = "DRAFT"
         ');
-        return $stmt->execute([
+        $ok = $stmt->execute([
             'id' => $id,
             'title' => trim($data['title']),
             'description' => !empty($data['description']) ? trim($data['description']) : null,
             'start_date' => !empty($data['start_date']) ? $data['start_date'] : null,
             'end_date' => !empty($data['end_date']) ? $data['end_date'] : null,
         ]);
+
+        return $ok;
     }
 
-    public function addItem(int $reportId, int $expenseId): bool
+    public function addItem(int $reportId, int $expenseId, ?int $reportEmployeeId = null): bool
     {
         $pdo = Database::pdo();
+
+        // If reportEmployeeId is not provided, resolve from expense employee_id and report
+        if ($reportEmployeeId === null) {
+            $expStmt = $pdo->prepare('SELECT employee_id FROM expenses WHERE expense_id = :id');
+            $expStmt->execute(['id' => $expenseId]);
+            $expEmployeeId = $expStmt->fetchColumn();
+
+            if ($expEmployeeId) {
+                $repEmpStmt = $pdo->prepare('SELECT report_employee_id FROM expense_report_employees WHERE report_id = :r_id AND employee_id = :e_id');
+                $repEmpStmt->execute(['r_id' => $reportId, 'e_id' => $expEmployeeId]);
+                $foundRepEmpId = $repEmpStmt->fetchColumn();
+                if ($foundRepEmpId) {
+                    $reportEmployeeId = (int) $foundRepEmpId;
+                } else {
+                    $reportEmployeeId = $this->addReportEmployee($reportId, (int) $expEmployeeId);
+                }
+            }
+        }
+
         // Insert item relation
         $stmt = $pdo->prepare('
-            INSERT INTO expense_report_items (report_id, expense_id)
-            VALUES (:report_id, :expense_id)
+            INSERT INTO expense_report_items (report_id, expense_id, report_employee_id)
+            VALUES (:report_id, :expense_id, :report_employee_id)
         ');
         $ok = $stmt->execute([
             'report_id' => $reportId,
             'expense_id' => $expenseId,
+            'report_employee_id' => $reportEmployeeId,
         ]);
 
         if ($ok) {
@@ -304,6 +467,42 @@ class ReportRepository
         ]);
     }
 
+    public function createPosting(int $reportId, string $journalRef, string $postingDate, int $postedBy, ?string $notes = null): int
+    {
+        $pdo = Database::pdo();
+        $stmt = $pdo->prepare('
+            INSERT INTO expense_postings (
+                report_id, journal_reference, posting_date, posted_by, notes
+            ) VALUES (
+                :report_id, :journal_reference, :posting_date, :posted_by, :notes
+            )
+        ');
+        $stmt->execute([
+            'report_id' => $reportId,
+            'journal_reference' => trim($journalRef),
+            'posting_date' => $postingDate,
+            'posted_by' => $postedBy,
+            'notes' => !empty($notes) ? trim($notes) : null,
+        ]);
+        return (int) $pdo->lastInsertId();
+    }
+
+    public function getPosting(int $reportId): ?array
+    {
+        $pdo = Database::pdo();
+        $stmt = $pdo->prepare('
+            SELECT p.*, u.username as posted_by_username, emp.full_name as posted_by_name
+            FROM expense_postings p
+            JOIN users u ON u.user_id = p.posted_by
+            LEFT JOIN employees emp ON emp.employee_id = u.employee_id
+            WHERE p.report_id = :id
+            LIMIT 1
+        ');
+        $stmt->execute(['id' => $reportId]);
+        $row = $stmt->fetch();
+        return $row ?: null;
+    }
+
     public function generateReportNumber(): string
     {
         $pdo = Database::pdo();
@@ -326,5 +525,26 @@ class ReportRepository
         }
 
         return sprintf('GTE-%s-%06d', $year, $nextSeq);
+    }
+
+    public function generateJournalReference(): string
+    {
+        $yearMonth = date('Ym');
+        $prefix = "JRN-EXP-{$yearMonth}-";
+        $pdo = Database::pdo();
+        $stmt = $pdo->prepare("
+            SELECT journal_reference 
+            FROM expense_postings 
+            WHERE journal_reference LIKE :prefix 
+            ORDER BY posting_id DESC 
+            LIMIT 1
+        ");
+        $stmt->execute(['prefix' => $prefix . '%']);
+        $last = $stmt->fetchColumn();
+        $seq = 1;
+        if ($last && preg_match('/JRN-EXP-\d{6}-(\d+)/', (string) $last, $m)) {
+            $seq = (int) $m[1] + 1;
+        }
+        return sprintf('JRN-EXP-%s-%04d', $yearMonth, $seq);
     }
 }

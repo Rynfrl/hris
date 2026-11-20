@@ -32,23 +32,28 @@ class ReimbursementController
     public function index(): string
     {
         $user = Auth::user();
-        if ($user['role_name'] !== 'FINANCE' && !Auth::hasPermission('expense.reimburse')) {
+        $role = $user['role_name'] ?? '';
+        if ($role !== 'FINANCE' && $role !== 'ADMIN' && !Auth::hasPermission('expense.reimburse')) {
             http_response_code(403);
             return View::render('errors/403', ['title' => 'Akses Ditolak'], 'layouts/error');
         }
 
-        // 1. Posted reports waiting to be queued
+        // 1. Posted reports waiting to be queued if any
         $postedReports = $this->reportRepo->getReports(['status' => 'POSTED'], 1, 50)['items'];
 
-        // 2. Active reimbursements queue (PENDING & PROCESSING)
+        // 2. Active reimbursements queue (PENDING, PROCESSING, PARTIALLY_PAID)
         $pendingReimbs = $this->reimbursementRepo->getReimbursements(['status' => 'PENDING'], 1, 50)['items'];
         $processingReimbs = $this->reimbursementRepo->getReimbursements(['status' => 'PROCESSING'], 1, 50)['items'];
-        $activeReimbursements = array_merge($pendingReimbs, $processingReimbs);
+        $partialReimbs = $this->reimbursementRepo->getReimbursements(['status' => 'PARTIALLY_PAID'], 1, 50)['items'];
+        $activeReimbursements = array_merge($pendingReimbs, $processingReimbs, $partialReimbs);
+
+        $suggestedPayNumber = $this->reimbursementRepo->generatePaymentNumber();
 
         return View::render('reimbursements/index', [
-            'title' => 'Antrean Reimbursement',
+            'title' => 'Antrean & Pembayaran Reimbursement',
             'postedReports' => $postedReports,
             'activeReimbursements' => $activeReimbursements,
+            'suggestedPayNumber' => $suggestedPayNumber,
             'user' => $user,
         ]);
     }
@@ -57,8 +62,9 @@ class ReimbursementController
     {
         $reportId = (int) $id;
         $user = Auth::user();
+        $role = $user['role_name'] ?? '';
 
-        if ($user['role_name'] !== 'FINANCE' && !Auth::hasPermission('expense.reimburse')) {
+        if ($role !== 'FINANCE' && $role !== 'ADMIN' && !Auth::hasPermission('expense.reimburse')) {
             Flash::error('Akses ditolak.');
             Url::redirect('/reimbursements');
         }
@@ -81,6 +87,38 @@ class ReimbursementController
         try {
             $this->workflowService->setProcessing($reimbId, $user);
             Flash::info('Status reimbursement diubah ke SEDANG DIPROSES.');
+        } catch (Throwable $e) {
+            Flash::error($e->getMessage());
+        }
+
+        Url::redirect('/reimbursements');
+    }
+
+    public function recordPayment(string|int $id): void
+    {
+        $reimbId = (int) $id;
+        $user = Auth::user();
+        $role = $user['role_name'] ?? '';
+
+        if ($role !== 'FINANCE' && $role !== 'ADMIN' && !Auth::hasPermission('expense.reimburse')) {
+            Flash::error('Akses ditolak.');
+            Url::redirect('/reimbursements');
+        }
+
+        $paymentData = [
+            'amount' => (float) ($_POST['amount'] ?? 0),
+            'payment_number' => trim($_POST['payment_number'] ?? ''),
+            'payment_method' => $_POST['payment_method'] ?? 'BANK_TRANSFER',
+            'bank_name' => trim($_POST['bank_name'] ?? ''),
+            'bank_reference' => trim($_POST['bank_reference'] ?? ''),
+            'payment_date' => !empty($_POST['payment_date']) ? $_POST['payment_date'] : date('Y-m-d'),
+            'notes' => trim($_POST['notes'] ?? ''),
+        ];
+
+        try {
+            $proofFile = isset($_FILES['proof']) ? $_FILES['proof'] : null;
+            $this->workflowService->recordReimbursementPayment($reimbId, $paymentData, $user, $proofFile);
+            Flash::success('Pembayaran reimbursement berhasil dicatat!');
         } catch (Throwable $e) {
             Flash::error($e->getMessage());
         }

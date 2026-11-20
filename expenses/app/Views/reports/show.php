@@ -4,6 +4,22 @@ declare(strict_types=1);
 
 use App\Core\Csrf;
 use App\Core\View;
+
+$reportEmployees = $reportEmployees ?? [];
+$items = $items ?? [];
+$history = $history ?? [];
+$comments = $comments ?? [];
+$categories = $categories ?? [];
+$activeEmployees = $activeEmployees ?? [];
+$unassignedExpenses = $unassignedExpenses ?? [];
+$postingInfo = $postingInfo ?? null;
+$reimbursements = $reimbursements ?? [];
+
+$isDraft = ($report['status'] === 'DRAFT');
+$isSubmitted = ($report['status'] === 'SUBMITTED');
+$isApproved = ($report['status'] === 'APPROVED');
+$isRefused = ($report['status'] === 'REFUSED');
+$isPosted = in_array($report['status'], ['POSTED', 'REIMBURSEMENT_PENDING', 'PAID'], true);
 ?>
 
 <!-- Header -->
@@ -14,9 +30,9 @@ use App\Core\View;
             <?= View::statusBadge($report['status']) ?>
         </div>
         <p class="text-secondary small mb-0">
-            Pemilik: <strong><?= View::e($report['employee_name']) ?></strong> (<?= View::e($report['employee_number']) ?>) &bull;
-            Departemen: <?= View::e($report['department_name'] ?? '-') ?> &bull;
-            Dibuat: <?= View::formatDate($report['created_at'], 'd M Y H:i') ?>
+            Dibuat oleh: <strong><?= View::e($report['creator_name'] ?? $report['creator_username'] ?? 'Admin') ?></strong> &bull;
+            Dibuat: <?= View::formatDate($report['created_at'], 'd M Y H:i') ?> &bull;
+            Terlibat: <strong><?= count($reportEmployees) ?> Karyawan</strong>
         </p>
     </div>
 
@@ -25,20 +41,20 @@ use App\Core\View;
         <a href="/reports" class="btn btn-outline-secondary btn-sm">Kembali</a>
 
         <?php if ($canEdit): ?>
-            <a href="/reports/<?= (int) $report['report_id'] ?>/edit" class="btn btn-outline-primary btn-sm">Edit Metadata</a>
+            <a href="/reports/<?= (int) $report['report_id'] ?>/edit" class="btn btn-outline-primary btn-sm">Edit Laporan</a>
         <?php endif; ?>
 
         <?php if ($canSubmit): ?>
             <form action="/reports/<?= (int) $report['report_id'] ?>/submit" method="POST" data-confirm="Ajukan laporan ini untuk persetujuan manajer?">
                 <?= Csrf::field() ?>
-                <button type="submit" class="btn btn-primary btn-sm" <?= empty($items) ? 'disabled title="Tambahkan minimal satu item"' : '' ?>>
-                    Ajukan Laporan
+                <button type="submit" class="btn btn-primary btn-sm" <?= (empty($items) || empty($reportEmployees)) ? 'disabled title="Tambahkan minimal satu karyawan dan satu transaksi"' : '' ?>>
+                    Ajukan Laporan Gabungan
                 </button>
             </form>
         <?php endif; ?>
 
         <?php if ($canRevise): ?>
-            <form action="/reports/<?= (int) $report['report_id'] ?>/revise" method="POST" data-confirm="Kembalikan laporan ini ke status draft untuk revisi?">
+            <form action="/reports/<?= (int) $report['report_id'] ?>/revise" method="POST" data-confirm="Kembalikan laporan ini ke status draft untuk direvisi?">
                 <?= Csrf::field() ?>
                 <button type="submit" class="btn btn-warning btn-sm">
                     Revisi Laporan (Kembali ke Draft)
@@ -56,28 +72,22 @@ use App\Core\View;
         <?php endif; ?>
 
         <?php if ($canPost): ?>
-            <form action="/reports/<?= (int) $report['report_id'] ?>/post" method="POST" data-confirm="Bukukan laporan pengeluaran ini?">
-                <?= Csrf::field() ?>
-                <button type="submit" class="btn btn-indigo btn-primary btn-sm">
-                    Bukukan (Posting Finance)
-                </button>
-            </form>
+            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#postingModal">
+                Bukukan (Posting Finance)
+            </button>
         <?php endif; ?>
 
         <?php if ($canReimburse && $report['status'] === 'POSTED'): ?>
-            <form action="/reports/<?= (int) $report['report_id'] ?>/reimbursement" method="POST" data-confirm="Masukkan laporan ini ke antrean pembayaran reimbursement?">
-                <?= Csrf::field() ?>
-                <button type="submit" class="btn btn-warning btn-sm">
-                    Proses Reimbursement
-                </button>
-            </form>
+            <a href="/reimbursements" class="btn btn-warning btn-sm">
+                Lihat Antrean Reimbursement
+            </a>
         <?php endif; ?>
     </div>
 </div>
 
 <!-- Refusal banner -->
 <?php if (!empty($report['rejection_reason'])): ?>
-    <div class="alert alert-danger mb-4">
+    <div class="alert alert-danger mb-4 shadow-sm border-start border-danger border-4">
         <h6 class="alert-heading fw-bold mb-1">Catatan Penolakan Manajer:</h6>
         <p class="mb-0"><?= nl2br(View::e($report['rejection_reason'])) ?></p>
         <?php if (!empty($report['refused_at'])): ?>
@@ -86,21 +96,23 @@ use App\Core\View;
     </div>
 <?php endif; ?>
 
-<!-- Reimbursement status banner -->
-<?php if (!empty($report['reimbursement_id'])): ?>
-    <div class="alert alert-info d-flex justify-content-between align-items-center mb-4">
+<!-- Posting / Pembukuan banner -->
+<?php if ($postingInfo): ?>
+    <div class="alert alert-success d-flex flex-wrap justify-content-between align-items-center mb-4 shadow-sm">
         <div>
-            <strong>Status Pembayaran:</strong> <?= View::statusBadge($report['reimbursement_status']) ?>
-            <?php if (!empty($report['payment_date'])): ?>
-                &bull; Tanggal Bayar: <strong><?= View::formatDate($report['payment_date']) ?></strong>
-            <?php endif; ?>
-            <?php if (!empty($report['payment_reference'])): ?>
-                &bull; No. Referensi: <strong><?= View::e($report['payment_reference']) ?></strong>
-            <?php endif; ?>
+            <div class="fw-bold text-success mb-1">✓ Laporan Telah Dibukukan (POSTED)</div>
+            <div class="small">
+                No. Jurnal: <strong><?= View::e($postingInfo['journal_reference']) ?></strong> &bull;
+                Tanggal Pembukuan: <strong><?= View::formatDate($postingInfo['posting_date']) ?></strong> &bull;
+                Dibukukan Oleh: <strong><?= View::e($postingInfo['posted_by_name'] ?? $postingInfo['posted_by_username']) ?></strong>
+                <?php if (!empty($postingInfo['notes'])): ?>
+                    <br><span class="text-muted">Catatan: <?= View::e($postingInfo['notes']) ?></span>
+                <?php endif; ?>
+            </div>
         </div>
-        <?php if ($canReimburse && in_array($report['reimbursement_status'], ['PENDING', 'PROCESSING'], true)): ?>
-            <a href="/reimbursements" class="btn btn-sm btn-primary">Buka Antrean Keuangan</a>
-        <?php endif; ?>
+        <div class="mt-2 mt-md-0">
+            <a href="/reimbursements" class="btn btn-sm btn-outline-success">Buka Modul Reimbursement</a>
+        </div>
     </div>
 <?php endif; ?>
 
@@ -118,7 +130,10 @@ use App\Core\View;
                         Periode: <strong><?= View::formatDate($report['start_date']) ?></strong> s/d <strong><?= View::formatDate($report['end_date']) ?></strong>
                     </div>
                     <div class="col-sm-6">
-                        Diajukan: <strong><?= View::formatDate($report['submitted_at'], 'd M Y H:i') ?></strong>
+                        Status Alur: <strong><?= View::statusLabel($report['status']) ?></strong>
+                        <?php if (!empty($report['submitted_at'])): ?>
+                            (Diajukan <?= View::formatDate($report['submitted_at'], 'd M Y H:i') ?>)
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
@@ -127,36 +142,164 @@ use App\Core\View;
     <div class="col-md-4">
         <div class="card card-gt h-100">
             <div class="card-body p-4 d-flex flex-column justify-content-center text-center">
-                <div class="metric-label mb-1">Total Pengeluaran Laporan</div>
+                <div class="metric-label mb-1">Total Pengeluaran Gabungan</div>
                 <div class="fs-2 fw-bold text-primary mb-1"><?= View::formatRupiah($report['total_amount']) ?></div>
-                <div class="text-muted small"><?= count($items) ?> item pengeluaran terdaftar</div>
+                <div class="text-muted small">
+                    <strong><?= count($reportEmployees) ?></strong> Karyawan &bull; <strong><?= count($items) ?></strong> Transaksi
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Items Table -->
+<!-- SECTION 1: KARYAWAN TERDAFTAR (1 Report -> Banyak Karyawan) -->
 <div class="card card-gt mb-4">
-    <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
-        <h5 class="card-title h6 fw-bold mb-0">Daftar Item Pengeluaran</h5>
-        <?php if ($canEdit && !empty($unassignedExpenses)): ?>
-            <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#addItemCollapse">
-                + Tambah Item Pengeluaran
+    <div class="card-header bg-white border-bottom py-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <div>
+            <h5 class="card-title h6 fw-bold mb-0">Daftar Karyawan dalam Laporan Gabungan</h5>
+            <small class="text-muted">Setiap karyawan memiliki rincian transaksi dan kewajiban reimbursement masing-masing</small>
+        </div>
+        <?php if ($canEdit): ?>
+            <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#addEmployeeCollapse">
+                + Tambah Karyawan Lain
             </button>
         <?php endif; ?>
     </div>
 
-    <!-- Add Item Collapsible -->
+    <!-- Add Employee Collapse Form -->
+    <?php if ($canEdit): ?>
+        <div class="collapse border-bottom bg-light p-3" id="addEmployeeCollapse">
+            <form action="/reports/<?= (int) $report['report_id'] ?>/employees" method="POST" class="row g-2 align-items-center">
+                <?= Csrf::field() ?>
+                <div class="col-md-9">
+                    <select name="employee_id" class="form-select form-select-sm" required>
+                        <option value="">-- Pilih Karyawan Aktif HRIS --</option>
+                        <?php
+                            $currentEmpIds = array_column($reportEmployees, 'employee_id');
+                            foreach ($activeEmployees as $ae):
+                                if (in_array((int) $ae['employee_id'], $currentEmpIds, true)) continue;
+                        ?>
+                            <option value="<?= (int) $ae['employee_id'] ?>">
+                                <?= View::e($ae['full_name']) ?> (<?= View::e($ae['employee_number'] ?? ('EMP-' . $ae['employee_id'])) ?>) - <?= View::e($ae['department_name'] ?? 'Umum') ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-sm btn-primary w-100">Tambahkan ke Laporan</button>
+                </div>
+            </form>
+        </div>
+    <?php endif; ?>
+
+    <div class="table-responsive">
+        <table class="table table-hover table-gt mb-0 align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>No.</th>
+                    <th>Nama Karyawan</th>
+                    <th>NIK / No. Karyawan</th>
+                    <th>Divisi / Departemen</th>
+                    <th>Rekening Bank</th>
+                    <th class="text-center">Jml Transaksi</th>
+                    <th class="text-end">Subtotal Nominal</th>
+                    <?php if ($isPosted): ?>
+                        <th>Status Reimbursement</th>
+                    <?php endif; ?>
+                    <?php if ($canEdit): ?>
+                        <th class="text-end">Aksi Transaksi</th>
+                    <?php endif; ?>
+                </tr>
+            </thead>
+            <tbody>
+                <?php if (empty($reportEmployees)): ?>
+                    <tr>
+                        <td colspan="<?= ($isPosted ? 8 : 7) + ($canEdit ? 1 : 0) ?>" class="text-center py-4 text-muted">
+                            Belum ada karyawan yang ditambahkan ke laporan ini. Silakan pilih minimal 1 karyawan.
+                        </td>
+                    </tr>
+                <?php else: ?>
+                    <?php $no = 1; foreach ($reportEmployees as $repEmp): ?>
+                        <tr>
+                            <td><?= $no++ ?></td>
+                            <td>
+                                <strong class="text-dark"><?= View::e($repEmp['employee_name_snapshot']) ?></strong>
+                            </td>
+                            <td><code><?= View::e($repEmp['employee_number_snapshot']) ?></code></td>
+                            <td><span class="badge bg-secondary"><?= View::e($repEmp['department_name_snapshot'] ?? 'Umum') ?></span></td>
+                            <td class="small text-muted">
+                                <?= !empty($repEmp['bank_name']) ? View::e($repEmp['bank_name'] . ' - ' . $repEmp['bank_account']) : '<span class="text-muted">-</span>' ?>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge bg-light text-dark border"><?= (int) $repEmp['item_count'] ?> item</span>
+                            </td>
+                            <td class="text-end fw-bold text-primary">
+                                <?= View::formatRupiah($repEmp['subtotal_amount']) ?>
+                            </td>
+                            <?php if ($isPosted): ?>
+                                <td>
+                                    <?php if (!empty($repEmp['reimbursement_status'])): ?>
+                                        <?= View::statusBadge($repEmp['reimbursement_status']) ?>
+                                        <div class="small text-muted">
+                                            Dibayar: <?= View::formatRupiah($repEmp['paid_amount'] ?? 0) ?>
+                                        </div>
+                                    <?php else: ?>
+                                        <span class="badge bg-secondary">Pending</span>
+                                    <?php endif; ?>
+                                </td>
+                            <?php endif; ?>
+                            <?php if ($canEdit): ?>
+                                <td class="text-end">
+                                    <div class="d-inline-flex gap-1">
+                                        <button type="button" class="btn btn-sm btn-outline-primary btn-record-expense"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#createExpenseModal"
+                                                data-rep-emp-id="<?= (int) $repEmp['report_employee_id'] ?>"
+                                                data-emp-name="<?= View::e($repEmp['employee_name_snapshot']) ?>">
+                                            + Catat Transaksi
+                                        </button>
+                                        <?php if ((int) $repEmp['item_count'] === 0): ?>
+                                            <form action="/reports/<?= (int) $report['report_id'] ?>/employees/<?= (int) $repEmp['report_employee_id'] ?>/remove" method="POST" data-confirm="Hapus karyawan ini dari laporan?">
+                                                <?= Csrf::field() ?>
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Hapus Karyawan">✕</button>
+                                            </form>
+                                        <?php endif; ?>
+                                    </div>
+                                </td>
+                            <?php endif; ?>
+                        </tr>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- SECTION 2: DETAIL TRANSAKSI PENGELUARAN PER KARYAWAN -->
+<div class="card card-gt mb-4">
+    <div class="card-header bg-white border-bottom py-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <div>
+            <h5 class="card-title h6 fw-bold mb-0">Rincian Transaksi Pengeluaran</h5>
+            <small class="text-muted">Detail bukti transaksi per karyawan beserta kategori dan metode pembayaran</small>
+        </div>
+        <?php if ($canEdit && !empty($unassignedExpenses)): ?>
+            <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#linkExistingExpenseCollapse">
+                + Hubungkan Pengeluaran Draft Tersimpan
+            </button>
+        <?php endif; ?>
+    </div>
+
+    <!-- Link Existing Draft Expenses Collapse -->
     <?php if ($canEdit && !empty($unassignedExpenses)): ?>
-        <div class="collapse border-bottom bg-light p-3" id="addItemCollapse">
+        <div class="collapse border-bottom bg-light p-3" id="linkExistingExpenseCollapse">
             <form action="/reports/<?= (int) $report['report_id'] ?>/items" method="POST" class="row g-2 align-items-center">
                 <?= Csrf::field() ?>
                 <div class="col-md-9">
                     <select name="expense_id" class="form-select form-select-sm" required>
-                        <option value="">-- Pilih Pengeluaran Draft --</option>
+                        <option value="">-- Pilih Pengeluaran Draft Karyawan yang Belum Terdaftar --</option>
                         <?php foreach ($unassignedExpenses as $un): ?>
                             <option value="<?= (int) $un['expense_id'] ?>">
-                                <?= View::e($un['expense_number']) ?> &bull; <?= View::formatDate($un['expense_date']) ?> &bull; <?= View::e($un['category_name']) ?>: <?= View::e($un['description']) ?> (<?= View::formatRupiah($un['amount']) ?>)
+                                <?= View::e($un['employee_name'] ?? 'Karyawan') ?> &bull; <?= View::e($un['expense_number']) ?> &bull; <?= View::formatDate($un['expense_date']) ?> &bull; <?= View::e($un['category_name']) ?>: <?= View::e($un['description']) ?> (<?= View::formatRupiah($un['amount']) ?>)
                             </option>
                         <?php endforeach; ?>
                     </select>
@@ -169,16 +312,17 @@ use App\Core\View;
     <?php endif; ?>
 
     <div class="table-responsive">
-        <table class="table table-hover table-gt mb-0">
-            <thead>
+        <table class="table table-hover table-gt mb-0 align-middle">
+            <thead class="table-light">
                 <tr>
                     <th>No. Pengeluaran</th>
+                    <th>Karyawan Pemilik</th>
                     <th>Tanggal</th>
                     <th>Kategori</th>
-                    <th>Deskripsi</th>
-                    <th>Merchant</th>
-                    <th>Bukti</th>
-                    <th>Nominal</th>
+                    <th>Deskripsi & Catatan</th>
+                    <th>Metode & Bank</th>
+                    <th>Bukti Struk</th>
+                    <th class="text-end">Nominal</th>
                     <?php if ($canEdit): ?>
                         <th class="text-end">Aksi</th>
                     <?php endif; ?>
@@ -187,11 +331,13 @@ use App\Core\View;
             <tbody>
                 <?php if (empty($items)): ?>
                     <tr>
-                        <td colspan="<?= $canEdit ? '8' : '7' ?>" class="text-center py-4 text-muted">
-                            Belum ada item pengeluaran pada laporan ini.
-                            <?php if ($canEdit): ?>
+                        <td colspan="<?= $canEdit ? 9 : 8 ?>" class="text-center py-5 text-muted">
+                            Belum ada transaksi pengeluaran pada laporan ini.
+                            <?php if ($canEdit && !empty($reportEmployees)): ?>
                                 <div class="mt-2">
-                                    <a href="/expenses/create" class="btn btn-sm btn-primary">+ Catat Pengeluaran Baru</a>
+                                    <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#createExpenseModal">
+                                        + Catat Transaksi Pengeluaran Karyawan
+                                    </button>
                                 </div>
                             <?php endif; ?>
                         </td>
@@ -204,25 +350,44 @@ use App\Core\View;
                                     <?= View::e($item['expense_number']) ?>
                                 </a>
                             </td>
+                            <td>
+                                <strong><?= View::e($item['employee_name_snapshot'] ?? $item['current_employee_name'] ?? '-') ?></strong>
+                                <div class="small text-muted"><?= View::e($item['department_name_snapshot'] ?? '') ?></div>
+                            </td>
                             <td><?= View::formatDate($item['expense_date']) ?></td>
                             <td><span class="badge bg-light text-dark border"><?= View::e($item['category_name']) ?></span></td>
-                            <td><?= View::e($item['description']) ?></td>
-                            <td><?= View::e($item['merchant'] ?? '-') ?></td>
                             <td>
-                                <?php if (!empty($item['receipt_stored_name'])): ?>
-                                    <a href="/expenses/<?= (int) $item['expense_id'] ?>/receipt" target="_blank" class="badge bg-info text-white text-decoration-none" title="Lihat Bukti">
-                                        Bukti Ada
-                                    </a>
-                                <?php else: ?>
-                                    <span class="text-muted small">-</span>
+                                <div class="fw-medium text-dark"><?= View::e($item['description']) ?></div>
+                                <?php if (!empty($item['merchant'])): ?>
+                                    <small class="text-muted d-block">Merchant: <?= View::e($item['merchant']) ?></small>
+                                <?php endif; ?>
+                                <?php if (!empty($item['notes'])): ?>
+                                    <small class="text-muted fst-italic d-block"><?= View::e($item['notes']) ?></small>
                                 <?php endif; ?>
                             </td>
-                            <td><strong><?= View::formatRupiah($item['amount']) ?></strong></td>
+                            <td>
+                                <span class="badge bg-secondary"><?= View::e($item['payment_method']) ?></span>
+                                <?php if (!empty($item['bank_name'])): ?>
+                                    <small class="d-block text-muted"><?= View::e($item['bank_name']) ?></small>
+                                <?php endif; ?>
+                            </td>
+                            <td>
+                                <?php if (!empty($item['receipt_path'])): ?>
+                                    <a href="/expenses/<?= (int) $item['expense_id'] ?>/receipt" target="_blank" class="btn btn-xs btn-outline-primary" style="font-size: 0.75rem;">
+                                        Lihat Bukti
+                                    </a>
+                                <?php else: ?>
+                                    <span class="text-muted small">Tanpa Bukti</span>
+                                <?php endif; ?>
+                            </td>
+                            <td class="text-end fw-bold text-dark">
+                                <?= View::formatRupiah($item['amount']) ?>
+                            </td>
                             <?php if ($canEdit): ?>
                                 <td class="text-end">
-                                    <form action="/reports/<?= (int) $report['report_id'] ?>/items/<?= (int) $item['expense_id'] ?>/remove" method="POST" class="d-inline" data-confirm="Lepaskan item pengeluaran ini dari laporan?">
+                                    <form action="/reports/<?= (int) $report['report_id'] ?>/items/<?= (int) $item['expense_id'] ?>/remove" method="POST" data-confirm="Keluarkan transaksi ini dari laporan?">
                                         <?= Csrf::field() ?>
-                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Lepas item">Lepas</button>
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Lepaskan dari laporan">✕</button>
                                     </form>
                                 </td>
                             <?php endif; ?>
@@ -230,70 +395,79 @@ use App\Core\View;
                     <?php endforeach; ?>
                 <?php endif; ?>
             </tbody>
+            <tfoot class="table-light">
+                <tr class="fw-bold">
+                    <td colspan="7" class="text-end">TOTAL KESELURUHAN LAPORAN:</td>
+                    <td class="text-end text-primary fs-5"><?= View::formatRupiah($report['total_amount']) ?></td>
+                    <?php if ($canEdit): ?><td></td><?php endif; ?>
+                </tr>
+            </tfoot>
         </table>
     </div>
 </div>
 
-<!-- Timeline & Comments -->
+<!-- SECTION 3: TIMELINE PERSETUJUAN & DISKUSI -->
 <div class="row g-4">
-    <!-- Timeline / Approval History -->
+    <!-- Approval History -->
     <div class="col-lg-6">
         <div class="card card-gt h-100">
             <div class="card-header bg-white border-bottom py-3">
-                <h5 class="card-title h6 fw-bold mb-0">Riwayat Persetujuan (Workflow)</h5>
+                <h5 class="card-title h6 fw-bold mb-0">Riwayat Alur Persetujuan (Audit Workflow)</h5>
             </div>
             <div class="card-body p-4">
                 <?php if (empty($history)): ?>
-                    <div class="text-muted small">Belum ada riwayat persetujuan.</div>
+                    <p class="text-muted small mb-0">Belum ada riwayat persetujuan tercatat.</p>
                 <?php else: ?>
-                    <div class="timeline">
+                    <ul class="timeline-gt mb-0">
                         <?php foreach ($history as $h): ?>
-                            <div class="timeline-item">
-                                <div class="timeline-dot"></div>
+                            <li class="timeline-item mb-3 pb-2 border-bottom">
                                 <div class="d-flex justify-content-between align-items-center mb-1">
-                                    <span class="badge bg-light text-dark border fw-bold"><?= View::e($h['action']) ?></span>
-                                    <span class="text-muted small"><?= View::formatDate($h['created_at'], 'd M Y H:i') ?></span>
+                                    <strong><?= View::statusBadge($h['action']) ?></strong>
+                                    <span class="small text-muted"><?= View::formatDate($h['created_at'], 'd M Y H:i') ?></span>
                                 </div>
-                                <div class="small fw-semibold"><?= View::e($h['approver_name'] ?? $h['username']) ?></div>
+                                <div class="small">
+                                    Aktor: <strong><?= View::e($h['approver_name'] ?? $h['username']) ?></strong>
+                                </div>
                                 <?php if (!empty($h['comment'])): ?>
-                                    <div class="text-secondary small mt-1 p-2 bg-light rounded"><?= nl2br(View::e($h['comment'])) ?></div>
+                                    <div class="small text-secondary mt-1 bg-light p-2 rounded">
+                                        <?= nl2br(View::e($h['comment'])) ?>
+                                    </div>
                                 <?php endif; ?>
-                            </div>
+                            </li>
                         <?php endforeach; ?>
-                    </div>
+                    </ul>
                 <?php endif; ?>
             </div>
         </div>
     </div>
 
-    <!-- Comments Section -->
+    <!-- Comments & Discussion -->
     <div class="col-lg-6">
-        <div class="card card-gt h-100 d-flex flex-column">
+        <div class="card card-gt h-100">
             <div class="card-header bg-white border-bottom py-3">
-                <h5 class="card-title h6 fw-bold mb-0">Diskusi &amp; Catatan</h5>
+                <h5 class="card-title h6 fw-bold mb-0">Catatan & Komentar</h5>
             </div>
-            <div class="card-body p-4 flex-fill overflow-auto" style="max-height: 350px;">
-                <?php if (empty($comments)): ?>
-                    <div class="text-center py-4 text-muted small">Belum ada komentar pada laporan ini.</div>
-                <?php else: ?>
-                    <div class="d-flex flex-column gap-3">
-                        <?php foreach ($comments as $com): ?>
-                            <div class="p-3 rounded bg-light border">
+            <div class="card-body p-4 d-flex flex-column justify-content-between">
+                <div class="comments-list mb-3" style="max-height: 250px; overflow-y: auto;">
+                    <?php if (empty($comments)): ?>
+                        <p class="text-muted small mb-0">Belum ada komentar untuk laporan ini.</p>
+                    <?php else: ?>
+                        <?php foreach ($comments as $c): ?>
+                            <div class="p-2 mb-2 rounded bg-light border">
                                 <div class="d-flex justify-content-between align-items-center mb-1">
-                                    <strong class="small"><?= View::e($com['author_name'] ?? $com['username']) ?></strong>
-                                    <span class="text-muted" style="font-size: 0.75rem;"><?= View::formatDate($com['created_at'], 'd M Y H:i') ?></span>
+                                    <strong class="small"><?= View::e($c['author_name'] ?? $c['username']) ?></strong>
+                                    <span class="small text-muted" style="font-size: 0.7rem;"><?= View::formatDate($c['created_at'], 'd/m/Y H:i') ?></span>
                                 </div>
-                                <div class="small text-secondary"><?= nl2br(View::e($com['comment_body'])) ?></div>
+                                <div class="small text-dark"><?= nl2br(View::e($c['comment_body'])) ?></div>
                             </div>
                         <?php endforeach; ?>
-                    </div>
-                <?php endif; ?>
-            </div>
-            <div class="card-footer bg-white border-top p-3">
-                <form action="/reports/<?= (int) $report['report_id'] ?>/comments" method="POST">
+                    <?php endif; ?>
+                </div>
+
+                <form action="/reports/<?= (int) $report['report_id'] ?>/comments" method="POST" class="mt-auto">
                     <?= Csrf::field() ?>
                     <div class="input-group">
-                        <input type="text" name="comment_body" class="form-control form-control-sm" placeholder="Tulis komentar atau pertanyaan..." required>
+                        <input type="text" name="comment_body" class="form-control form-control-sm" placeholder="Tulis komentar atau instruksi..." required>
                         <button type="submit" class="btn btn-sm btn-primary">Kirim</button>
                     </div>
                 </form>
@@ -302,61 +476,202 @@ use App\Core\View;
     </div>
 </div>
 
-<!-- Approve Modal -->
+<!-- MODAL: CATAT TRANSAKSI LANGSUNG UNTUK KARYAWAN (When Draft) -->
+<?php if ($canEdit): ?>
+<div class="modal fade" id="createExpenseModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form action="/reports/<?= (int) $report['report_id'] ?>/expenses/create" method="POST" enctype="multipart/form-data">
+                <?= Csrf::field() ?>
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold">Catat Transaksi Pengeluaran Karyawan</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Pilih Karyawan Pemilik Transaksi <span class="text-danger">*</span></label>
+                            <select name="report_employee_id" id="modalExpenseReportEmployeeId" class="form-select" required>
+                                <option value="">-- Pilih Karyawan Terdaftar --</option>
+                                <?php foreach ($reportEmployees as $re): ?>
+                                    <option value="<?= (int) $re['report_employee_id'] ?>">
+                                        <?= View::e($re['employee_name_snapshot']) ?> (<?= View::e($re['employee_number_snapshot']) ?>) - <?= View::e($re['department_name_snapshot'] ?? 'Umum') ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Kategori Pengeluaran <span class="text-danger">*</span></label>
+                            <select name="category_id" class="form-select" required>
+                                <option value="">-- Pilih Kategori --</option>
+                                <?php foreach ($categories as $cat): ?>
+                                    <option value="<?= (int) $cat['category_id'] ?>"><?= View::e($cat['category_name']) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Tanggal Transaksi <span class="text-danger">*</span></label>
+                            <input type="date" name="expense_date" class="form-control" required value="<?= date('Y-m-d') ?>" max="<?= date('Y-m-d') ?>">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Nominal (Rp) <span class="text-danger">*</span></label>
+                            <input type="number" name="amount" class="form-control" step="0.01" min="1" required placeholder="Contoh: 150000">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Metode Pembayaran</label>
+                            <select name="payment_method" class="form-select">
+                                <option value="BANK_TRANSFER">Transfer Bank</option>
+                                <option value="CASH">Tunai (Cash)</option>
+                                <option value="CORPORATE_CARD">Kartu Perusahaan</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Nama Bank (Jika Transfer)</label>
+                            <input type="text" name="bank_name" class="form-control" placeholder="BCA / Mandiri / BNI">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Nama Toko / Merchant</label>
+                            <input type="text" name="merchant" class="form-control" placeholder="Contoh: SPBU Pertamina / Hotel Santika">
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Deskripsi Transaksi <span class="text-danger">*</span></label>
+                            <input type="text" name="description" class="form-control" required placeholder="Contoh: Pembelian tiket kereta dinas ke Bandung" minlength="3">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Upload Bukti Struk / Kuitansi</label>
+                            <input type="file" name="receipt" class="form-control" accept="image/*,.pdf">
+                            <small class="text-muted">JPG, PNG, PDF max 5MB</small>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Catatan Tambahan</label>
+                            <input type="text" name="notes" class="form-control" placeholder="Keterangan opsional">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary">Simpan Transaksi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
+
+<!-- MODAL: APPROVE (Manager) -->
 <?php if ($canDecide): ?>
-    <div class="modal fade" id="approveModal" tabindex="-1" aria-labelledby="approveModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
+<div class="modal fade" id="approveModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
             <form action="/reports/<?= (int) $report['report_id'] ?>/approve" method="POST">
                 <?= Csrf::field() ?>
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title h6 fw-bold" id="approveModalLabel">Konfirmasi Persetujuan Laporan</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold">Persetujuan Laporan Pengeluaran</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <p>Anda akan menyetujui laporan gabungan <strong><?= View::e($report['report_number']) ?></strong> dengan total nominal <strong><?= View::formatRupiah($report['total_amount']) ?></strong> mencakup <strong><?= count($reportEmployees) ?> karyawan</strong>.</p>
+                    <div class="mb-3">
+                        <label class="form-label">Catatan Persetujuan (Opsional)</label>
+                        <textarea name="comment" class="form-control" rows="3" placeholder="Disetujui untuk diproses ke bagian Keuangan..."></textarea>
                     </div>
-                    <div class="modal-body">
-                        <p class="small text-muted mb-3">
-                            Apakah Anda yakin ingin menyetujui laporan <strong><?= View::e($report['report_number']) ?></strong> sebesar <strong><?= View::formatRupiah($report['total_amount']) ?></strong>?
-                        </p>
-                        <div class="mb-3">
-                            <label for="approve_comment" class="form-label small">Catatan Persetujuan (Opsional)</label>
-                            <textarea name="comment" id="approve_comment" class="form-control form-control-sm" rows="3" placeholder="Disetujui untuk diproses keuangan..."></textarea>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-sm btn-success">Setujui Laporan</button>
-                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-success px-4">Setujui Laporan</button>
                 </div>
             </form>
         </div>
     </div>
+</div>
 
-    <!-- Refuse Modal -->
-    <div class="modal fade" id="refuseModal" tabindex="-1" aria-labelledby="refuseModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
+<!-- MODAL: REFUSE / REJECT (Manager) -->
+<div class="modal fade" id="refuseModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
             <form action="/reports/<?= (int) $report['report_id'] ?>/refuse" method="POST">
                 <?= Csrf::field() ?>
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title h6 fw-bold" id="refuseModalLabel">Tolak Laporan Pengeluaran</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold text-danger">Tolak Laporan Pengeluaran</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <p class="text-secondary small">Alasan penolakan wajib diisi agar pembuat laporan dapat melakukan perbaikan dan mengajukan revisi ulang.</p>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Alasan Penolakan <span class="text-danger">*</span></label>
+                        <textarea name="reason" class="form-control" rows="4" required minlength="5" placeholder="Jelaskan alasan penolakan secara spesifik, misal: Bukti kuitansi karyawan Andi belum resmi..."></textarea>
                     </div>
-                    <div class="modal-body">
-                        <p class="small text-muted mb-3">
-                            Laporan akan dikembalikan dengan status <strong>Ditolak (REFUSED)</strong>. Pemilik laporan dapat merevisi dan mengajukan ulang setelah memperbaiki rincian.
-                        </p>
-                        <div class="mb-3">
-                            <label for="refuse_reason" class="form-label small">Alasan Penolakan <span class="text-danger">*</span></label>
-                            <textarea name="reason" id="refuse_reason" class="form-control form-control-sm" rows="3" required minlength="5" maxlength="2000" placeholder="Jelaskan alasan penolakan atau dokumen yang kurang..."></textarea>
-                            <div class="form-text small">Wajib diisi minimal 5 karakter.</div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-sm btn-danger">Tolak Laporan</button>
-                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-danger px-4">Tolak Laporan</button>
                 </div>
             </form>
         </div>
     </div>
+</div>
 <?php endif; ?>
+
+<!-- MODAL: POSTING / PEMBUKUAN (Finance) -->
+<?php if ($canPost): ?>
+<div class="modal fade" id="postingModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="/reports/<?= (int) $report['report_id'] ?>/post" method="POST">
+                <?= Csrf::field() ?>
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold">Pembukuan Laporan (Posting Finance)</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <p>Pembukuan akan mencatat laporan ke buku besar akuntansi dan secara otomatis membuat kewajiban reimbursement untuk masing-masing karyawan yang terdaftar.</p>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Nomor Referensi Jurnal <span class="text-danger">*</span></label>
+                        <input type="text" name="journal_reference" class="form-control" required value="JRN-EXP-<?= date('Ym') ?>-<?= sprintf('%04d', (int) $report['report_id']) ?>">
+                        <small class="text-muted">Nomor voucher/jurnal pembukuan akuntansi</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Tanggal Pembukuan <span class="text-danger">*</span></label>
+                        <input type="date" name="posting_date" class="form-control" required value="<?= date('Y-m-d') ?>">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Catatan Pembukuan</label>
+                        <textarea name="notes" class="form-control" rows="2" placeholder="Keterangan pembukuan keuangan..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary px-4">Proses Pembukuan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const recordButtons = document.querySelectorAll('.btn-record-expense');
+    const modalSelect = document.getElementById('modalExpenseReportEmployeeId');
+    recordButtons.forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            const repEmpId = this.getAttribute('data-rep-emp-id');
+            if (modalSelect && repEmpId) {
+                modalSelect.value = repEmpId;
+            }
+        });
+    });
+});
+</script>

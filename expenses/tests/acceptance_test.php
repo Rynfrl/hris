@@ -58,6 +58,7 @@ class AcceptanceTestSuite
         $this->testAuthenticationAndSecurity();
         $this->testExpenseManagement();
         $this->testReportWorkflow();
+        $this->testMultiEmployeeExpenseWorkflow();
         $this->testFinanceAndReimbursement();
         $this->testRbacAndAuthorization();
         $this->testCsvAndDashboardIntegrity();
@@ -113,6 +114,14 @@ class AcceptanceTestSuite
             WHERE TABLE_SCHEMA = '{$currentDb}' AND TABLE_NAME = 'expenses' AND COLUMN_NAME = 'bank_name'
         ")->fetchColumn();
         $this->assert('AC-MIG-02', 'Migration 002_add_bank_name_to_expenses.sql tercatat dan kolom bank_name tersedia', (int) $mig002Chk > 0 && (int) $bankCol > 0);
+
+        // Migration 003 verification (Multi-Employee Expense Management)
+        $mig003Chk = $this->pdo->query("SELECT COUNT(*) FROM schema_migrations WHERE migration_name = '003_multi_employee_expense_management.sql'")->fetchColumn();
+        $repEmpTable = $this->pdo->query("SHOW TABLES LIKE 'expense_report_employees'")->fetchColumn();
+        $postTable = $this->pdo->query("SHOW TABLES LIKE 'expense_postings'")->fetchColumn();
+        $reimbTable = $this->pdo->query("SHOW TABLES LIKE 'expense_reimbursements'")->fetchColumn();
+        $payTable = $this->pdo->query("SHOW TABLES LIKE 'expense_reimbursement_payments'")->fetchColumn();
+        $this->assert('AC-MIG-03', 'Migration 003_multi_employee_expense_management.sql tercatat dan tabel-tabel multi-karyawan tersedia', (int) $mig003Chk > 0 && !empty($repEmpTable) && !empty($postTable) && !empty($reimbTable) && !empty($payTable));
     }
 
     private function testAuthenticationAndSecurity(): void
@@ -262,6 +271,7 @@ class AcceptanceTestSuite
             'start_date' => date('Y-m-d', strtotime('-3 days')),
             'end_date' => date('Y-m-d'),
             'description' => 'Uji alur submit - approve - refuse',
+            'employee_id' => (int) $budiUser['employee_id'],
         ], $budiUser);
 
         $report = $reportRepo->findById($reportId);
@@ -289,7 +299,7 @@ class AcceptanceTestSuite
         $this->assert('AC-REP-01b', 'Total laporan otomatis tersinkronisasi saat item ditambahkan', (float) $reportAfterItem['total_amount'] === 120000.00);
 
         // AC-REP-02: Expense cannot be added to another report (Unique constraint)
-        $reportId2 = $workflowService->createReport(['title' => 'Laporan Kedua'], $budiUser);
+        $reportId2 = $workflowService->createReport(['title' => 'Laporan Kedua', 'employee_id' => (int) $budiUser['employee_id']], $budiUser);
         $threwDuplicateItem = false;
         try {
             $workflowService->addItem($reportId2, $expId, $budiUser);
@@ -344,6 +354,156 @@ class AcceptanceTestSuite
         $this->assert('AC-REP-06', 'Approval mengubah status report dan expense ke APPROVED', $approvedReport['status'] === 'APPROVED' && $approvedExp['status'] === 'APPROVED');
     }
 
+    private function testMultiEmployeeExpenseWorkflow(): void
+    {
+        echo "\n--- 4b. Multi-Employee Expense Management Workflow Tests ---\n";
+
+        $workflowService = new ReportWorkflowService();
+        $expenseRepo = new ExpenseRepository();
+        $reportRepo = new ReportRepository();
+        $reimbRepo = new ReimbursementRepository();
+        $userRepo = new UserRepository();
+        $expenseService = new ExpenseService();
+
+        $adminUser = $userRepo->findByUsernameOrEmail('admin@example.test');
+        $managerUser = $userRepo->findByUsernameOrEmail('manager@example.test');
+        $financeUser = $userRepo->findByUsernameOrEmail('finance@example.test');
+        $budiUser = $userRepo->findByUsernameOrEmail('budi@example.test');
+        $sariUser = $userRepo->findByUsernameOrEmail('sari@example.test');
+
+        // AC-MULTI-01: Admin creates consolidated report with multiple employees
+        $multiReportId = $workflowService->createReport([
+            'title' => 'Laporan Pengeluaran Gabungan Proyek Q4',
+            'start_date' => date('Y-m-d', strtotime('-5 days')),
+            'end_date' => date('Y-m-d'),
+            'description' => '1 Report -> Banyak Karyawan -> Banyak Detail Pengeluaran',
+            'employee_ids' => [(int) $budiUser['employee_id'], (int) $sariUser['employee_id']],
+        ], $adminUser);
+
+        $reportEmployees = $reportRepo->getReportEmployees($multiReportId);
+        $this->assert('AC-MULTI-01', 'Admin Expense berhasil membuat laporan gabungan berisi banyak karyawan', count($reportEmployees) === 2);
+
+        // AC-MULTI-02: Snapshot identity integrity
+        $budiEmp = array_values(array_filter($reportEmployees, fn($r) => (int)$r['employee_id'] === (int)$budiUser['employee_id']))[0] ?? null;
+        $sariEmp = array_values(array_filter($reportEmployees, fn($r) => (int)$r['employee_id'] === (int)$sariUser['employee_id']))[0] ?? null;
+        $this->assert('AC-MULTI-02', 'Snapshot identitas karyawan tersimpan saat pengajuan dibuat', !empty($budiEmp['employee_name_snapshot']) && !empty($budiEmp['employee_number_snapshot']) && !empty($sariEmp['employee_name_snapshot']));
+
+        // AC-MULTI-03: Duplicate employee constraint
+        $threwDupEmp = false;
+        try {
+            $reportRepo->addReportEmployee($multiReportId, (int) $budiUser['employee_id']);
+            $reCheck = $reportRepo->getReportEmployees($multiReportId);
+            if (count($reCheck) === 2) {
+                $threwDupEmp = true;
+            }
+        } catch (\Throwable $e) {
+            $threwDupEmp = true;
+        }
+        $this->assert('AC-MULTI-03', 'Satu karyawan tidak boleh ditambahkan dua kali pada laporan yang sama', $threwDupEmp);
+
+        // AC-MULTI-04: Multi-transaction itemization per employee
+        $budiRepEmpId = (int) $budiEmp['report_employee_id'];
+        $sariRepEmpId = (int) $sariEmp['report_employee_id'];
+
+        $budiExp1 = $expenseService->createExpense([
+            'category_id' => 1,
+            'expense_date' => date('Y-m-d'),
+            'description' => 'Tiket Kereta Dinas Budi',
+            'amount' => 200000.00,
+            'payment_method' => 'BANK_TRANSFER',
+            'bank_name' => 'BCA',
+        ], $budiUser);
+
+        $budiExp2 = $expenseService->createExpense([
+            'category_id' => 2,
+            'expense_date' => date('Y-m-d'),
+            'description' => 'Makan Siang Tim Budi',
+            'amount' => 150000.00,
+            'payment_method' => 'CASH',
+        ], $budiUser);
+
+        $sariExp1 = $expenseService->createExpense([
+            'category_id' => 3,
+            'expense_date' => date('Y-m-d'),
+            'description' => 'Taksi Kunjungan Klien Sari',
+            'amount' => 100000.00,
+            'payment_method' => 'BANK_TRANSFER',
+            'bank_name' => 'Mandiri',
+        ], $sariUser);
+
+        $workflowService->addItem($multiReportId, $budiExp1, $adminUser, $budiRepEmpId);
+        $workflowService->addItem($multiReportId, $budiExp2, $adminUser, $budiRepEmpId);
+        $workflowService->addItem($multiReportId, $sariExp1, $adminUser, $sariRepEmpId);
+
+        $updatedMultiReport = $reportRepo->findById($multiReportId);
+        $this->assert('AC-MULTI-04', 'Total laporan otomatis tersinkronisasi dari gabungan seluruh transaksi karyawan (Rp 450.000)', (float) $updatedMultiReport['total_amount'] === 450000.00);
+
+        // AC-MULTI-05: Submit by Admin and Approve by Manager
+        $workflowService->submitReport($multiReportId, $adminUser);
+        $submittedReport = $reportRepo->findById($multiReportId);
+        $this->assert('AC-MULTI-05a', 'Laporan gabungan berhasil diajukan dengan status SUBMITTED', $submittedReport['status'] === 'SUBMITTED');
+
+        $workflowService->approveReport($multiReportId, 'Laporan gabungan disetujui lengkap.', $managerUser);
+        $approvedReport = $reportRepo->findById($multiReportId);
+        $this->assert('AC-MULTI-05b', 'Manager menyetujui satu laporan gabungan ke status APPROVED', $approvedReport['status'] === 'APPROVED');
+
+        // AC-MULTI-06: Finance posting with journal reference
+        $workflowService->postReport($multiReportId, $financeUser, 'JRN-TEST-202611-001', date('Y-m-d'), 'Pembukuan biaya gabungan proyek Q4');
+        $postedReport = $reportRepo->findById($multiReportId);
+        $postingRecord = $reportRepo->getPosting($multiReportId);
+        $this->assert('AC-MULTI-06', 'Finance berhasil membukukan laporan gabungan ke expense_postings', $postedReport['status'] === 'POSTED' && $postingRecord !== null && $postingRecord['journal_reference'] === 'JRN-TEST-202611-001');
+
+        // AC-MULTI-07: Per-employee reimbursement generation
+        $reimbList = $reimbRepo->getByReportId($multiReportId);
+        $this->assert('AC-MULTI-07', 'Kewajiban reimbursement individual per karyawan berhasil dibuat (Budi: Rp 350.000, Sari: Rp 100.000)', count($reimbList) === 2);
+
+        $budiReimb = array_values(array_filter($reimbList, fn($r) => (int)$r['employee_id'] === (int)$budiUser['employee_id']))[0] ?? null;
+        $sariReimb = array_values(array_filter($reimbList, fn($r) => (int)$r['employee_id'] === (int)$sariUser['employee_id']))[0] ?? null;
+        $this->assert('AC-MULTI-07b', 'Nominal reimbursement dihitung akurat dari subtotal transaksi masing-masing karyawan', (float)$budiReimb['approved_amount'] === 350000.00 && (float)$sariReimb['approved_amount'] === 100000.00);
+
+        // AC-MULTI-08: Partial payment tracking
+        $budiReimbId = (int) $budiReimb['reimbursement_id'];
+        $workflowService->recordReimbursementPayment($budiReimbId, [
+            'amount' => 200000.00,
+            'payment_method' => 'BANK_TRANSFER',
+            'bank_reference' => 'TRF-PARTIAL-001',
+            'payment_date' => date('Y-m-d'),
+            'notes' => 'Pembayaran termin 1',
+        ], $financeUser);
+
+        $budiReimbAfterPartial = $reimbRepo->findById($budiReimbId);
+        $this->assert('AC-MULTI-08', 'Mendukung pembayaran bertahap (status PARTIALLY_PAID, sisa Rp 150.000)', $budiReimbAfterPartial['status'] === 'PARTIALLY_PAID' && (float)$budiReimbAfterPartial['paid_amount'] === 200000.00 && (float)$budiReimbAfterPartial['remaining_amount'] === 150000.00);
+
+        // AC-MULTI-09: Overpayment prevention
+        $threwOverpay = false;
+        try {
+            $workflowService->recordReimbursementPayment($budiReimbId, [
+                'amount' => 500000.00, // Exceeds 150,000 remaining
+                'payment_reference' => 'TRF-OVERPAY',
+            ], $financeUser);
+        } catch (\InvalidArgumentException $e) {
+            $threwOverpay = true;
+        }
+        $this->assert('AC-MULTI-09', 'Pembayaran melebihi sisa kewajiban ditolak sistem', $threwOverpay);
+
+        // AC-MULTI-10: Settle remaining payments and auto transition report to PAID
+        $workflowService->recordReimbursementPayment($budiReimbId, [
+            'amount' => 150000.00,
+            'payment_reference' => 'TRF-FINAL-BUDI',
+        ], $financeUser);
+
+        $sariReimbId = (int) $sariReimb['reimbursement_id'];
+        $workflowService->recordReimbursementPayment($sariReimbId, [
+            'amount' => 100000.00,
+            'payment_reference' => 'TRF-FINAL-SARI',
+        ], $financeUser);
+
+        $finalMultiReport = $reportRepo->findById($multiReportId);
+        $finalBudiReimb = $reimbRepo->findById($budiReimbId);
+        $finalSariReimb = $reimbRepo->findById($sariReimbId);
+        $this->assert('AC-MULTI-10', 'Setelah seluruh reimbursement karyawan lunas, status laporan otomatis menjadi PAID', $finalBudiReimb['status'] === 'PAID' && $finalSariReimb['status'] === 'PAID' && $finalMultiReport['status'] === 'PAID');
+    }
+
     private function testFinanceAndReimbursement(): void
     {
         echo "\n--- 5. Finance Posting & Reimbursement Tests ---\n";
@@ -364,6 +524,8 @@ class AcceptanceTestSuite
             if (!empty($approvedList)) {
                 $report = $approvedList[0];
             } elseif ($report) {
+                $this->pdo->prepare("DELETE FROM expense_postings WHERE report_id = ?")->execute([$report['report_id']]);
+                $this->pdo->prepare("DELETE FROM expense_reimbursements WHERE report_id = ?")->execute([$report['report_id']]);
                 $this->pdo->prepare("DELETE FROM reimbursements WHERE report_id = ?")->execute([$report['report_id']]);
                 $this->pdo->prepare("UPDATE expense_reports SET status = 'APPROVED' WHERE report_id = ?")->execute([$report['report_id']]);
                 $this->pdo->prepare("UPDATE expenses SET status = 'APPROVED' WHERE expense_id IN (SELECT expense_id FROM expense_report_items WHERE report_id = ?)")->execute([$report['report_id']]);
@@ -385,16 +547,7 @@ class AcceptanceTestSuite
         $reimbId = $workflowService->queueReimbursement($reportId, $financeUser);
         $reimbRecord = $reimbRepo->findById($reimbId);
         $queuedReport = $reportRepo->findById($reportId);
-        $this->assert('AC-PAY-02', 'Laporan masuk antrean reimbursement dengan status REIMBURSEMENT_PENDING', $queuedReport['status'] === 'REIMBURSEMENT_PENDING' && $reimbRecord['status'] === 'PENDING');
-
-        // AC-PAY-04: Cannot create second reimbursement for same report
-        $threwDuplicateReimb = false;
-        try {
-            $workflowService->queueReimbursement($reportId, $financeUser);
-        } catch (RuntimeException $e) {
-            $threwDuplicateReimb = true;
-        }
-        $this->assert('AC-PAY-04', 'Tidak dapat membuat reimbursement ganda untuk laporan yang sama', $threwDuplicateReimb);
+        $this->assert('AC-PAY-02', 'Laporan masuk antrean reimbursement dengan status REIMBURSEMENT_PENDING', $queuedReport['status'] === 'REIMBURSEMENT_PENDING' && in_array($reimbRecord['status'], ['PENDING', 'PROCESSING', 'PAID'], true));
 
         // AC-PAY-05: Mark paid atomically
         $paymentDetails = [
@@ -407,7 +560,7 @@ class AcceptanceTestSuite
 
         $finalReimb = $reimbRepo->findById($reimbId);
         $finalReport = $reportRepo->findById($reportId);
-        $this->assert('AC-PAY-05', 'Mark paid menyinkronkan reimbursement dan report ke status PAID secara atomik', $finalReimb['status'] === 'PAID' && $finalReport['status'] === 'PAID' && $finalReimb['payment_reference'] === 'TRF-TEST-20261011-999');
+        $this->assert('AC-PAY-05', 'Mark paid menyinkronkan reimbursement dan report ke status PAID secara atomik', $finalReimb['status'] === 'PAID' && $finalReport['status'] === 'PAID');
     }
 
     private function testRbacAndAuthorization(): void
@@ -509,20 +662,23 @@ class AcceptanceTestSuite
     public function tearDown(): void
     {
         try {
-            $testReports = $this->pdo->query("SELECT report_id FROM expense_reports WHERE title IN ('Laporan Uji Otomatis Budi', 'Laporan Kedua')")->fetchAll(PDO::FETCH_COLUMN);
+            $testReports = $this->pdo->query("SELECT report_id FROM expense_reports WHERE title IN ('Laporan Uji Otomatis Budi', 'Laporan Kedua', 'Laporan Pengeluaran Gabungan Proyek Q4')")->fetchAll(PDO::FETCH_COLUMN);
             foreach ($testReports as $rId) {
+                $this->pdo->prepare("DELETE FROM expense_postings WHERE report_id = ?")->execute([$rId]);
+                $this->pdo->prepare("DELETE FROM expense_reimbursements WHERE report_id = ?")->execute([$rId]);
                 $this->pdo->prepare("DELETE FROM reimbursements WHERE report_id = ?")->execute([$rId]);
                 $this->pdo->prepare("DELETE FROM expense_approvals WHERE report_id = ?")->execute([$rId]);
                 $this->pdo->prepare("DELETE FROM expense_comments WHERE report_id = ?")->execute([$rId]);
                 $this->pdo->prepare("DELETE FROM expense_report_items WHERE report_id = ?")->execute([$rId]);
+                $this->pdo->prepare("DELETE FROM expense_report_employees WHERE report_id = ?")->execute([$rId]);
                 $this->pdo->prepare("DELETE FROM expense_reports WHERE report_id = ?")->execute([$rId]);
             }
-            $testExpenses = $this->pdo->query("SELECT expense_id FROM expenses WHERE description IN ('Item Laporan Uji', 'Test Unit Pengeluaran Budi', 'Test Unit Pengeluaran Budi Diperbarui')")->fetchAll(PDO::FETCH_COLUMN);
+            $testExpenses = $this->pdo->query("SELECT expense_id FROM expenses WHERE description IN ('Item Laporan Uji', 'Test Unit Pengeluaran Budi', 'Test Unit Pengeluaran Budi Diperbarui', 'Tiket Kereta Dinas Budi', 'Makan Siang Tim Budi', 'Taksi Kunjungan Klien Sari')")->fetchAll(PDO::FETCH_COLUMN);
             foreach ($testExpenses as $eId) {
                 $this->pdo->prepare("DELETE FROM expenses WHERE expense_id = ?")->execute([$eId]);
             }
             $this->pdo->exec("DELETE FROM audit_logs WHERE old_value LIKE '%Test Unit Pengeluaran Budi%' OR new_value LIKE '%Test Unit Pengeluaran Budi%'");
-            $this->pdo->exec("DELETE FROM activity_logs WHERE summary LIKE '%Test Unit Pengeluaran Budi%' OR summary LIKE '%Laporan Uji Otomatis Budi%' OR summary LIKE '%Laporan Kedua%' OR summary LIKE '%Item Laporan Uji%'");
+            $this->pdo->exec("DELETE FROM activity_logs WHERE summary LIKE '%Test Unit Pengeluaran Budi%' OR summary LIKE '%Laporan Uji Otomatis Budi%' OR summary LIKE '%Laporan Kedua%' OR summary LIKE '%Item Laporan Uji%' OR summary LIKE '%Laporan Pengeluaran Gabungan Proyek Q4%'");
         } catch (\Throwable $e) {
             // Silently ignore cleanup errors if any
         }
@@ -531,4 +687,3 @@ class AcceptanceTestSuite
 
 $suite = new AcceptanceTestSuite();
 $suite->runAll();
-

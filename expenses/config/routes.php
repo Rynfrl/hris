@@ -46,6 +46,9 @@ return function (Router $router): void {
     $router->get('/reports/{id}', [ReportController::class, 'show'], [AuthMiddleware::class]);
     $router->get('/reports/{id}/edit', [ReportController::class, 'edit'], [AuthMiddleware::class]);
     $router->post('/reports/{id}/update', [ReportController::class, 'update'], [AuthMiddleware::class, CsrfMiddleware::class]);
+    $router->post('/reports/{id}/employees', [ReportController::class, 'addEmployee'], [AuthMiddleware::class, CsrfMiddleware::class]);
+    $router->post('/reports/{id}/employees/{employeeId}/remove', [ReportController::class, 'removeEmployee'], [AuthMiddleware::class, CsrfMiddleware::class]);
+    $router->post('/reports/{id}/expenses/create', [ReportController::class, 'createExpenseItem'], [AuthMiddleware::class, CsrfMiddleware::class]);
     $router->post('/reports/{id}/items', [ReportController::class, 'addItem'], [AuthMiddleware::class, CsrfMiddleware::class]);
     $router->post('/reports/{id}/items/{expenseId}/remove', [ReportController::class, 'removeItem'], [AuthMiddleware::class, CsrfMiddleware::class]);
     $router->post('/reports/{id}/submit', [ReportController::class, 'submit'], [AuthMiddleware::class, CsrfMiddleware::class]);
@@ -64,6 +67,7 @@ return function (Router $router): void {
     // Reimbursements
     $router->get('/reimbursements', [ReimbursementController::class, 'index'], [AuthMiddleware::class]);
     $router->post('/reports/{id}/reimbursement', [ReimbursementController::class, 'createQueue'], [AuthMiddleware::class, CsrfMiddleware::class]);
+    $router->post('/reimbursements/{id}/payment', [ReimbursementController::class, 'recordPayment'], [AuthMiddleware::class, CsrfMiddleware::class]);
     $router->post('/reimbursements/{id}/processing', [ReimbursementController::class, 'setProcessing'], [AuthMiddleware::class, CsrfMiddleware::class]);
     $router->post('/reimbursements/{id}/paid', [ReimbursementController::class, 'markPaid'], [AuthMiddleware::class, CsrfMiddleware::class]);
     $router->post('/reimbursements/{id}/failed', [ReimbursementController::class, 'markFailed'], [AuthMiddleware::class, CsrfMiddleware::class]);

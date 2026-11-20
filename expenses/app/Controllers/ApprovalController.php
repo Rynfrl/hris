@@ -37,17 +37,21 @@ class ApprovalController
     {
         $user = Auth::user();
         $empId = !empty($user['employee_id']) ? (int) $user['employee_id'] : null;
+        $role = $user['role_name'] ?? '';
 
-        if ($empId === null || ($user['role_name'] !== 'MANAGER' && !Auth::hasPermission('expense.approve'))) {
+        if ($role !== 'MANAGER' && $role !== 'ADMIN' && !Auth::hasPermission('expense.approve')) {
             http_response_code(403);
             return View::render('errors/403', ['title' => 'Akses Ditolak'], 'layouts/error');
         }
 
-        $directReports = $this->employeeRepo->getDirectReports($empId);
+        $directReports = $empId ? $this->employeeRepo->getDirectReports($empId) : [];
         $subordinateIds = array_column($directReports, 'employee_id');
 
         $reports = [];
-        if (!empty($subordinateIds)) {
+        if ($role === 'ADMIN' || in_array('expense.approve', $user['permissions'] ?? [])) {
+            $data = $this->reportRepo->getReports(['status' => 'SUBMITTED'], 1, 100);
+            $reports = $data['items'];
+        } elseif (!empty($subordinateIds)) {
             $data = $this->reportRepo->getReports([
                 'status' => 'SUBMITTED',
                 'employee_ids' => $subordinateIds,
@@ -56,7 +60,7 @@ class ApprovalController
         }
 
         return View::render('approvals/index', [
-            'title' => 'Persetujuan Tim',
+            'title' => 'Persetujuan Laporan Pengeluaran',
             'reports' => $reports,
             'directReportsCount' => count($directReports),
             'user' => $user,
@@ -99,7 +103,7 @@ class ApprovalController
         try {
             $reason = trim($_POST['reason'] ?? '');
             $this->workflowService->refuseReport($reportId, $reason, $user);
-            Flash::success('Laporan ' . $report['report_number'] . ' berhasil ditolak dengan alasan tercatat.');
+            Flash::warning('Laporan ' . $report['report_number'] . ' ditolak dengan alasan yang telah disampaikan.');
         } catch (Throwable $e) {
             Flash::error($e->getMessage());
         }

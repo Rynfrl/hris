@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 use App\Core\Csrf;
 use App\Core\View;
+
+$suggestedPayNumber = $suggestedPayNumber ?? ('PAY-' . date('Ym') . '-0001');
 ?>
 
 <div class="d-flex align-items-center justify-content-between mb-4">
     <div>
-        <h2 class="h4 fw-bold mb-1">Antrean Reimbursement</h2>
-        <p class="text-secondary small mb-0">Kelola dan selesaikan pencairan dana biaya karyawan</p>
+        <h2 class="h4 fw-bold mb-1">Antrean &amp; Pembayaran Reimbursement</h2>
+        <p class="text-secondary small mb-0">Kelola dan selesaikan pencairan dana biaya masing-masing karyawan (mendukung pembayaran bertahap/parsial)</p>
     </div>
     <div>
         <a href="/reimbursements/history" class="btn btn-outline-secondary btn-sm">
@@ -18,33 +20,40 @@ use App\Core\View;
     </div>
 </div>
 
-<!-- 1. Posted Reports ready to enter queue -->
+<!-- 1. Posted Reports ready to enter queue if any -->
 <?php if (!empty($postedReports)): ?>
     <div class="card card-gt mb-4 border-warning">
         <div class="card-header bg-warning bg-opacity-10 border-bottom py-3">
             <h5 class="card-title h6 fw-bold mb-0 text-dark">Laporan Dibukukan (Siap Diproses ke Antrean Reimbursement)</h5>
         </div>
         <div class="table-responsive">
-            <table class="table table-hover table-gt mb-0">
+            <table class="table table-hover table-gt mb-0 align-middle">
                 <thead>
                     <tr>
                         <th>No. Laporan</th>
-                        <th>Karyawan</th>
                         <th>Judul Laporan</th>
-                        <th>Total</th>
+                        <th>Karyawan Terlibat</th>
+                        <th>Total Nominal</th>
                         <th class="text-end">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php foreach ($postedReports as $rep): ?>
+                        <?php
+                            $empCount = (int) ($rep['employee_count'] ?? 0);
+                            $empSummary = !empty($rep['employees_summary']) ? $rep['employees_summary'] : ($rep['employee_name'] ?? '-');
+                        ?>
                         <tr>
                             <td>
                                 <a href="/reports/<?= (int) $rep['report_id'] ?>" class="fw-semibold text-primary text-decoration-none">
                                     <?= View::e($rep['report_number']) ?>
                                 </a>
                             </td>
-                            <td><?= View::e($rep['employee_name']) ?></td>
                             <td><?= View::e($rep['title']) ?></td>
+                            <td>
+                                <span class="badge bg-primary rounded-pill me-1"><?= $empCount ?: 1 ?> Karyawan</span>
+                                <small class="text-muted"><?= View::e($empSummary) ?></small>
+                            </td>
                             <td><strong><?= View::formatRupiah($rep['total_amount']) ?></strong></td>
                             <td class="text-end">
                                 <form action="/reports/<?= (int) $rep['report_id'] ?>/reimbursement" method="POST" class="d-inline">
@@ -63,16 +72,18 @@ use App\Core\View;
 <!-- 2. Active Reimbursements Waiting for Payment -->
 <div class="card card-gt">
     <div class="card-header bg-white border-bottom py-3">
-        <h5 class="card-title h6 fw-bold mb-0">Antrean Pembayaran Aktif</h5>
+        <h5 class="card-title h6 fw-bold mb-0">Daftar Kewajiban Pembayaran Karyawan</h5>
     </div>
     <div class="table-responsive">
-        <table class="table table-hover table-gt mb-0">
-            <thead>
+        <table class="table table-hover table-gt mb-0 align-middle">
+            <thead class="table-light">
                 <tr>
                     <th>Laporan</th>
-                    <th>Karyawan</th>
+                    <th>Karyawan Penerima</th>
                     <th>Rekening Bank</th>
-                    <th>Nominal</th>
+                    <th>Disetujui</th>
+                    <th>Sudah Dibayar</th>
+                    <th>Sisa Kewajiban</th>
                     <th>Status</th>
                     <th class="text-end">Aksi Pembayaran</th>
                 </tr>
@@ -80,28 +91,36 @@ use App\Core\View;
             <tbody>
                 <?php if (empty($activeReimbursements)): ?>
                     <tr>
-                        <td colspan="6" class="text-center py-5 text-muted">
-                            <div class="fw-semibold">Tidak ada antrean reimbursement yang menunggu pembayaran.</div>
+                        <td colspan="8" class="text-center py-5 text-muted">
+                            <div class="fw-semibold">Tidak ada kewajiban reimbursement yang menunggu pembayaran.</div>
+                            <div class="small">Laporan yang telah dibukukan akan muncul di daftar antrean ini.</div>
                         </td>
                     </tr>
                 <?php else: ?>
                     <?php foreach ($activeReimbursements as $rem): ?>
+                        <?php
+                            $approved = (float) ($rem['approved_amount'] ?? $rem['amount'] ?? 0);
+                            $paid = (float) ($rem['paid_amount'] ?? 0);
+                            $remaining = max(0.00, round($approved - $paid, 2));
+                        ?>
                         <tr>
                             <td>
                                 <a href="/reports/<?= (int) $rem['report_id'] ?>" class="fw-semibold text-primary text-decoration-none">
                                     <?= View::e($rem['report_number']) ?>
                                 </a>
-                                <div class="text-muted small"><?= View::e($rem['report_title']) ?></div>
+                                <div class="text-muted small text-truncate" style="max-width: 180px;"><?= View::e($rem['report_title']) ?></div>
                             </td>
                             <td>
                                 <strong><?= View::e($rem['employee_name']) ?></strong>
-                                <div class="text-muted small"><?= View::e($rem['employee_number']) ?></div>
+                                <div class="text-muted small"><?= View::e($rem['employee_number']) ?> &bull; <?= View::e($rem['department_name'] ?? 'Umum') ?></div>
                             </td>
                             <td>
-                                <div><?= View::e($rem['bank_name'] ?? 'Bank') ?></div>
-                                <div class="text-muted small"><?= View::e($rem['bank_account'] ?? '-') ?></div>
+                                <div><strong><?= View::e($rem['bank_name'] ?? 'Bank') ?></strong></div>
+                                <div class="text-muted small"><code><?= View::e($rem['bank_account'] ?? '-') ?></code></div>
                             </td>
-                            <td><strong class="text-primary fs-6"><?= View::formatRupiah($rem['amount']) ?></strong></td>
+                            <td><strong><?= View::formatRupiah($approved) ?></strong></td>
+                            <td class="text-success"><?= View::formatRupiah($paid) ?></td>
+                            <td class="fw-bold text-danger"><?= View::formatRupiah($remaining) ?></td>
                             <td><?= View::statusBadge($rem['status']) ?></td>
                             <td class="text-end">
                                 <?php if ($rem['status'] === 'PENDING'): ?>
@@ -111,43 +130,67 @@ use App\Core\View;
                                     </form>
                                 <?php endif; ?>
 
-                                <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#payModal<?= (int) $rem['reimbursement_id'] ?>">
-                                    Catat Lunas (PAID)
-                                </button>
+                                <?php if ($remaining > 0): ?>
+                                    <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#payModal<?= (int) $rem['reimbursement_id'] ?>">
+                                        Catat Bayar
+                                    </button>
+                                <?php endif; ?>
 
                                 <!-- Pay Modal -->
                                 <div class="modal fade" id="payModal<?= (int) $rem['reimbursement_id'] ?>" tabindex="-1" aria-labelledby="payModalLabel<?= (int) $rem['reimbursement_id'] ?>" aria-hidden="true">
                                     <div class="modal-dialog text-start">
-                                        <form action="/reimbursements/<?= (int) $rem['reimbursement_id'] ?>/paid" method="POST">
+                                        <form action="/reimbursements/<?= (int) $rem['reimbursement_id'] ?>/payment" method="POST" enctype="multipart/form-data">
                                             <?= Csrf::field() ?>
                                             <div class="modal-content">
                                                 <div class="modal-header">
-                                                    <h5 class="modal-title h6 fw-bold" id="payModalLabel<?= (int) $rem['reimbursement_id'] ?>">Konfirmasi Pembayaran Reimbursement</h5>
+                                                    <h5 class="modal-title h6 fw-bold" id="payModalLabel<?= (int) $rem['reimbursement_id'] ?>">Pencairan Reimbursement Karyawan</h5>
                                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                                 </div>
-                                                <div class="modal-body">
-                                                    <p class="small text-muted mb-3">
-                                                        Laporan: <strong><?= View::e($rem['report_number']) ?></strong> &bull;
-                                                        Karyawan: <strong><?= View::e($rem['employee_name']) ?></strong><br>
-                                                        Total Pencairan: <strong class="text-success"><?= View::formatRupiah($rem['amount']) ?></strong>
-                                                    </p>
-                                                    <div class="row g-2">
-                                                        <div class="col-md-6 mb-2">
-                                                            <label class="form-label small">Metode Pembayaran</label>
+                                                <div class="modal-body p-4">
+                                                    <div class="alert alert-light border p-3 mb-3 small">
+                                                        Karyawan: <strong><?= View::e($rem['employee_name']) ?></strong> (<?= View::e($rem['employee_number']) ?>)<br>
+                                                        Rekening: <strong><?= View::e($rem['bank_name'] ?? 'Bank') ?> - <?= View::e($rem['bank_account'] ?? '-') ?></strong><br>
+                                                        Total Disetujui: <strong><?= View::formatRupiah($approved) ?></strong> &bull;
+                                                        Sisa: <strong class="text-danger"><?= View::formatRupiah($remaining) ?></strong>
+                                                    </div>
+
+                                                    <div class="row g-3">
+                                                        <div class="col-md-6">
+                                                            <label class="form-label fw-semibold small">Nominal Bayar (Rp) <span class="text-danger">*</span></label>
+                                                            <input type="number" name="amount" class="form-control form-control-sm" step="0.01" min="1" max="<?= $remaining ?>" required value="<?= $remaining ?>">
+                                                            <small class="text-muted">Bisa dibayar sebagian / bertahap</small>
+                                                        </div>
+
+                                                        <div class="col-md-6">
+                                                            <label class="form-label fw-semibold small">Tanggal Pembayaran <span class="text-danger">*</span></label>
+                                                            <input type="date" name="payment_date" class="form-control form-control-sm" required value="<?= date('Y-m-d') ?>">
+                                                        </div>
+
+                                                        <div class="col-md-6">
+                                                            <label class="form-label fw-semibold small">Metode Pembayaran</label>
                                                             <select name="payment_method" class="form-select form-select-sm" required>
                                                                 <option value="BANK_TRANSFER">Transfer Bank</option>
                                                                 <option value="CASH">Tunai (Cash)</option>
                                                                 <option value="OTHER">Lainnya</option>
                                                             </select>
                                                         </div>
-                                                        <div class="col-md-6 mb-2">
-                                                            <label class="form-label small">Tanggal Bayar</label>
-                                                            <input type="date" name="payment_date" class="form-control form-control-sm" required value="<?= date('Y-m-d') ?>">
+
+                                                        <div class="col-md-6">
+                                                            <label class="form-label small">Nama Bank Pengirim/Tujuan</label>
+                                                            <input type="text" name="bank_name" class="form-control form-control-sm" value="<?= View::e($rem['bank_name'] ?? 'BCA') ?>">
                                                         </div>
-                                                        <div class="col-12 mb-2">
-                                                            <label class="form-label small">No. Referensi / No. Transaksi Bank</label>
-                                                            <input type="text" name="payment_reference" class="form-control form-control-sm" placeholder="Contoh: TRF-20261011-00123" maxlength="150" required>
+
+                                                        <div class="col-12">
+                                                            <label class="form-label fw-semibold small">No. Referensi / No. Transaksi Bank</label>
+                                                            <input type="text" name="bank_reference" class="form-control form-control-sm" placeholder="Contoh: TRF-20261011-00123" maxlength="150" required>
                                                         </div>
+
+                                                        <div class="col-12">
+                                                            <label class="form-label small">Upload Bukti Transfer / Pembayaran</label>
+                                                            <input type="file" name="proof" class="form-control form-control-sm" accept="image/*,.pdf">
+                                                            <small class="text-muted">Bukti mutasi atau resi transfer (JPG, PNG, PDF)</small>
+                                                        </div>
+
                                                         <div class="col-12">
                                                             <label class="form-label small">Catatan Tambahan (Opsional)</label>
                                                             <textarea name="notes" class="form-control form-control-sm" rows="2" placeholder="Catatan bukti transfer..."></textarea>
@@ -156,7 +199,7 @@ use App\Core\View;
                                                 </div>
                                                 <div class="modal-footer">
                                                     <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Batal</button>
-                                                    <button type="submit" class="btn btn-sm btn-success">Selesaikan Pembayaran</button>
+                                                    <button type="submit" class="btn btn-sm btn-success px-3">Simpan Pembayaran</button>
                                                 </div>
                                             </div>
                                         </form>

@@ -7,14 +7,14 @@ use App\Core\View;
 
 <div class="d-flex align-items-center justify-content-between mb-4">
     <div>
-        <h2 class="h4 fw-bold mb-1"><?= ($user['role_name'] ?? '') === 'MANAGER' ? 'Laporan Tim' : 'Laporan Pengeluaran' ?></h2>
-        <p class="text-secondary small mb-0"><?= ($user['role_name'] ?? '') === 'MANAGER' ? 'Pantau kumpulan pengeluaran yang diajukan oleh tim Anda' : 'Kumpulan pengeluaran yang diajukan dan diproses' ?></p>
+        <h2 class="h4 fw-bold mb-1"><?= ($user['role_name'] ?? '') === 'MANAGER' ? 'Laporan Pengeluaran Tim' : 'Laporan Pengeluaran' ?></h2>
+        <p class="text-secondary small mb-0">Kelola dan pantau laporan pengeluaran gabungan multi-karyawan</p>
     </div>
     <?php if (($user['role_name'] ?? '') !== 'MANAGER'): ?>
         <div>
             <a href="/reports/create" class="btn btn-primary btn-sm d-flex align-items-center gap-1">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                <span>Buat Laporan</span>
+                <span>Buat Laporan Gabungan</span>
             </a>
         </div>
     <?php endif; ?>
@@ -25,7 +25,7 @@ use App\Core\View;
     <div class="card-body p-3">
         <form action="/reports" method="GET" class="row g-2 align-items-center">
             <div class="col-md-4">
-                <input type="text" name="search" class="form-control form-control-sm" placeholder="Cari nomor laporan/judul/karyawan..." value="<?= View::e($filters['search'] ?? '') ?>">
+                <input type="text" name="search" class="form-control form-control-sm" placeholder="Cari nomor/judul/karyawan..." value="<?= View::e($filters['search'] ?? '') ?>">
             </div>
             <div class="col-md-3">
                 <select name="status" class="form-select form-select-sm">
@@ -59,8 +59,7 @@ use App\Core\View;
                 <tr>
                     <th>No. Laporan</th>
                     <th>Judul Laporan</th>
-                    <th>Karyawan</th>
-                    <th>Departemen</th>
+                    <th>Karyawan Terdaftar</th>
                     <th>Jumlah Item</th>
                     <th>Total Nominal</th>
                     <th>Status</th>
@@ -71,12 +70,16 @@ use App\Core\View;
             <tbody>
                 <?php if (empty($reports)): ?>
                     <tr>
-                        <td colspan="9" class="text-center py-4 text-muted">
+                        <td colspan="8" class="text-center py-4 text-muted">
                             Belum ada laporan yang ditemukan.
                         </td>
                     </tr>
                 <?php else: ?>
                     <?php foreach ($reports as $item): ?>
+                        <?php
+                            $empCount = (int) ($item['employee_count'] ?? 0);
+                            $empSummary = !empty($item['employees_summary']) ? $item['employees_summary'] : ($item['employee_name'] ?? '-');
+                        ?>
                         <tr>
                             <td>
                                 <a href="/reports/<?= (int) $item['report_id'] ?>" class="fw-semibold text-primary text-decoration-none">
@@ -84,17 +87,25 @@ use App\Core\View;
                                 </a>
                             </td>
                             <td>
-                                <div class="fw-medium"><?= View::e($item['title']) ?></div>
+                                <div class="fw-medium text-dark"><?= View::e($item['title']) ?></div>
                             </td>
-                            <td><?= View::e($item['employee_name']) ?></td>
-                            <td><?= View::e($item['department_name'] ?? '-') ?></td>
+                            <td>
+                                <div class="d-flex align-items-center gap-1">
+                                    <?php if ($empCount > 1): ?>
+                                        <span class="badge bg-primary rounded-pill"><?= $empCount ?> Karyawan</span>
+                                    <?php endif; ?>
+                                    <span class="text-truncate text-secondary small" style="max-width: 250px;" title="<?= View::e($empSummary) ?>">
+                                        <?= View::e($empSummary) ?>
+                                    </span>
+                                </div>
+                            </td>
                             <td><span class="badge bg-light text-dark border"><?= (int) ($item['item_count'] ?? 0) ?> item</span></td>
                             <td><strong><?= View::formatRupiah($item['total_amount']) ?></strong></td>
                             <td><?= View::statusBadge($item['status']) ?></td>
                             <td><?= View::formatDate($item['created_at']) ?></td>
                             <td class="text-end">
                                 <a href="/reports/<?= (int) $item['report_id'] ?>" class="btn btn-sm btn-outline-secondary">
-                                    Buka
+                                    Buka Detail
                                 </a>
                             </td>
                         </tr>
@@ -106,29 +117,23 @@ use App\Core\View;
 
     <!-- Pagination -->
     <?php if ($totalPages > 1): ?>
-        <div class="card-footer bg-white border-top py-2 d-flex justify-content-between align-items-center">
+        <div class="card-footer bg-white border-top py-3 d-flex align-items-center justify-content-between">
             <div class="small text-muted">
-                Menampilkan halaman <?= $page ?> dari <?= $totalPages ?> (Total <?= $total ?> laporan)
+                Total: <strong><?= $total ?></strong> laporan &bull; Halaman <?= $page ?> dari <?= $totalPages ?>
             </div>
-            <nav>
-                <ul class="pagination pagination-sm mb-0">
-                    <?php if ($page > 1): ?>
-                        <li class="page-item">
-                            <a class="page-link" href="?<?= http_build_query(array_merge($filters, ['page' => $page - 1])) ?>">Sebelumnya</a>
-                        </li>
-                    <?php endif; ?>
-                    <?php for ($i = max(1, $page - 2); $i <= min($totalPages, $page + 2); $i++): ?>
-                        <li class="page-item <?= $i === $page ? 'active' : '' ?>">
-                            <a class="page-link" href="?<?= http_build_query(array_merge($filters, ['page' => $i])) ?>"><?= $i ?></a>
-                        </li>
-                    <?php endfor; ?>
-                    <?php if ($page < $totalPages): ?>
-                        <li class="page-item">
-                            <a class="page-link" href="?<?= http_build_query(array_merge($filters, ['page' => $page + 1])) ?>">Selanjutnya</a>
-                        </li>
-                    <?php endif; ?>
-                </ul>
-            </nav>
+            <ul class="pagination pagination-sm mb-0">
+                <li class="page-item <?= $page <= 1 ? 'disabled' : '' ?>">
+                    <a class="page-link" href="/reports?<?= http_build_query(array_merge($filters, ['page' => $page - 1])) ?>">«</a>
+                </li>
+                <?php for ($p = max(1, $page - 2); $p <= min($totalPages, $page + 2); $p++): ?>
+                    <li class="page-item <?= $p === $page ? 'active' : '' ?>">
+                        <a class="page-link" href="/reports?<?= http_build_query(array_merge($filters, ['page' => $p])) ?>"><?= $p ?></a>
+                    </li>
+                <?php endfor; ?>
+                <li class="page-item <?= $page >= $totalPages ? 'disabled' : '' ?>">
+                    <a class="page-link" href="/reports?<?= http_build_query(array_merge($filters, ['page' => $page + 1])) ?>">»</a>
+                </li>
+            </ul>
         </div>
     <?php endif; ?>
 </div>

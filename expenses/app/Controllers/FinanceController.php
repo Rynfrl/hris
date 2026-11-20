@@ -32,16 +32,19 @@ class FinanceController
     public function postingQueue(): string
     {
         $user = Auth::user();
-        if ($user['role_name'] !== 'FINANCE' && !Auth::hasPermission('expense.post')) {
+        $role = $user['role_name'] ?? '';
+        if ($role !== 'FINANCE' && $role !== 'ADMIN' && !Auth::hasPermission('expense.post')) {
             http_response_code(403);
             return View::render('errors/403', ['title' => 'Akses Ditolak'], 'layouts/error');
         }
 
         $data = $this->reportRepo->getReports(['status' => 'APPROVED'], 1, 100);
+        $suggestedRef = $this->reportRepo->generateJournalReference();
 
         return View::render('finance/posting', [
             'title' => 'Pembukuan Laporan (Posting Finance)',
             'reports' => $data['items'],
+            'suggestedRef' => $suggestedRef,
             'user' => $user,
         ]);
     }
@@ -57,9 +60,13 @@ class FinanceController
             Url::redirect('/reports/' . $reportId);
         }
 
+        $journalRef = trim($_POST['journal_reference'] ?? '');
+        $postingDate = !empty($_POST['posting_date']) ? $_POST['posting_date'] : date('Y-m-d');
+        $notes = trim($_POST['notes'] ?? '');
+
         try {
-            $this->workflowService->postReport($reportId, $user);
-            Flash::success('Laporan ' . $report['report_number'] . ' berhasil dibukukan (POSTED).');
+            $this->workflowService->postReport($reportId, $user, $journalRef ?: null, $postingDate, $notes ?: null);
+            Flash::success('Laporan ' . $report['report_number'] . ' berhasil dibukukan (POSTED) dan kewajiban reimbursement karyawan telah dibuat.');
         } catch (Throwable $e) {
             Flash::error($e->getMessage());
         }

@@ -437,6 +437,40 @@ LOCK TABLES `expense_comments` WRITE;
 UNLOCK TABLES;
 
 --
+-- Table structure for table `expense_report_employees`
+--
+
+DROP TABLE IF EXISTS `expense_report_employees`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `expense_report_employees` (
+  `report_employee_id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `report_id` bigint unsigned NOT NULL,
+  `employee_id` bigint unsigned NOT NULL,
+  `employee_number_snapshot` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `employee_name_snapshot` varchar(150) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `department_name_snapshot` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`report_employee_id`),
+  UNIQUE KEY `uq_report_employee` (`report_id`,`employee_id`),
+  KEY `idx_rep_emp_report` (`report_id`),
+  KEY `idx_rep_emp_employee` (`employee_id`),
+  CONSTRAINT `fk_rep_emp_employee` FOREIGN KEY (`employee_id`) REFERENCES `employees` (`employee_id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT `fk_rep_emp_report` FOREIGN KEY (`report_id`) REFERENCES `expense_reports` (`report_id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `expense_report_employees`
+--
+
+LOCK TABLES `expense_report_employees` WRITE;
+/*!40000 ALTER TABLE `expense_report_employees` DISABLE KEYS */;
+INSERT INTO `expense_report_employees` VALUES (1,1,2,'EMP002','Budi Santoso','Human Resource','2026-10-15 00:49:48'),(2,2,3,'EMP003','Sari Dewi','Finance','2026-10-15 00:49:48'),(3,3,2,'EMP002','Budi Santoso','Human Resource','2026-10-15 00:49:48'),(4,4,3,'EMP003','Sari Dewi','Finance','2026-10-15 00:49:48'),(5,5,2,'EMP002','Budi Santoso','Human Resource','2026-10-15 00:49:48');
+/*!40000 ALTER TABLE `expense_report_employees` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `expense_report_items`
 --
 
@@ -447,11 +481,14 @@ CREATE TABLE `expense_report_items` (
   `report_item_id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `report_id` bigint unsigned NOT NULL,
   `expense_id` bigint unsigned NOT NULL,
+  `report_employee_id` bigint unsigned DEFAULT NULL,
   PRIMARY KEY (`report_item_id`),
   UNIQUE KEY `uq_report_expense` (`report_id`,`expense_id`),
   UNIQUE KEY `uq_expense_report_items_expense` (`expense_id`),
+  KEY `fk_report_item_report_employee` (`report_employee_id`),
   CONSTRAINT `fk_report_item_expense` FOREIGN KEY (`expense_id`) REFERENCES `expenses` (`expense_id`) ON DELETE RESTRICT ON UPDATE CASCADE,
-  CONSTRAINT `fk_report_item_report` FOREIGN KEY (`report_id`) REFERENCES `expense_reports` (`report_id`) ON DELETE CASCADE ON UPDATE CASCADE
+  CONSTRAINT `fk_report_item_report` FOREIGN KEY (`report_id`) REFERENCES `expense_reports` (`report_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_report_item_report_employee` FOREIGN KEY (`report_employee_id`) REFERENCES `expense_report_employees` (`report_employee_id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=18 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -461,7 +498,7 @@ CREATE TABLE `expense_report_items` (
 
 LOCK TABLES `expense_report_items` WRITE;
 /*!40000 ALTER TABLE `expense_report_items` DISABLE KEYS */;
-INSERT INTO `expense_report_items` VALUES (1,1,1),(2,1,2),(3,2,3),(4,2,4),(5,3,5),(6,4,6),(7,5,7);
+INSERT INTO `expense_report_items` VALUES (1,1,1,1),(2,1,2,1),(3,2,3,2),(4,2,4,2),(5,3,5,3),(6,4,6,4),(7,5,7,5);
 /*!40000 ALTER TABLE `expense_report_items` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -475,9 +512,10 @@ DROP TABLE IF EXISTS `expense_reports`;
 CREATE TABLE `expense_reports` (
   `report_id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `report_number` varchar(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `employee_id` bigint unsigned NOT NULL,
+  `employee_id` bigint unsigned DEFAULT NULL,
   `title` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `created_by` bigint unsigned DEFAULT NULL,
   `start_date` date DEFAULT NULL,
   `end_date` date DEFAULT NULL,
   `total_amount` decimal(15,2) NOT NULL DEFAULT '0.00',
@@ -494,7 +532,9 @@ CREATE TABLE `expense_reports` (
   UNIQUE KEY `report_number` (`report_number`),
   KEY `idx_expense_report_employee` (`employee_id`),
   KEY `idx_expense_report_status` (`status`),
-  CONSTRAINT `fk_expense_report_employee` FOREIGN KEY (`employee_id`) REFERENCES `employees` (`employee_id`) ON DELETE RESTRICT ON UPDATE CASCADE
+  KEY `fk_expense_reports_created_by` (`created_by`),
+  CONSTRAINT `fk_expense_report_employee` FOREIGN KEY (`employee_id`) REFERENCES `employees` (`employee_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_expense_reports_created_by` FOREIGN KEY (`created_by`) REFERENCES `users` (`user_id`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -1140,6 +1180,120 @@ LOCK TABLES `reimbursements` WRITE;
 /*!40000 ALTER TABLE `reimbursements` DISABLE KEYS */;
 INSERT INTO `reimbursements` VALUES (1,5,2,250000.00,'BANK_TRANSFER','TRF-DEMO-20261011-01','2026-10-15',NULL,'PAID',5,'2026-10-15 07:49:48','2026-10-15 00:49:48','2026-10-15 00:49:48'),(2,3,2,320000.00,'BANK_TRANSFER','TRF-TEST-20261011-999','2026-10-15','Pembayaran selesai melalui internet banking','PAID',5,'2026-10-15 07:49:52','2026-10-15 00:49:52','2026-10-15 00:49:52');
 /*!40000 ALTER TABLE `reimbursements` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `expense_postings`
+--
+
+DROP TABLE IF EXISTS `expense_postings`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `expense_postings` (
+  `posting_id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `report_id` bigint unsigned NOT NULL,
+  `journal_reference` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `posting_date` date NOT NULL,
+  `posted_by` bigint unsigned NOT NULL,
+  `posted_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `notes` text COLLATE utf8mb4_unicode_ci,
+  PRIMARY KEY (`posting_id`),
+  UNIQUE KEY `uq_expense_postings_report` (`report_id`),
+  KEY `idx_expense_postings_date` (`posting_date`),
+  KEY `idx_expense_postings_posted_by` (`posted_by`),
+  CONSTRAINT `fk_expense_postings_report` FOREIGN KEY (`report_id`) REFERENCES `expense_reports` (`report_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_expense_postings_user` FOREIGN KEY (`posted_by`) REFERENCES `users` (`user_id`) ON DELETE RESTRICT ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `expense_postings`
+--
+
+LOCK TABLES `expense_postings` WRITE;
+/*!40000 ALTER TABLE `expense_postings` DISABLE KEYS */;
+INSERT INTO `expense_postings` VALUES (1,3,'JRN-EXP-202610-001','2026-10-15',5,'2026-10-15 00:49:52','Pembukuan biaya workshop internal'),(2,5,'JRN-EXP-202610-002','2026-10-15',5,'2026-10-15 00:49:48','Pembukuan operasional transport');
+/*!40000 ALTER TABLE `expense_postings` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `expense_reimbursements`
+--
+
+DROP TABLE IF EXISTS `expense_reimbursements`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `expense_reimbursements` (
+  `reimbursement_id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `report_id` bigint unsigned NOT NULL,
+  `report_employee_id` bigint unsigned NOT NULL,
+  `employee_id` bigint unsigned NOT NULL,
+  `approved_amount` decimal(15,2) NOT NULL DEFAULT '0.00',
+  `paid_amount` decimal(15,2) NOT NULL DEFAULT '0.00',
+  `status` enum('PENDING','PROCESSING','PARTIALLY_PAID','PAID','FAILED','CANCELLED') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'PENDING',
+  `notes` text COLLATE utf8mb4_unicode_ci,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`reimbursement_id`),
+  UNIQUE KEY `uq_report_employee_reimb` (`report_id`,`employee_id`),
+  KEY `idx_expense_reimb_report` (`report_id`),
+  KEY `idx_expense_reimb_report_emp` (`report_employee_id`),
+  KEY `idx_expense_reimb_employee` (`employee_id`),
+  KEY `idx_expense_reimb_status` (`status`),
+  CONSTRAINT `fk_expense_reimb_employee` FOREIGN KEY (`employee_id`) REFERENCES `employees` (`employee_id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT `fk_expense_reimb_report` FOREIGN KEY (`report_id`) REFERENCES `expense_reports` (`report_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_expense_reimb_report_employee` FOREIGN KEY (`report_employee_id`) REFERENCES `expense_report_employees` (`report_employee_id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `expense_reimbursements`
+--
+
+LOCK TABLES `expense_reimbursements` WRITE;
+/*!40000 ALTER TABLE `expense_reimbursements` DISABLE KEYS */;
+INSERT INTO `expense_reimbursements` VALUES (1,5,5,2,250000.00,250000.00,'PAID',NULL,'2026-10-15 00:49:48','2026-10-15 00:49:48'),(2,3,3,2,320000.00,320000.00,'PAID','Pembayaran selesai melalui internet banking','2026-10-15 00:49:52','2026-10-15 00:49:52');
+/*!40000 ALTER TABLE `expense_reimbursements` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `expense_reimbursement_payments`
+--
+
+DROP TABLE IF EXISTS `expense_reimbursement_payments`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `expense_reimbursement_payments` (
+  `payment_id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `reimbursement_id` bigint unsigned NOT NULL,
+  `payment_number` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `payment_date` date NOT NULL,
+  `amount` decimal(15,2) NOT NULL,
+  `payment_method` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'BANK_TRANSFER',
+  `bank_name` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `bank_reference` varchar(150) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `proof_path` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `paid_by` bigint unsigned NOT NULL,
+  `notes` text COLLATE utf8mb4_unicode_ci,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`payment_id`),
+  UNIQUE KEY `uq_reimb_payment_number` (`payment_number`),
+  KEY `idx_reimb_payments_reimb` (`reimbursement_id`),
+  KEY `idx_reimb_payments_paid_by` (`paid_by`),
+  KEY `idx_reimb_payments_date` (`payment_date`),
+  CONSTRAINT `fk_reimb_payments_reimb` FOREIGN KEY (`reimbursement_id`) REFERENCES `expense_reimbursements` (`reimbursement_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_reimb_payments_user` FOREIGN KEY (`paid_by`) REFERENCES `users` (`user_id`) ON DELETE RESTRICT ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `expense_reimbursement_payments`
+--
+
+LOCK TABLES `expense_reimbursement_payments` WRITE;
+/*!40000 ALTER TABLE `expense_reimbursement_payments` DISABLE KEYS */;
+INSERT INTO `expense_reimbursement_payments` VALUES (1,1,'PAY-202610-001','2026-10-15',250000.00,'BANK_TRANSFER','BCA','TRF-DEMO-20261011-01',NULL,5,NULL,'2026-10-15 00:49:48'),(2,2,'PAY-202610-002','2026-10-15',320000.00,'BANK_TRANSFER','BCA','TRF-TEST-20261011-999',NULL,5,'Pembayaran selesai melalui internet banking','2026-10-15 00:49:52');
+/*!40000 ALTER TABLE `expense_reimbursement_payments` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --

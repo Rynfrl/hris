@@ -11,8 +11,11 @@ use App\Core\Url;
 use App\Repositories\ReportRepository;
 use App\Repositories\ExpenseRepository;
 use App\Repositories\EmployeeRepository;
+use App\Repositories\CategoryRepository;
+use App\Repositories\ReimbursementRepository;
 use App\Services\ReportWorkflowService;
 use App\Services\AuthorizationService;
+use App\Services\ExpenseService;
 use Throwable;
 
 class ReportController
@@ -20,21 +23,30 @@ class ReportController
     private ReportRepository $reportRepo;
     private ExpenseRepository $expenseRepo;
     private EmployeeRepository $employeeRepo;
+    private CategoryRepository $categoryRepo;
+    private ReimbursementRepository $reimbursementRepo;
     private ReportWorkflowService $workflowService;
     private AuthorizationService $authService;
+    private ExpenseService $expenseService;
 
     public function __construct(
         ?ReportRepository $reportRepo = null,
         ?ExpenseRepository $expenseRepo = null,
         ?EmployeeRepository $employeeRepo = null,
+        ?CategoryRepository $categoryRepo = null,
+        ?ReimbursementRepository $reimbursementRepo = null,
         ?ReportWorkflowService $workflowService = null,
-        ?AuthorizationService $authService = null
+        ?AuthorizationService $authService = null,
+        ?ExpenseService $expenseService = null
     ) {
         $this->reportRepo = $reportRepo ?? new ReportRepository();
         $this->expenseRepo = $expenseRepo ?? new ExpenseRepository();
         $this->employeeRepo = $employeeRepo ?? new EmployeeRepository();
+        $this->categoryRepo = $categoryRepo ?? new CategoryRepository();
+        $this->reimbursementRepo = $reimbursementRepo ?? new ReimbursementRepository();
         $this->workflowService = $workflowService ?? new ReportWorkflowService();
         $this->authService = $authService ?? new AuthorizationService();
+        $this->expenseService = $expenseService ?? new ExpenseService();
     }
 
     public function index(): string
@@ -53,7 +65,7 @@ class ReportController
         ];
 
         // Scope filter
-        if ($role === 'EMPLOYEE' || ($role !== 'ADMIN' && $role !== 'FINANCE' && $role !== 'MANAGER')) {
+        if ($role === 'EMPLOYEE' || ($role !== 'ADMIN' && $role !== 'FINANCE' && $role !== 'MANAGER' && $role !== 'Admin_HR' && $role !== 'ADMIN_EXPENSE')) {
             $filters['employee_id'] = $empId ?? -1;
         } elseif ($role === 'MANAGER') {
             $directReports = $this->employeeRepo->getDirectReports($empId ?? 0);
@@ -86,13 +98,11 @@ class ReportController
             Url::redirect('/reports');
         }
 
-        if (empty($user['employee_id'])) {
-            Flash::error('Akun Anda belum terhubung dengan data karyawan.');
-            Url::redirect('/dashboard');
-        }
+        $activeEmployees = $this->employeeRepo->getAll(true);
 
         return View::render('reports/create', [
             'title' => 'Buat Laporan Pengeluaran Baru',
+            'activeEmployees' => $activeEmployees,
             'user' => $user,
         ]);
     }
@@ -107,7 +117,7 @@ class ReportController
 
         try {
             $reportId = $this->workflowService->createReport($_POST, $user);
-            Flash::success('Laporan berhasil dibuat. Silakan tambahkan item pengeluaran ke dalam laporan.');
+            Flash::success('Laporan pengeluaran berhasil dibuat. Silakan tambahkan atau periksa rincian karyawan dan pengeluaran.');
             Url::redirect('/reports/' . $reportId);
         } catch (Throwable $e) {
             Flash::error($e->getMessage());
@@ -131,22 +141,39 @@ class ReportController
             return View::render('errors/403', ['title' => 'Akses Ditolak'], 'layouts/error');
         }
 
+        $reportEmployees = $this->reportRepo->getReportEmployees($reportId);
         $items = $this->reportRepo->getReportItems($reportId);
         $history = $this->reportRepo->getApprovalHistory($reportId);
         $comments = $this->reportRepo->getComments($reportId);
+        $postingInfo = $this->reportRepo->getPosting($reportId);
+        $reimbursements = $this->reimbursementRepo->getByReportId($reportId);
 
-        // If report is DRAFT and user is owner, get unassigned draft expenses to add
+        $categories = $this->categoryRepo->getAll(true);
+        $activeEmployees = $this->employeeRepo->getAll(true);
+
+        // Filter unassigned draft expenses for any of the report's employees
+        $registeredEmpIds = array_column($reportEmployees, 'employee_id');
         $unassignedExpenses = [];
-        if ($report['status'] === 'DRAFT' && !empty($user['employee_id']) && (int) $user['employee_id'] === (int) $report['employee_id']) {
-            $unassignedExpenses = $this->expenseRepo->getUnassignedDraftExpenses((int) $user['employee_id']);
+        if ($report['status'] === 'DRAFT') {
+            foreach ($registeredEmpIds as $eid) {
+                $unassigned = $this->expenseRepo->getUnassignedDraftExpenses((int) $eid);
+                foreach ($unassigned as $u) {
+                    $unassignedExpenses[] = $u;
+                }
+            }
         }
 
         return View::render('reports/show', [
             'title' => 'Laporan ' . $report['report_number'],
             'report' => $report,
+            'reportEmployees' => $reportEmployees,
             'items' => $items,
             'history' => $history,
             'comments' => $comments,
+            'postingInfo' => $postingInfo,
+            'reimbursements' => $reimbursements,
+            'categories' => $categories,
+            'activeEmployees' => $activeEmployees,
             'unassignedExpenses' => $unassignedExpenses,
             'user' => $user,
             'canEdit' => $this->authService->canEditReport($user, $report),
@@ -169,9 +196,14 @@ class ReportController
             Url::redirect('/reports/' . $reportId);
         }
 
+        $reportEmployees = $this->reportRepo->getReportEmployees($reportId);
+        $activeEmployees = $this->employeeRepo->getAll(true);
+
         return View::render('reports/edit', [
             'title' => 'Edit Laporan ' . $report['report_number'],
             'report' => $report,
+            'reportEmployees' => $reportEmployees,
+            'activeEmployees' => $activeEmployees,
             'user' => $user,
         ]);
     }
@@ -197,6 +229,117 @@ class ReportController
         }
     }
 
+    public function addEmployee(string|int $id): void
+    {
+        $reportId = (int) $id;
+        $report = $this->reportRepo->findById($reportId);
+        $user = Auth::user();
+
+        if (!$report || !$this->authService->canEditReport($user, $report)) {
+            Flash::error('Laporan tidak dapat diubah.');
+            Url::redirect('/reports/' . $reportId);
+        }
+
+        $employeeId = (int) ($_POST['employee_id'] ?? 0);
+        if ($employeeId <= 0) {
+            Flash::error('Silakan pilih karyawan terlebih dahulu.');
+            Url::redirect('/reports/' . $reportId);
+        }
+
+        try {
+            $this->workflowService->addEmployeeToReport($reportId, $employeeId, $user);
+            Flash::success('Karyawan berhasil ditambahkan ke dalam laporan.');
+        } catch (Throwable $e) {
+            Flash::error($e->getMessage());
+        }
+
+        Url::redirect('/reports/' . $reportId);
+    }
+
+    public function removeEmployee(string|int $id, string|int $reportEmployeeId): void
+    {
+        $reportId = (int) $id;
+        $repEmpId = (int) $reportEmployeeId;
+        $report = $this->reportRepo->findById($reportId);
+        $user = Auth::user();
+
+        if (!$report || !$this->authService->canEditReport($user, $report)) {
+            Flash::error('Laporan tidak dapat diubah.');
+            Url::redirect('/reports/' . $reportId);
+        }
+
+        try {
+            $this->workflowService->removeEmployeeFromReport($reportId, $repEmpId, $user);
+            Flash::success('Karyawan dan rincian transaksinya berhasil dihapus dari laporan.');
+        } catch (Throwable $e) {
+            Flash::error($e->getMessage());
+        }
+
+        Url::redirect('/reports/' . $reportId);
+    }
+
+    public function createExpenseItem(string|int $id): void
+    {
+        $reportId = (int) $id;
+        $report = $this->reportRepo->findById($reportId);
+        $user = Auth::user();
+
+        if (!$report || !$this->authService->canEditReport($user, $report)) {
+            Flash::error('Laporan tidak dapat diubah.');
+            Url::redirect('/reports/' . $reportId);
+        }
+
+        $reportEmployeeId = (int) ($_POST['report_employee_id'] ?? 0);
+        if ($reportEmployeeId <= 0) {
+            Flash::error('Pilih karyawan pemilik transaksi pengeluaran.');
+            Url::redirect('/reports/' . $reportId);
+        }
+
+        // Fetch employee_id from report_employee_id
+        $pdo = Database::pdo();
+        $stmt = $pdo->prepare('SELECT employee_id FROM expense_report_employees WHERE report_employee_id = :re_id AND report_id = :r_id');
+        $stmt->execute(['re_id' => $reportEmployeeId, 'r_id' => $reportId]);
+        $employeeId = (int) $stmt->fetchColumn();
+
+        if ($employeeId <= 0) {
+            Flash::error('Karyawan tidak terdaftar pada laporan ini.');
+            Url::redirect('/reports/' . $reportId);
+        }
+
+        try {
+            // 1. Create expense
+            $expensePayload = [
+                'employee_id' => $employeeId,
+                'category_id' => (int) ($_POST['category_id'] ?? 0),
+                'expense_date' => $_POST['expense_date'] ?? date('Y-m-d'),
+                'description' => trim($_POST['description'] ?? ''),
+                'amount' => (float) ($_POST['amount'] ?? 0),
+                'payment_method' => $_POST['payment_method'] ?? 'BANK_TRANSFER',
+                'bank_name' => trim($_POST['bank_name'] ?? ''),
+                'merchant' => trim($_POST['merchant'] ?? ''),
+                'notes' => trim($_POST['notes'] ?? ''),
+            ];
+
+            // Use pseudo user with correct employee_id so ExpenseService creates expense for this employee
+            $actorUser = array_merge($user, ['employee_id' => $employeeId]);
+            $expenseId = $this->expenseService->createExpense($expensePayload, $actorUser);
+
+            // Handle receipt file upload if provided
+            if (isset($_FILES['receipt']) && $_FILES['receipt']['error'] === UPLOAD_ERR_OK) {
+                $this->expenseService->uploadReceipt($expenseId, $_FILES['receipt'], $actorUser);
+            }
+
+            // 2. Link to report with report_employee_id
+            $this->workflowService->addItem($reportId, $expenseId, $user, $reportEmployeeId);
+
+            Flash::success('Transaksi pengeluaran karyawan berhasil dicatat dan ditambahkan ke laporan.');
+        } catch (Throwable $e) {
+            Flash::error($e->getMessage());
+        }
+
+        Url::redirect('/reports/' . $reportId);
+    }
+
     public function addItem(string|int $id): void
     {
         $reportId = (int) $id;
@@ -209,13 +352,15 @@ class ReportController
         }
 
         $expenseId = (int) ($_POST['expense_id'] ?? 0);
+        $reportEmployeeId = !empty($_POST['report_employee_id']) ? (int) $_POST['report_employee_id'] : null;
+
         if ($expenseId <= 0) {
             Flash::error('Pilih pengeluaran yang ingin ditambahkan.');
             Url::redirect('/reports/' . $reportId);
         }
 
         try {
-            $this->workflowService->addItem($reportId, $expenseId, $user);
+            $this->workflowService->addItem($reportId, $expenseId, $user, $reportEmployeeId);
             Flash::success('Item pengeluaran berhasil ditambahkan ke laporan.');
         } catch (Throwable $e) {
             Flash::error($e->getMessage());
