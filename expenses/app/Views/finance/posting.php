@@ -141,7 +141,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const reportTotal = this.getAttribute('data-report-total');
 
             if (form) {
-                form.action = '/reports/' + reportId + '/post';
+                form.action = '<?= \App\Core\Url::to('/reports') ?>/' + reportId + '/post';
             }
             if (reportNumSpan) reportNumSpan.textContent = reportNum;
             if (reportTotalSpan) reportTotalSpan.textContent = reportTotal;

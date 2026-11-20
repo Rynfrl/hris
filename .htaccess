@@ -1,0 +1,11 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Prevent rewriting if the file or directory physically exists in HRIS root
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # Route expense management module paths to expenses/public/index.php
+    RewriteRule ^(reports|approvals|finance|reimbursements|analytics|exports)(/.*)?$ expenses/public/index.php [L,QSA]
+</IfModule>

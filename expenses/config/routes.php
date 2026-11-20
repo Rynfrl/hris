@@ -53,16 +53,31 @@ return function (Router $router): void {
     $router->post('/reports/{id}/items/{expenseId}/remove', [ReportController::class, 'removeItem'], [AuthMiddleware::class, CsrfMiddleware::class]);
     $router->post('/reports/{id}/submit', [ReportController::class, 'submit'], [AuthMiddleware::class, CsrfMiddleware::class]);
     $router->post('/reports/{id}/revise', [ReportController::class, 'revise'], [AuthMiddleware::class, CsrfMiddleware::class]);
+    $router->get('/reports/{id}/submit', function (string|int $id) {
+        \App\Core\Url::redirect('/reports/' . (int) $id);
+    }, [AuthMiddleware::class]);
+    $router->get('/reports/{id}/revise', function (string|int $id) {
+        \App\Core\Url::redirect('/reports/' . (int) $id);
+    }, [AuthMiddleware::class]);
     $router->post('/reports/{id}/comments', [ReportController::class, 'addComment'], [AuthMiddleware::class, CsrfMiddleware::class]);
 
     // Approvals
     $router->get('/approvals', [ApprovalController::class, 'index'], [AuthMiddleware::class]);
     $router->post('/reports/{id}/approve', [ApprovalController::class, 'approve'], [AuthMiddleware::class, CsrfMiddleware::class]);
     $router->post('/reports/{id}/refuse', [ApprovalController::class, 'refuse'], [AuthMiddleware::class, CsrfMiddleware::class]);
+    $router->get('/reports/{id}/approve', function (string|int $id) {
+        \App\Core\Url::redirect('/reports/' . (int) $id);
+    }, [AuthMiddleware::class]);
+    $router->get('/reports/{id}/refuse', function (string|int $id) {
+        \App\Core\Url::redirect('/reports/' . (int) $id);
+    }, [AuthMiddleware::class]);
 
     // Finance / Posting
     $router->get('/finance/posting', [FinanceController::class, 'postingQueue'], [AuthMiddleware::class]);
     $router->post('/reports/{id}/post', [FinanceController::class, 'postReport'], [AuthMiddleware::class, CsrfMiddleware::class]);
+    $router->get('/reports/{id}/post', function (string|int $id) {
+        \App\Core\Url::redirect('/reports/' . (int) $id);
+    }, [AuthMiddleware::class]);
 
     // Reimbursements
     $router->get('/reimbursements', [ReimbursementController::class, 'index'], [AuthMiddleware::class]);

@@ -9,9 +9,11 @@ use App\Controllers\ApprovalController;
 use App\Core\Auth;
 use App\Repositories\UserRepository;
 use App\Core\Database;
+use App\Core\Router;
+use App\Core\Url;
 
 echo "========================================================\n";
-echo "MANAGER APPROVALS & SQL PARAMETER INTEGRITY TEST SUITE\n";
+echo "APPROVALS, ROUTING & SQL PARAMETER TEST SUITE\n";
 echo "========================================================\n\n";
 
 $passCount = 0;
@@ -77,6 +79,62 @@ $test('ApprovalController::index rendered for Manager user without SQLSTATE[HY09
     $html = $controller->index();
     if (empty($html)) {
         throw new Exception('Empty HTML returned');
+    }
+});
+
+$test('Router dispatches POST /reports/{id}/post cleanly', function () {
+    $router = new Router();
+    $routesDef = require dirname(__DIR__) . '/config/routes.php';
+    $routesDef($router);
+
+    // Verify route exists for POST /reports/{id}/post
+    $ref = new ReflectionClass($router);
+    $routesProp = $ref->getProperty('routes');
+    $routesProp->setAccessible(true);
+    $routes = $routesProp->getValue($router);
+
+    $foundPost = false;
+    foreach ($routes['POST'] as $r) {
+        if ($r['path'] === '/reports/{id}/post') {
+            $foundPost = true;
+            break;
+        }
+    }
+    if (!$foundPost) {
+        throw new Exception('POST /reports/{id}/post route missing');
+    }
+
+    $foundGet = false;
+    foreach ($routes['GET'] as $r) {
+        if ($r['path'] === '/reports/{id}/post') {
+            $foundGet = true;
+            break;
+        }
+    }
+    if (!$foundGet) {
+        throw new Exception('GET /reports/{id}/post fallback route missing');
+    }
+});
+
+$test('HRIS root .htaccess exists and contains rewrite rules for expense routes', function () {
+    $htaccess = dirname(__DIR__, 2) . '/.htaccess';
+    if (!file_exists($htaccess)) {
+        throw new Exception('.htaccess in HRIS root does not exist');
+    }
+    $content = file_get_contents($htaccess);
+    if (!str_contains($content, 'reports') || !str_contains($content, 'expenses/public/index.php')) {
+        throw new Exception('.htaccess does not properly route reports to expenses/public/index.php');
+    }
+});
+
+$test('finance/posting.php sets form.action with basePath awareness', function () {
+    $viewFile = dirname(__DIR__) . '/app/Views/finance/posting.php';
+    $content = file_get_contents($viewFile);
+    if (str_contains($content, "form.action = '/reports/' + reportId + '/post';")) {
+        throw new Exception('finance/posting.php still contains hardcoded form.action without Url::to()');
+    }
+    if (!str_contains($content, "Url::to('/reports')")) {
+        throw new Exception('finance/posting.php does not use Url::to() for modal action');
     }
 });
 
