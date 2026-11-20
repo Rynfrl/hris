@@ -100,8 +100,12 @@ class ExpenseRepository
         }
 
         if (!empty($filters['search'])) {
-            $where[] = '(e.expense_number LIKE :q OR e.description LIKE :q OR e.merchant LIKE :q OR emp.full_name LIKE :q)';
-            $params['q'] = '%' . $filters['search'] . '%';
+            $where[] = '(e.expense_number LIKE :q1 OR e.description LIKE :q2 OR e.merchant LIKE :q3 OR emp.full_name LIKE :q4)';
+            $qVal = '%' . trim((string) $filters['search']) . '%';
+            $params['q1'] = $qVal;
+            $params['q2'] = $qVal;
+            $params['q3'] = $qVal;
+            $params['q4'] = $qVal;
         }
 
         $whereClause = implode(' AND ', $where);

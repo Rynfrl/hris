@@ -192,8 +192,19 @@ class AuthorizationService
     {
         $role = $user['role_name'] ?? '';
         $empId = !empty($user['employee_id']) ? (int) $user['employee_id'] : null;
+        $userId = (int) ($user['user_id'] ?? 0);
 
         if ($report['status'] !== 'SUBMITTED') {
+            return false;
+        }
+
+        // Creator cannot approve their own submitted report (Segregation of Duties)
+        if (!empty($report['created_by']) && (int) $report['created_by'] === $userId) {
+            return false;
+        }
+
+        // Admin Expense cannot approve reports (Approval is strictly reserved for Manager Expense)
+        if (in_array($role, ['ADMIN', 'ADMIN_EXPENSE', 'Admin_HR'], true) && !in_array('expense.approve', $user['permissions'] ?? [])) {
             return false;
         }
 

@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Core\Database;
 use App\Repositories\ExpenseRepository;
 use App\Repositories\CategoryRepository;
+use App\Repositories\EmployeeRepository;
 use App\Repositories\AuditRepository;
 use InvalidArgumentException;
 use RuntimeException;
@@ -15,16 +16,19 @@ class ExpenseService
 {
     private ExpenseRepository $expenseRepo;
     private CategoryRepository $categoryRepo;
+    private EmployeeRepository $employeeRepo;
     private AuditRepository $auditRepo;
     private string $storagePath;
 
     public function __construct(
         ?ExpenseRepository $expenseRepo = null,
         ?CategoryRepository $categoryRepo = null,
-        ?AuditRepository $auditRepo = null
+        ?AuditRepository $auditRepo = null,
+        ?EmployeeRepository $employeeRepo = null
     ) {
         $this->expenseRepo = $expenseRepo ?? new ExpenseRepository();
         $this->categoryRepo = $categoryRepo ?? new CategoryRepository();
+        $this->employeeRepo = $employeeRepo ?? new EmployeeRepository();
         $this->auditRepo = $auditRepo ?? new AuditRepository();
 
         $appConfig = require dirname(__DIR__, 2) . '/config/app.php';
@@ -39,14 +43,23 @@ class ExpenseService
             throw new RuntimeException('Peran Manajer tidak diizinkan untuk membuat pengeluaran.');
         }
 
-        $empId = (int) ($user['employee_id'] ?? 0);
+        $role = $user['role_name'] ?? '';
+        $isAdmin = in_array($role, ['ADMIN', 'ADMIN_EXPENSE', 'Admin_HR'], true);
+        $empId = ($isAdmin && !empty($data['employee_id'])) ? (int) $data['employee_id'] : (int) ($user['employee_id'] ?? 0);
+
         if ($empId <= 0) {
             throw new InvalidArgumentException('Akun Anda tidak terhubung dengan data karyawan yang valid.');
         }
 
-        $userId = (int) ($user['user_id'] ?? 0);
+        $emp = $this->employeeRepo->findById($empId);
+        if (!$emp || ($emp['status'] ?? '') !== 'ACTIVE') {
+            throw new InvalidArgumentException('Karyawan tidak ditemukan atau tidak berstatus aktif.');
+        }
 
-        return Database::transaction(function () use ($data, $empId, $userId) {
+        $userId = (int) ($user['user_id'] ?? 0);
+        $deptId = !empty($emp['department_id']) ? (int) $emp['department_id'] : (!empty($user['department_id']) ? (int) $user['department_id'] : null);
+
+        return Database::transaction(function () use ($data, $empId, $userId, $deptId, $emp) {
             $insertData = [
                 'employee_id' => $empId,
                 'category_id' => (int) $data['category_id'],
@@ -54,10 +67,10 @@ class ExpenseService
                 'description' => trim($data['description']),
                 'amount' => (float) $data['amount'],
                 'payment_method' => $this->sanitizePaymentMethod($data['payment_method'] ?? 'CASH'),
-                'bank_name' => !empty($data['bank_name']) ? trim((string) $data['bank_name']) : null,
+                'bank_name' => !empty($data['bank_name']) ? trim((string) $data['bank_name']) : ($emp['bank_name'] ?? null),
                 'merchant' => !empty($data['merchant']) ? trim($data['merchant']) : null,
                 'notes' => !empty($data['notes']) ? trim($data['notes']) : null,
-                'department_id' => !empty($user['department_id']) ? (int) $user['department_id'] : null,
+                'department_id' => $deptId,
                 'created_by' => $userId,
             ];
 

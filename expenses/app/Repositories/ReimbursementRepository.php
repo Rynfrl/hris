@@ -146,8 +146,11 @@ class ReimbursementRepository
         }
 
         if (!empty($filters['search'])) {
-            $where[] = '(r.report_number LIKE :q OR emp.full_name LIKE :q OR ere.employee_name_snapshot LIKE :q)';
-            $params['q'] = '%' . $filters['search'] . '%';
+            $where[] = '(r.report_number LIKE :q1 OR emp.full_name LIKE :q2 OR ere.employee_name_snapshot LIKE :q3)';
+            $qVal = '%' . trim((string) $filters['search']) . '%';
+            $params['q1'] = $qVal;
+            $params['q2'] = $qVal;
+            $params['q3'] = $qVal;
         }
 
         $whereClause = implode(' AND ', $where);

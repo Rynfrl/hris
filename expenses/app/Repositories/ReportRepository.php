@@ -208,8 +208,12 @@ class ReportRepository
         }
 
         if (!empty($filters['search'])) {
-            $where[] = '(r.report_number LIKE :q OR r.title LIKE :q OR emp.full_name LIKE :q OR EXISTS (SELECT 1 FROM expense_report_employees ere WHERE ere.report_id = r.report_id AND ere.employee_name_snapshot LIKE :q))';
-            $params['q'] = '%' . $filters['search'] . '%';
+            $where[] = '(r.report_number LIKE :q1 OR r.title LIKE :q2 OR emp.full_name LIKE :q3 OR EXISTS (SELECT 1 FROM expense_report_employees ere WHERE ere.report_id = r.report_id AND ere.employee_name_snapshot LIKE :q4))';
+            $qVal = '%' . trim((string) $filters['search']) . '%';
+            $params['q1'] = $qVal;
+            $params['q2'] = $qVal;
+            $params['q3'] = $qVal;
+            $params['q4'] = $qVal;
         }
 
         $whereClause = implode(' AND ', $where);

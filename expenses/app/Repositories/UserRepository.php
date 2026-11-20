@@ -70,8 +70,11 @@ class UserRepository
         }
 
         if (!empty($filters['search'])) {
-            $where[] = '(u.username LIKE :q OR u.email LIKE :q OR e.full_name LIKE :q)';
-            $params['q'] = '%' . $filters['search'] . '%';
+            $where[] = '(u.username LIKE :q1 OR u.email LIKE :q2 OR e.full_name LIKE :q3)';
+            $qVal = '%' . trim((string) $filters['search']) . '%';
+            $params['q1'] = $qVal;
+            $params['q2'] = $qVal;
+            $params['q3'] = $qVal;
         }
 
         $whereClause = implode(' AND ', $where);

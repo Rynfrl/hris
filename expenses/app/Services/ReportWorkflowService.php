@@ -74,6 +74,7 @@ class ReportWorkflowService
 
         return Database::transaction(function () use ($data, $primaryEmployeeId, $employeeIds, $title, $startDate, $endDate, $userId) {
             $reportId = $this->reportRepo->create([
+                'report_number' => !empty($data['report_number']) ? trim($data['report_number']) : null,
                 'employee_id' => $primaryEmployeeId,
                 'created_by' => $userId,
                 'title' => $title,

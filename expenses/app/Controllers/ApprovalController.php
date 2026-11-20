@@ -39,7 +39,7 @@ class ApprovalController
         $empId = !empty($user['employee_id']) ? (int) $user['employee_id'] : null;
         $role = $user['role_name'] ?? '';
 
-        if ($role !== 'MANAGER' && $role !== 'ADMIN' && !Auth::hasPermission('expense.approve')) {
+        if ($role !== 'MANAGER' && !Auth::hasPermission('expense.approve')) {
             http_response_code(403);
             return View::render('errors/403', ['title' => 'Akses Ditolak'], 'layouts/error');
         }
