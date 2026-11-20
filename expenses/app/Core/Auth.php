@@ -49,10 +49,13 @@ class Auth
                 JOIN roles r ON (r.role_id = u.role_id OR r.id_role = u.role_id)
                 LEFT JOIN employees e ON (e.employee_id = u.employee_id OR e.id_employee = u.employee_id)
                 LEFT JOIN departments d ON d.department_id = e.department_id
-                WHERE (u.user_id = :id OR u.id = :id) AND u.deleted_at IS NULL
+                WHERE (u.user_id = :id1 OR u.id = :id2) AND u.deleted_at IS NULL
                 LIMIT 1
             ');
-            $stmt->execute(['id' => $userData['user_id']]);
+            $stmt->execute([
+                'id1' => $userData['user_id'],
+                'id2' => $userData['user_id'],
+            ]);
             $current = $stmt->fetch();
 
             if (!$current || (int) $current['is_active'] !== 1) {

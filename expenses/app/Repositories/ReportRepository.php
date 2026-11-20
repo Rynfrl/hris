@@ -190,18 +190,24 @@ class ReportRepository
         $params = [];
 
         if (!empty($filters['employee_id'])) {
-            $where[] = '(r.employee_id = :employee_id OR EXISTS (SELECT 1 FROM expense_report_employees ere WHERE ere.report_id = r.report_id AND ere.employee_id = :employee_id))';
+            $where[] = '(r.employee_id = :employee_id OR EXISTS (SELECT 1 FROM expense_report_employees ere WHERE ere.report_id = r.report_id AND ere.employee_id = :employee_id_sub))';
             $params['employee_id'] = (int) $filters['employee_id'];
+            $params['employee_id_sub'] = (int) $filters['employee_id'];
         } elseif (!empty($filters['employee_ids']) && is_array($filters['employee_ids'])) {
-            $inPlaceholders = [];
+            $inPlaceholders1 = [];
+            $inPlaceholders2 = [];
             foreach ($filters['employee_ids'] as $idx => $empId) {
-                $key = 'emp_' . $idx;
-                $inPlaceholders[] = ':' . $key;
-                $params[$key] = (int) $empId;
+                $key1 = 'emp1_' . $idx;
+                $key2 = 'emp2_' . $idx;
+                $inPlaceholders1[] = ':' . $key1;
+                $inPlaceholders2[] = ':' . $key2;
+                $params[$key1] = (int) $empId;
+                $params[$key2] = (int) $empId;
             }
-            if (!empty($inPlaceholders)) {
-                $inList = implode(',', $inPlaceholders);
-                $where[] = '(r.employee_id IN (' . $inList . ') OR EXISTS (SELECT 1 FROM expense_report_employees ere WHERE ere.report_id = r.report_id AND ere.employee_id IN (' . $inList . ')))';
+            if (!empty($inPlaceholders1)) {
+                $inList1 = implode(',', $inPlaceholders1);
+                $inList2 = implode(',', $inPlaceholders2);
+                $where[] = '(r.employee_id IN (' . $inList1 . ') OR EXISTS (SELECT 1 FROM expense_report_employees ere WHERE ere.report_id = r.report_id AND ere.employee_id IN (' . $inList2 . ')))';
             } else {
                 $where[] = '1=0';
             }
