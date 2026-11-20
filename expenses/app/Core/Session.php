@@ -16,9 +16,6 @@ class Session
         }
 
         if (headers_sent()) {
-            if (session_status() !== PHP_SESSION_ACTIVE && php_sapi_name() === 'cli') {
-                @session_start();
-            }
             self::$started = true;
             return;
         }

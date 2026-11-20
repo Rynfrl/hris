@@ -37,28 +37,28 @@ $role = $metrics['role'] ?? 'EMPLOYEE';
         <div class="col-sm-6 col-xl-3">
             <div class="metric-card">
                 <div class="metric-label">Pengeluaran Draft</div>
-                <div class="metric-value"><?= (int) $metrics['draft_expenses_count'] ?></div>
-                <div class="text-muted small mt-1"><?= View::formatRupiah($metrics['draft_expenses_total']) ?></div>
+                <div class="metric-value"><?= (int) ($metrics['draft_expenses_count'] ?? 0) ?></div>
+                <div class="text-muted small mt-1"><?= View::formatRupiah($metrics['draft_expenses_total'] ?? 0) ?></div>
             </div>
         </div>
         <div class="col-sm-6 col-xl-3">
             <div class="metric-card">
                 <div class="metric-label">Laporan Menunggu Persetujuan</div>
-                <div class="metric-value"><?= (int) $metrics['pending_reports_count'] ?></div>
-                <div class="text-muted small mt-1"><?= View::formatRupiah($metrics['pending_reports_total']) ?></div>
+                <div class="metric-value"><?= (int) ($metrics['pending_reports_count'] ?? 0) ?></div>
+                <div class="text-muted small mt-1"><?= View::formatRupiah($metrics['pending_reports_total'] ?? 0) ?></div>
             </div>
         </div>
         <div class="col-sm-6 col-xl-3">
             <div class="metric-card">
                 <div class="metric-label">Laporan Disetujui / Berjalan</div>
-                <div class="metric-value"><?= (int) $metrics['approved_reports_count'] ?></div>
+                <div class="metric-value"><?= (int) ($metrics['approved_reports_count'] ?? 0) ?></div>
                 <div class="text-muted small mt-1">Dalam proses keuangan</div>
             </div>
         </div>
         <div class="col-sm-6 col-xl-3">
             <div class="metric-card">
                 <div class="metric-label">Total Selesai Diganti (Paid)</div>
-                <div class="metric-value text-success"><?= View::formatRupiah($metrics['paid_reports_total']) ?></div>
+                <div class="metric-value text-success"><?= View::formatRupiah($metrics['paid_reports_total'] ?? 0) ?></div>
                 <div class="text-muted small mt-1">Reimbursement selesai</div>
             </div>
         </div>
@@ -66,28 +66,28 @@ $role = $metrics['role'] ?? 'EMPLOYEE';
         <div class="col-sm-6 col-xl-3">
             <div class="metric-card">
                 <div class="metric-label">Menunggu Persetujuan Anda</div>
-                <div class="metric-value text-warning"><?= (int) $metrics['team_pending_count'] ?></div>
+                <div class="metric-value text-warning"><?= (int) ($metrics['team_pending_count'] ?? 0) ?></div>
                 <div class="text-muted small mt-1">Laporan dari tim Anda</div>
             </div>
         </div>
         <div class="col-sm-6 col-xl-3">
             <div class="metric-card">
                 <div class="metric-label">Total Nilai Menunggu</div>
-                <div class="metric-value"><?= View::formatRupiah($metrics['team_pending_total']) ?></div>
+                <div class="metric-value"><?= View::formatRupiah($metrics['team_pending_total'] ?? 0) ?></div>
                 <div class="text-muted small mt-1">Perlu peninjauan</div>
             </div>
         </div>
         <div class="col-sm-6 col-xl-3">
             <div class="metric-card">
                 <div class="metric-label">Disetujui Bulan Ini</div>
-                <div class="metric-value text-success"><?= (int) $metrics['team_approved_month'] ?></div>
+                <div class="metric-value text-success"><?= (int) ($metrics['team_approved_month'] ?? 0) ?></div>
                 <div class="text-muted small mt-1">Laporan disetujui</div>
             </div>
         </div>
         <div class="col-sm-6 col-xl-3">
             <div class="metric-card">
                 <div class="metric-label">Anggota Tim Langsung</div>
-                <div class="metric-value"><?= (int) $metrics['direct_reports_count'] ?></div>
+                <div class="metric-value"><?= (int) ($metrics['direct_reports_count'] ?? 0) ?></div>
                 <div class="text-muted small mt-1">Direct reports</div>
             </div>
         </div>
@@ -95,21 +95,21 @@ $role = $metrics['role'] ?? 'EMPLOYEE';
         <div class="col-sm-6 col-xl-4">
             <div class="metric-card">
                 <div class="metric-label">Menunggu Pembukuan (Posting)</div>
-                <div class="metric-value text-primary"><?= (int) $metrics['awaiting_post_count'] ?></div>
-                <div class="text-muted small mt-1">Total: <?= View::formatRupiah($metrics['awaiting_post_total']) ?></div>
+                <div class="metric-value text-primary"><?= (int) ($metrics['awaiting_post_count'] ?? 0) ?></div>
+                <div class="text-muted small mt-1">Total: <?= View::formatRupiah($metrics['awaiting_post_total'] ?? 0) ?></div>
             </div>
         </div>
         <div class="col-sm-6 col-xl-4">
             <div class="metric-card">
                 <div class="metric-label">Antrean Reimbursement</div>
-                <div class="metric-value text-warning"><?= (int) $metrics['awaiting_reimb_count'] ?></div>
-                <div class="text-muted small mt-1">Total: <?= View::formatRupiah($metrics['awaiting_reimb_total']) ?></div>
+                <div class="metric-value text-warning"><?= (int) ($metrics['awaiting_reimb_count'] ?? 0) ?></div>
+                <div class="text-muted small mt-1">Total: <?= View::formatRupiah($metrics['awaiting_reimb_total'] ?? 0) ?></div>
             </div>
         </div>
         <div class="col-sm-6 col-xl-4">
             <div class="metric-card">
                 <div class="metric-label">Reimbursement Dibayar Bulan Ini</div>
-                <div class="metric-value text-success"><?= View::formatRupiah($metrics['paid_month_total']) ?></div>
+                <div class="metric-value text-success"><?= View::formatRupiah($metrics['paid_month_total'] ?? 0) ?></div>
                 <div class="text-muted small mt-1">Telah dicatat lunas</div>
             </div>
         </div>
@@ -117,28 +117,28 @@ $role = $metrics['role'] ?? 'EMPLOYEE';
         <div class="col-sm-6 col-xl-3">
             <div class="metric-card">
                 <div class="metric-label">Pengguna Aktif</div>
-                <div class="metric-value"><?= (int) $metrics['users_count'] ?></div>
+                <div class="metric-value"><?= (int) ($metrics['users_count'] ?? 0) ?></div>
                 <div class="text-muted small mt-1">Akun sistem</div>
             </div>
         </div>
         <div class="col-sm-6 col-xl-3">
             <div class="metric-card">
                 <div class="metric-label">Kategori Aktif</div>
-                <div class="metric-value"><?= (int) $metrics['categories_count'] ?></div>
+                <div class="metric-value"><?= (int) ($metrics['categories_count'] ?? 0) ?></div>
                 <div class="text-muted small mt-1">Kategori biaya</div>
             </div>
         </div>
         <div class="col-sm-6 col-xl-3">
             <div class="metric-card">
                 <div class="metric-label">Total Pengeluaran</div>
-                <div class="metric-value"><?= (int) $metrics['expenses_count'] ?></div>
+                <div class="metric-value"><?= (int) ($metrics['expenses_count'] ?? 0) ?></div>
                 <div class="text-muted small mt-1">Seluruh record</div>
             </div>
         </div>
         <div class="col-sm-6 col-xl-3">
             <div class="metric-card">
                 <div class="metric-label">Total Terbayar</div>
-                <div class="metric-value text-success"><?= View::formatRupiah($metrics['total_paid_expenses']) ?></div>
+                <div class="metric-value text-success"><?= View::formatRupiah($metrics['total_paid_expenses'] ?? 0) ?></div>
                 <div class="text-muted small mt-1">Status PAID</div>
             </div>
         </div>
