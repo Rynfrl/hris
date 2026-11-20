@@ -45,7 +45,7 @@ class UserRepository
             JOIN roles r ON r.role_id = u.role_id
             LEFT JOIN employees e ON e.employee_id = u.employee_id
             LEFT JOIN departments d ON d.department_id = e.department_id
-            WHERE u.user_id = :id AND u.deleted_at IS NULL
+            WHERE (u.user_id = :id OR u.id = :id) AND u.deleted_at IS NULL
             LIMIT 1
         ');
         $stmt->execute(['id' => $id]);
@@ -117,19 +117,34 @@ class UserRepository
     public function create(array $data): int
     {
         $pdo = Database::pdo();
+        $roleId = (int) $data['role_id'];
+        $roleStmt = $pdo->prepare('SELECT role_name FROM roles WHERE role_id = ? OR id_role = ? LIMIT 1');
+        $roleStmt->execute([$roleId, $roleId]);
+        $roleName = $roleStmt->fetchColumn() ?: 'EMPLOYEE';
+
+        $username = trim($data['username']);
+        $name = !empty($data['name']) ? trim($data['name']) : $username;
+        $employeeId = !empty($data['employee_id']) ? (int) $data['employee_id'] : null;
+
         $stmt = $pdo->prepare('
-            INSERT INTO users (username, email, password_hash, employee_id, role_id, is_active)
-            VALUES (:username, :email, :password_hash, :employee_id, :role_id, :is_active)
+            INSERT INTO users (name, username, email, password_hash, role, role_id, employee_id, is_active)
+            VALUES (:name, :username, :email, :password_hash, :role, :role_id, :employee_id, :is_active)
         ');
         $stmt->execute([
-            'username' => trim($data['username']),
+            'name' => $name,
+            'username' => $username,
             'email' => strtolower(trim($data['email'])),
             'password_hash' => $data['password_hash'],
-            'employee_id' => !empty($data['employee_id']) ? (int) $data['employee_id'] : null,
-            'role_id' => (int) $data['role_id'],
+            'role' => $roleName,
+            'role_id' => $roleId,
+            'employee_id' => $employeeId,
             'is_active' => (int) ($data['is_active'] ?? 1),
         ]);
-        return (int) $pdo->lastInsertId();
+        $newId = (int) $pdo->lastInsertId();
+        if ($newId > 0) {
+            $pdo->query("UPDATE users SET user_id = id WHERE id = {$newId} AND user_id IS NULL");
+        }
+        return $newId;
     }
 
     public function update(int $id, array $data): bool
@@ -141,6 +156,10 @@ class UserRepository
         if (isset($data['username'])) {
             $fields[] = 'username = :username';
             $params['username'] = trim($data['username']);
+        }
+        if (isset($data['name'])) {
+            $fields[] = 'name = :name';
+            $params['name'] = trim($data['name']);
         }
         if (isset($data['email'])) {
             $fields[] = 'email = :email';
@@ -155,8 +174,17 @@ class UserRepository
             $params['employee_id'] = !empty($data['employee_id']) ? (int) $data['employee_id'] : null;
         }
         if (isset($data['role_id'])) {
+            $roleId = (int) $data['role_id'];
             $fields[] = 'role_id = :role_id';
-            $params['role_id'] = (int) $data['role_id'];
+            $params['role_id'] = $roleId;
+
+            $roleStmt = $pdo->prepare('SELECT role_name FROM roles WHERE role_id = ? OR id_role = ? LIMIT 1');
+            $roleStmt->execute([$roleId, $roleId]);
+            $roleName = $roleStmt->fetchColumn();
+            if ($roleName) {
+                $fields[] = 'role = :role_name';
+                $params['role_name'] = $roleName;
+            }
         }
         if (isset($data['is_active'])) {
             $fields[] = 'is_active = :is_active';
@@ -167,7 +195,7 @@ class UserRepository
             return false;
         }
 
-        $sql = 'UPDATE users SET ' . implode(', ', $fields) . ' WHERE user_id = :id';
+        $sql = 'UPDATE users SET ' . implode(', ', $fields) . ' WHERE user_id = :id OR id = :id';
         return $pdo->prepare($sql)->execute($params);
     }
 

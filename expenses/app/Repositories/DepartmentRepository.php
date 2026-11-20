@@ -64,7 +64,7 @@ class DepartmentRepository
                 is_active = :active
             WHERE department_id = :id
         ');
-        return $stmt->execute([
+        $ok = $stmt->execute([
             'id' => $id,
             'code' => strtoupper(trim($data['department_code'])),
             'name' => trim($data['department_name']),
@@ -72,5 +72,10 @@ class DepartmentRepository
             'desc' => trim($data['description'] ?? ''),
             'active' => (int) ($data['is_active'] ?? 1),
         ]);
+        if ($ok && !empty($data['department_name'])) {
+            $empStmt = $pdo->prepare('UPDATE employees SET divisi = :name WHERE department_id = :id');
+            $empStmt->execute(['name' => trim($data['department_name']), 'id' => $id]);
+        }
+        return $ok;
     }
 }

@@ -21,6 +21,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             [$code, $customerLock] = nextCustomerCode($pdo);
             $stmt = $pdo->prepare("INSERT INTO customers (code, name, email, phone, address, city) VALUES (?, ?, ?, ?, ?, ?)");
             $stmt->execute([$code, $name, $email, $phone, $address, $city]);
+            $newCustomerId = (int)$pdo->lastInsertId();
+            if ($newCustomerId > 0) {
+                $pdo->prepare("UPDATE customers SET customer_id = id WHERE id = ? AND customer_id IS NULL")->execute([$newCustomerId]);
+            }
             $pdo->commit();
             releaseDocumentLock($pdo, $customerLock);
             header('Location: index.php?success=Customer berhasil ditambahkan');

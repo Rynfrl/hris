@@ -143,13 +143,24 @@ try {
     $employeeUpdate->bind_param("i", $id);
     $employeeUpdate->execute();
 
-    $stmt = $conn->prepare("DELETE FROM users WHERE id = ? AND deleted_at IS NULL");
-    $stmt->bind_param("i", $id);
-    $stmt->execute();
-    if ($stmt->affected_rows !== 1) {
-      $conn->rollback();
-      $transactionStarted = false;
-      userFlash("User tidak ditemukan atau sudah dihapus.", true);
+    try {
+      $stmt = $conn->prepare("DELETE FROM users WHERE id = ? AND deleted_at IS NULL");
+      $stmt->bind_param("i", $id);
+      $stmt->execute();
+      if ($stmt->affected_rows !== 1) {
+        $conn->rollback();
+        $transactionStarted = false;
+        userFlash("User tidak ditemukan atau sudah dihapus.", true);
+      }
+    } catch (mysqli_sql_exception $e) {
+      if ((int)$e->getCode() === 1451) {
+        // Terikat foreign key riwayat transaksi/audit: arsipkan melalui soft-delete
+        $softDelete = $conn->prepare("UPDATE users SET deleted_at = NOW(), is_active = 0 WHERE id = ?");
+        $softDelete->bind_param("i", $id);
+        $softDelete->execute();
+      } else {
+        throw $e;
+      }
     }
     $conn->commit();
     $transactionStarted = false;

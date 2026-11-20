@@ -54,8 +54,22 @@ try {
     if ($check->get_result()->fetch_assoc()) {
       divisiFlash("Divisi tersebut sudah terdaftar.", true);
     }
-    $stmt = $conn->prepare("INSERT INTO divisi (divisi) VALUES (?)");
-    $stmt->bind_param("s", $division);
+    $cleanName = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', $division));
+    $baseCode = 'DEPT-' . (strlen($cleanName) >= 4 ? substr($cleanName, 0, 4) : str_pad($cleanName, 4, 'X'));
+    $deptCode = $baseCode;
+    $suffix = 1;
+    while (true) {
+      $cStmt = $conn->prepare("SELECT department_id FROM departments WHERE department_code = ? LIMIT 1");
+      $cStmt->bind_param("s", $deptCode);
+      $cStmt->execute();
+      if (!$cStmt->get_result()->fetch_assoc()) {
+        break;
+      }
+      $suffix++;
+      $deptCode = substr($baseCode, 0, 24) . '-' . $suffix;
+    }
+    $stmt = $conn->prepare("INSERT INTO departments (department_code, department_name, is_active) VALUES (?, ?, 1)");
+    $stmt->bind_param("ss", $deptCode, $division);
     $stmt->execute();
     divisiFlash("Divisi berhasil ditambahkan.");
   }
@@ -87,8 +101,8 @@ try {
     $stmt = $conn->prepare("UPDATE divisi SET divisi = ? WHERE id_divisi = ?");
     $stmt->bind_param("si", $division, $id);
     $stmt->execute();
-    $employeeUpdate = $conn->prepare("UPDATE employees SET divisi = ? WHERE divisi = ?");
-    $employeeUpdate->bind_param("ss", $division, $oldDivision['divisi']);
+    $employeeUpdate = $conn->prepare("UPDATE employees SET divisi = ?, department_id = ? WHERE divisi = ? OR department_id = ?");
+    $employeeUpdate->bind_param("sisi", $division, $id, $oldDivision['divisi'], $id);
     $employeeUpdate->execute();
     $conn->commit();
     $transactionStarted = false;
@@ -107,8 +121,8 @@ try {
     if (!$division) {
       divisiFlash("Divisi tidak ditemukan.", true);
     }
-    $employeeCheck = $conn->prepare("SELECT id_employee FROM employees WHERE divisi = ? LIMIT 1");
-    $employeeCheck->bind_param("s", $division['divisi']);
+    $employeeCheck = $conn->prepare("SELECT id_employee FROM employees WHERE divisi = ? OR department_id = ? LIMIT 1");
+    $employeeCheck->bind_param("si", $division['divisi'], $id);
     $employeeCheck->execute();
     if ($employeeCheck->get_result()->fetch_assoc()) {
       divisiFlash("Divisi tidak dapat dihapus karena masih digunakan oleh karyawan.", true);

@@ -120,11 +120,24 @@ try {
     $stmt->execute();
     $newEmpId = (int)$conn->insert_id;
     if ($newEmpId > 0) {
+      $divisionId = karyawanId($_POST['division_id'] ?? null);
+      $userEmail = null;
+      if ($userId) {
+        $uStmt = $conn->prepare("SELECT email FROM users WHERE id = ? LIMIT 1");
+        $uStmt->bind_param("i", $userId);
+        $uStmt->execute();
+        $uRow = $uStmt->get_result()->fetch_assoc();
+        $userEmail = $uRow['email'] ?? null;
+      }
+      $deptUpdateSql = $divisionId !== null ? "department_id = {$divisionId}," : "";
+      $emailUpdateSql = $userEmail !== null ? "email = IFNULL(email, '{$conn->real_escape_string($userEmail)}')," : "";
       $conn->query("UPDATE employees SET 
         employee_id = id_employee, 
         full_name = IFNULL(full_name, nama), 
         position = IFNULL(position, jabatan), 
         join_date = IFNULL(join_date, tanggal_masuk),
+        {$deptUpdateSql}
+        {$emailUpdateSql}
         employee_number = IFNULL(employee_number, CONCAT('EMP-HRIS-', LPAD(id_employee, 4, '0')))
         WHERE id_employee = {$newEmpId}");
       if ($userId) {
@@ -164,10 +177,24 @@ try {
         karyawanFlash("Data karyawan tidak ditemukan.", true);
       }
     }
+    $divisionId = karyawanId($_POST['division_id'] ?? null);
+    $userEmail = null;
+    if ($userId) {
+      $uStmt = $conn->prepare("SELECT email FROM users WHERE id = ? LIMIT 1");
+      $uStmt->bind_param("i", $userId);
+      $uStmt->execute();
+      $uRow = $uStmt->get_result()->fetch_assoc();
+      $userEmail = $uRow['email'] ?? null;
+    }
+    $deptUpdateSql = $divisionId !== null ? "department_id = {$divisionId}," : "";
+    $emailUpdateSql = $userEmail !== null ? "email = IFNULL(email, '{$conn->real_escape_string($userEmail)}')," : "";
     $conn->query("UPDATE employees SET 
       full_name = nama, 
       position = jabatan, 
-      join_date = tanggal_masuk 
+      join_date = tanggal_masuk,
+      {$deptUpdateSql}
+      {$emailUpdateSql}
+      employee_id = id_employee
       WHERE id_employee = " . (int)$id);
     if ($userId) {
       $conn->query("UPDATE users SET employee_id = " . (int)$id . " WHERE id = " . (int)$userId);
@@ -186,6 +213,14 @@ try {
     if ($payrollCheck->get_result()->fetch_assoc()) {
       karyawanFlash("Karyawan tidak dapat dihapus karena sudah memiliki riwayat payroll.", true);
     }
+    $expenseReportCheck = $conn->prepare("SELECT report_id FROM expense_reports WHERE employee_id = ? LIMIT 1");
+    if ($expenseReportCheck) {
+      $expenseReportCheck->bind_param("i", $id);
+      $expenseReportCheck->execute();
+      if ($expenseReportCheck->get_result()->fetch_assoc()) {
+        karyawanFlash("Karyawan tidak dapat dihapus karena memiliki riwayat laporan biaya (GT Expense).", true);
+      }
+    }
     $stmt = $conn->prepare("DELETE FROM employees WHERE id_employee = ?");
     $stmt->bind_param("i", $id);
     $stmt->execute();
@@ -197,6 +232,9 @@ try {
 
   karyawanFlash("Jenis proses karyawan tidak dikenal.", true);
 } catch (mysqli_sql_exception $exception) {
+  if ((int)$exception->getCode() === 1451) {
+    karyawanFlash("Karyawan tidak dapat dihapus karena masih terhubung dengan dokumen operasional lain.", true);
+  }
   error_log("Proses karyawan HRIS gagal: " . $exception->getMessage());
   karyawanFlash("Data karyawan gagal disimpan karena terjadi kesalahan database.", true);
 }

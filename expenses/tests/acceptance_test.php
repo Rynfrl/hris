@@ -62,6 +62,8 @@ class AcceptanceTestSuite
         $this->testRbacAndAuthorization();
         $this->testCsvAndDashboardIntegrity();
 
+        $this->tearDown();
+
         echo "\n========================================================\n";
         echo "TEST RUN SUMMARY: {$this->passed} PASSED, {$this->failed} FAILED\n";
         echo "========================================================\n";
@@ -502,6 +504,28 @@ class AcceptanceTestSuite
 
         $analyticsView = file_get_contents(__DIR__ . '/../app/Views/analytics/index.php');
         $this->assert('AC-CHART-05', 'View analitik memiliki canvas analyticsMonthlyChart dan analyticsCategoryChart serta script inisialisasi', str_contains($analyticsView, 'analyticsMonthlyChart') && str_contains($analyticsView, 'analyticsCategoryChart') && str_contains($analyticsView, 'GTCharts.createBarChart'));
+    }
+
+    public function tearDown(): void
+    {
+        try {
+            $testReports = $this->pdo->query("SELECT report_id FROM expense_reports WHERE title IN ('Laporan Uji Otomatis Budi', 'Laporan Kedua')")->fetchAll(PDO::FETCH_COLUMN);
+            foreach ($testReports as $rId) {
+                $this->pdo->prepare("DELETE FROM reimbursements WHERE report_id = ?")->execute([$rId]);
+                $this->pdo->prepare("DELETE FROM expense_approvals WHERE report_id = ?")->execute([$rId]);
+                $this->pdo->prepare("DELETE FROM expense_comments WHERE report_id = ?")->execute([$rId]);
+                $this->pdo->prepare("DELETE FROM expense_report_items WHERE report_id = ?")->execute([$rId]);
+                $this->pdo->prepare("DELETE FROM expense_reports WHERE report_id = ?")->execute([$rId]);
+            }
+            $testExpenses = $this->pdo->query("SELECT expense_id FROM expenses WHERE description IN ('Item Laporan Uji', 'Test Unit Pengeluaran Budi', 'Test Unit Pengeluaran Budi Diperbarui')")->fetchAll(PDO::FETCH_COLUMN);
+            foreach ($testExpenses as $eId) {
+                $this->pdo->prepare("DELETE FROM expenses WHERE expense_id = ?")->execute([$eId]);
+            }
+            $this->pdo->exec("DELETE FROM audit_logs WHERE old_value LIKE '%Test Unit Pengeluaran Budi%' OR new_value LIKE '%Test Unit Pengeluaran Budi%'");
+            $this->pdo->exec("DELETE FROM activity_logs WHERE summary LIKE '%Test Unit Pengeluaran Budi%' OR summary LIKE '%Laporan Uji Otomatis Budi%' OR summary LIKE '%Laporan Kedua%' OR summary LIKE '%Item Laporan Uji%'");
+        } catch (\Throwable $e) {
+            // Silently ignore cleanup errors if any
+        }
     }
 }
 

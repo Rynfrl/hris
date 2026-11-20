@@ -14,6 +14,10 @@ Desktop.ini
 $RECYCLE.BIN/
 .DS_Store
 
+# Runtime storage
+purchasing/api/storage/rate_limit/
+expenses/storage/receipts/
+
 # Editor / IDE configuration
 .vscode/
 .idea/
