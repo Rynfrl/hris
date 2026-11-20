@@ -307,7 +307,7 @@ class ReimbursementRepository
             throw new InvalidArgumentException(sprintf('Nominal pembayaran (Rp %s) melebihi sisa kewajiban reimbursement (Rp %s).', number_format($payAmount, 0, ',', '.'), number_format($remaining, 0, ',', '.')));
         }
 
-        $paymentNumber = $data['payment_number'] ?? $this->generatePaymentNumber();
+        $paymentNumber = !empty($data['payment_number']) ? trim($data['payment_number']) : $this->generatePaymentNumber();
         $paymentDate = !empty($data['payment_date']) ? $data['payment_date'] : date('Y-m-d');
         $paymentMethod = $data['payment_method'] ?? 'BANK_TRANSFER';
         $bankName = !empty($data['bank_name']) ? trim($data['bank_name']) : null;
@@ -468,6 +468,18 @@ class ReimbursementRepository
         if ($last && preg_match('/PAY-\d{6}-(\d+)/', (string) $last, $m)) {
             $seq = (int) $m[1] + 1;
         }
-        return sprintf('PAY-%s-%04d', $yearMonth, $seq);
+
+        // Ensure unique against database constraint
+        $chkStmt = $pdo->prepare("SELECT COUNT(*) FROM expense_reimbursement_payments WHERE payment_number = :pnum");
+        do {
+            $candidate = sprintf('PAY-%s-%04d', $yearMonth, $seq);
+            $chkStmt->execute(['pnum' => $candidate]);
+            $exists = (int) $chkStmt->fetchColumn() > 0;
+            if ($exists) {
+                $seq++;
+            }
+        } while ($exists);
+
+        return $candidate;
     }
 }

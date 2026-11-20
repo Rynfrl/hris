@@ -166,6 +166,14 @@ $test('ReimbursementController::history renders without undefined key warnings',
     }
 });
 
+$test('generatePaymentNumber produces non-empty unique sequence numbers', function () {
+    $repo = new \App\Repositories\ReimbursementRepository();
+    $num1 = $repo->generatePaymentNumber();
+    if (empty($num1) || !str_starts_with($num1, 'PAY-')) {
+        throw new Exception("Invalid generated payment number: {$num1}");
+    }
+});
+
 echo "\n========================================================\n";
 echo "TEST RESULTS: {$passCount} PASSED, {$failCount} FAILED\n";
 echo "========================================================\n";

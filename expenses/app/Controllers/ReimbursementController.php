@@ -107,7 +107,7 @@ class ReimbursementController
 
         $paymentData = [
             'amount' => (float) ($_POST['amount'] ?? 0),
-            'payment_number' => trim($_POST['payment_number'] ?? ''),
+            'payment_number' => !empty($_POST['payment_number']) ? trim($_POST['payment_number']) : null,
             'payment_method' => $_POST['payment_method'] ?? 'BANK_TRANSFER',
             'bank_name' => trim($_POST['bank_name'] ?? ''),
             'bank_reference' => trim($_POST['bank_reference'] ?? ''),
