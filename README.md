@@ -18,7 +18,9 @@ Sistem ini menggabungkan modul HRIS inti dengan modul operasional bisnis ERP dal
   - **Purchasing** (`/purchasing`): Purchase Requisition (PR), Purchase Order (PO), Goods Receipt Note (GRN), Purchase Return, serta Vendor Invoices & Scorecard.
   - **Sales** (`/sales`): Manajemen pelanggan (`customers`), pencatatan pesanan penjualan (`sales_orders`), penerbitan faktur (`invoices`), dan laporan penjualan.
   - **Inventory** (`/Inventory`): Katalog master produk (`products`, `categories`), pelacakan pergerakan stok (`stock_movements`), laporan inventaris gudang.
-  - **Expenses — GT Expense** (`/expenses`): Pencatatan biaya dinas (*expense claim*), unggah bukti kuitansi privat (*receipt*), pengelompokan laporan (*expense report*), alur persetujuan manajer (*approval/refusal*), pembukuan keuangan (*posting*), dan pencairan dana (*reimbursement*).
+  - **Expenses — GT Expense** (`/expenses`): Pengelolaan pengeluaran terpusat dengan workflow baru: `Admin Expense -> Manager Expense -> Finance`. Admin Expense membuat satu laporan gabungan untuk banyak karyawan lintas departemen, Manager Expense menyetujui laporan secara utuh, dan Finance melakukan pembukuan serta 1 kali pencairan reimbursement penuh (*1 Laporan = 1 Reimbursement = 1 Pembayaran Penuh*).
+- **Sidebar & Navigasi Terpadu (Unified Sidebar)**
+  - Seluruh modul (HRIS, Purchasing, Sales, Inventory, dan Expenses) dilengkapi sidebar navigasi yang responsif, sesuai peran/hak akses, serta tombol navigasi cepat untuk berpindah antar-modul ERP secara mulus.
 - **Autentikasi Terpadu & Keamanan**
   - Portal login tunggal (*Unified Login Portal*) di `index.php` dengan pengalihan otomatis (*role-based redirect*) dan pembagian sesi SSO (*Single Sign-On*).
   - Jejak audit dan log aktivitas menyeluruh (`activity_logs` & `audit_logs`).

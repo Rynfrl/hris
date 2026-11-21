@@ -41,7 +41,8 @@
   function hr_is_expenses_role($role): bool
   {
     return in_array(hr_normalize_role($role), [
-      'EMPLOYEE',
+      'ADMIN',
+      'ADMIN_EXPENSE',
       'MANAGER',
       'FINANCE',
     ], true);
@@ -49,14 +50,19 @@
 
   function hr_is_expenses_user($role, $username = ''): bool
   {
-    if (hr_is_expenses_role($role)) {
+    $normRole = hr_normalize_role($role);
+    $normUser = strtolower(trim((string)$username));
+
+    // EMPLOYEE role is excluded from expense workflow
+    if ($normRole === 'EMPLOYEE' && !in_array($normUser, ['admin_gte'], true)) {
+      return false;
+    }
+
+    if (hr_is_expenses_role($normRole)) {
       return true;
     }
 
-    $normUser = strtolower(trim((string)$username));
-    $normRole = hr_normalize_role($role);
-
-    if ($normUser === 'admin_gte' || in_array($normUser, ['rina_manager', 'budi_employee', 'sari_employee', 'dimas_finance'], true)) {
+    if ($normUser === 'admin_gte' || in_array($normUser, ['rina_manager', 'dimas_finance'], true)) {
       return true;
     }
 

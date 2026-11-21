@@ -19,7 +19,7 @@
 -- Current Database: `hris`
 --
 
-CREATE DATABASE /*!32312 IF NOT EXISTS*/ `hris` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci */ ;
+CREATE DATABASE /*!32312 IF NOT EXISTS*/ `hris` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
 
 USE `hris`;
 
@@ -44,7 +44,7 @@ CREATE TABLE `activity_logs` (
   KEY `idx_al_user` (`user_id`),
   KEY `idx_al_created` (`created_at`),
   CONSTRAINT `fk_al_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=115 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -53,7 +53,7 @@ CREATE TABLE `activity_logs` (
 
 LOCK TABLES `activity_logs` WRITE;
 /*!40000 ALTER TABLE `activity_logs` DISABLE KEYS */;
-INSERT INTO `activity_logs` VALUES (1,6,'LOGIN','auth',6,'Login Yuraa_n (HR Director) berhasil','127.0.0.1','2026-11-20 08:15:00'),(2,1,'LOGIN','auth',1,'Login admin_gte (Administrator GT Expense) berhasil','127.0.0.1','2026-11-20 08:30:00'),(3,2,'LOGIN','auth',2,'Login rina_manager (Manager Finance) berhasil','127.0.0.1','2026-11-20 08:45:00'),(4,3,'LOGIN','auth',3,'Login budi_employee (Staff IT) berhasil','127.0.0.1','2026-11-20 09:00:00'),(5,5,'LOGIN','auth',5,'Login dimas_finance (Treasury) berhasil','127.0.0.1','2026-11-20 09:15:00'),(6,7,'CREATE','purchase_requisition',1,'Membuat pengajuan PR-202611-0001 kebutuhan IT','127.0.0.1','2026-11-20 09:30:00'),(7,2,'APPROVE','expense_reports',1,'Menyetujui laporan biaya perjalanan dinas EXP-202611-0001','127.0.0.1','2026-11-20 10:00:00'),(8,5,'POST','expense_reports',1,'Membukukan laporan EXP-202611-0001 ke jurnal umum JRN-EXP-202611-0001','127.0.0.1','2026-11-20 10:30:00'),(9,5,'PAY','expense_reimbursements',1,'Menyelesaikan pembayaran reimbursement PAY-202611-0001 sebesar Rp 1.950.000','127.0.0.1','2026-11-20 11:00:00'),(10,11,'STOCK_ADJUSTMENT','products',1,'Verifikasi fisik stok persediaan barang gudang','127.0.0.1','2026-11-20 11:30:00');
+INSERT INTO `activity_logs` VALUES (1,6,'LOGIN','auth',6,'Login Yuraa_n (HR Director) berhasil','127.0.0.1','2026-11-20 08:15:00'),(2,1,'LOGIN','auth',1,'Login admin_gte (Administrator GT Expense) berhasil','127.0.0.1','2026-11-20 08:30:00'),(3,2,'LOGIN','auth',2,'Login rina_manager (Manager Finance) berhasil','127.0.0.1','2026-11-20 08:45:00'),(4,3,'LOGIN','auth',3,'Login budi_employee (Staff IT) berhasil','127.0.0.1','2026-11-20 09:00:00'),(5,5,'LOGIN','auth',5,'Login dimas_finance (Treasury) berhasil','127.0.0.1','2026-11-20 09:15:00'),(6,7,'CREATE','purchase_requisition',1,'Membuat pengajuan PR-202611-0001 kebutuhan IT','127.0.0.1','2026-11-20 09:30:00'),(7,2,'APPROVE','expense_reports',1,'Menyetujui laporan biaya perjalanan dinas EXP-202611-0001','127.0.0.1','2026-11-20 10:00:00'),(8,5,'POST','expense_reports',1,'Membukukan laporan EXP-202611-0001 ke jurnal umum JRN-EXP-202611-0001','127.0.0.1','2026-11-20 10:30:00'),(9,5,'PAY','expense_reimbursements',1,'Menyelesaikan pembayaran reimbursement PAY-202611-0001 sebesar Rp 1.950.000','127.0.0.1','2026-11-20 11:00:00'),(10,11,'STOCK_ADJUSTMENT','products',1,'Verifikasi fisik stok persediaan barang gudang','127.0.0.1','2026-11-20 11:30:00'),(11,6,'LOGIN','auth',6,'Login yudha@gmail.com berhasil','127.0.0.1','2026-11-21 17:41:56'),(12,6,'LOGIN','auth',6,'Login yudha@gmail.com berhasil','127.0.0.1','2026-11-21 17:44:54'),(13,6,'LOGIN','auth',6,'Login yudha@gmail.com berhasil','127.0.0.1','2026-11-21 17:54:09'),(14,6,'LOGIN','auth',6,'Login yudha@gmail.com berhasil','127.0.0.1','2026-11-21 18:00:08'),(15,6,'LOGOUT','auth',6,'Logout berhasil','127.0.0.1','2026-11-21 18:00:23'),(16,7,'LOGIN','auth',7,'Login salma@gmail.com berhasil','127.0.0.1','2026-11-21 18:00:40'),(17,7,'LOGOUT','auth',7,'Logout berhasil','127.0.0.1','2026-11-21 18:01:01'),(18,11,'LOGIN','auth',11,'Login sabiq@gmail.com berhasil','127.0.0.1','2026-11-21 18:01:25'),(19,11,'LOGOUT','auth',11,'Logout berhasil','127.0.0.1','2026-11-21 18:01:44'),(20,1,'LOGIN','auth',1,'Login admin@example.test berhasil','127.0.0.1','2026-11-21 18:02:01'),(21,5,'LOGIN','auth',5,'Login finance@example.test berhasil','127.0.0.1','2026-11-21 18:02:47'),(22,9,'LOGIN','auth',9,'Login afsaal@gmail.com berhasil','127.0.0.1','2026-11-21 18:05:02'),(23,9,'LOGOUT','auth',9,'Logout berhasil','127.0.0.1','2026-11-21 18:05:17'),(24,1,'LOGIN','auth',1,'Login admin@example.test berhasil','127.0.0.1','2026-11-21 18:05:46'),(25,6,'REPORT_CREATED','expense_reports',4,'Membuat laporan biaya baru: Laporan Pengeluaran Operasional November 2026',NULL,'2026-11-21 19:11:59'),(26,6,'REPORT_CREATED','expense_reports',5,'Membuat laporan biaya baru: Laporan Uji Penolakan Manajer',NULL,'2026-11-21 19:11:59'),(27,6,'REPORT_CREATED','expense_reports',6,'Membuat laporan biaya baru: Laporan Pengeluaran Operasional November 2026',NULL,'2026-11-21 19:19:27'),(28,6,'REPORT_EMPLOYEE_ADDED','expense_report_employees',8,'Menambahkan karyawan Andi Pratama (EMP-0115) ke laporan EXP-2026-364',NULL,'2026-11-21 19:19:27'),(29,6,'REPORT_EMPLOYEE_ADDED','expense_report_employees',9,'Menambahkan karyawan Budi Santoso (EMP-0103) ke laporan EXP-2026-364',NULL,'2026-11-21 19:19:27'),(30,6,'REPORT_EMPLOYEE_ADDED','expense_report_employees',10,'Menambahkan karyawan Citra Amelia (EMP-0114) ke laporan EXP-2026-364',NULL,'2026-11-21 19:19:27'),(31,6,'REPORT_EMPLOYEE_ADDED','expense_report_employees',8,'Menambahkan karyawan Andi Pratama (EMP-0115) ke laporan EXP-2026-364',NULL,'2026-11-21 19:19:27'),(32,6,'EXPENSE_CREATED','expenses',11,'Membuat pengeluaran baru: Biaya Server Cloud AWS Andi (Rp 1.500.000)',NULL,'2026-11-21 19:19:27'),(33,6,'REPORT_ITEM_ADDED','expense_report_items',11,'Menambahkan transaksi EXP-2026-000001 ke laporan EXP-2026-364',NULL,'2026-11-21 19:19:27'),(34,6,'EXPENSE_CREATED','expenses',12,'Membuat pengeluaran baru: Pelatihan Recruitment & HR Budi (Rp 2.000.000)',NULL,'2026-11-21 19:19:27'),(35,6,'REPORT_ITEM_ADDED','expense_report_items',12,'Menambahkan transaksi EXP-2026-000002 ke laporan EXP-2026-364',NULL,'2026-11-21 19:19:27'),(36,6,'EXPENSE_CREATED','expenses',13,'Membuat pengeluaran baru: Biaya Materai dan Audit Pajak Citra (Rp 1.000.000)',NULL,'2026-11-21 19:19:27'),(37,6,'REPORT_ITEM_ADDED','expense_report_items',13,'Menambahkan transaksi EXP-2026-000003 ke laporan EXP-2026-364',NULL,'2026-11-21 19:19:27'),(38,6,'REPORT_SUBMITTED','expense_reports',6,'Mengajukan laporan EXP-2026-364 sebesar Rp 4.500.000 (4 karyawan, 3 item)',NULL,'2026-11-21 19:19:27'),(39,2,'REPORT_APPROVED','expense_reports',6,'Menyetujui laporan EXP-2026-364',NULL,'2026-11-21 19:19:27'),(40,5,'REPORT_POSTED','expense_reports',6,'Membukukan laporan EXP-2026-364 dengan referensi jurnal JRN-EXP-202611-0003',NULL,'2026-11-21 19:19:27'),(41,5,'REIMBURSEMENT_PAYMENT_RECORDED','reimbursements',3,'Mencatat pembayaran penuh reimbursement #3 senilai Rp 4.500.000 untuk laporan EXP-2026-364',NULL,'2026-11-21 19:19:27'),(42,6,'REPORT_CREATED','expense_reports',7,'Membuat laporan biaya baru: Laporan Uji Penolakan Manajer',NULL,'2026-11-21 19:19:27'),(43,6,'REPORT_EMPLOYEE_ADDED','expense_report_employees',12,'Menambahkan karyawan Andi Pratama (EMP-0115) ke laporan EXP-REFUSE-373',NULL,'2026-11-21 19:19:27'),(44,6,'EXPENSE_CREATED','expenses',14,'Membuat pengeluaran baru: Biaya Makan Siang Meeting Operasional (Rp 150.000)',NULL,'2026-11-21 19:19:27'),(45,6,'REPORT_ITEM_ADDED','expense_report_items',14,'Menambahkan transaksi EXP-2026-000004 ke laporan EXP-REFUSE-373',NULL,'2026-11-21 19:19:27'),(46,6,'REPORT_SUBMITTED','expense_reports',7,'Mengajukan laporan EXP-REFUSE-373 sebesar Rp 150.000 (2 karyawan, 1 item)',NULL,'2026-11-21 19:19:27'),(47,2,'REPORT_REFUSED','expense_reports',7,'Menolak laporan EXP-REFUSE-373 dengan alasan: Bukti struk belum jelas, mohon diperbaiki.',NULL,'2026-11-21 19:19:27'),(48,6,'REPORT_REVISED','expense_reports',7,'Mengembalikan laporan EXP-REFUSE-373 ke draft untuk revisi',NULL,'2026-11-21 19:19:27'),(49,6,'REPORT_SUBMITTED','expense_reports',7,'Mengajukan laporan EXP-REFUSE-373 sebesar Rp 150.000 (2 karyawan, 1 item)',NULL,'2026-11-21 19:19:27'),(50,6,'REPORT_CREATED','expense_reports',8,'Membuat laporan biaya baru: Laporan Pengeluaran Operasional November 2026',NULL,'2026-11-21 19:25:34'),(51,6,'REPORT_EMPLOYEE_ADDED','expense_report_employees',13,'Menambahkan karyawan Andi Pratama (EMP-0115) ke laporan EXP-2026-686',NULL,'2026-11-21 19:25:34'),(52,6,'REPORT_EMPLOYEE_ADDED','expense_report_employees',14,'Menambahkan karyawan Budi Santoso (EMP-0103) ke laporan EXP-2026-686',NULL,'2026-11-21 19:25:34'),(53,6,'REPORT_EMPLOYEE_ADDED','expense_report_employees',15,'Menambahkan karyawan Citra Amelia (EMP-0114) ke laporan EXP-2026-686',NULL,'2026-11-21 19:25:34'),(54,6,'EXPENSE_CREATED','expenses',15,'Membuat pengeluaran baru: Biaya Server Cloud AWS Andi (Rp 1.500.000)',NULL,'2026-11-21 19:25:34'),(55,6,'REPORT_ITEM_ADDED','expense_report_items',15,'Menambahkan transaksi EXP-2026-000005 ke laporan EXP-2026-686',NULL,'2026-11-21 19:25:34'),(56,6,'EXPENSE_CREATED','expenses',16,'Membuat pengeluaran baru: Pelatihan Recruitment & HR Budi (Rp 2.000.000)',NULL,'2026-11-21 19:25:34'),(57,6,'REPORT_ITEM_ADDED','expense_report_items',16,'Menambahkan transaksi EXP-2026-000006 ke laporan EXP-2026-686',NULL,'2026-11-21 19:25:34'),(58,6,'EXPENSE_CREATED','expenses',17,'Membuat pengeluaran baru: Biaya Materai dan Audit Pajak Citra (Rp 1.000.000)',NULL,'2026-11-21 19:25:34'),(59,6,'REPORT_ITEM_ADDED','expense_report_items',17,'Menambahkan transaksi EXP-2026-000007 ke laporan EXP-2026-686',NULL,'2026-11-21 19:25:34'),(60,6,'REPORT_SUBMITTED','expense_reports',8,'Mengajukan laporan EXP-2026-686 sebesar Rp 4.500.000 (3 karyawan, 3 item)',NULL,'2026-11-21 19:25:34'),(61,2,'REPORT_APPROVED','expense_reports',8,'Menyetujui laporan EXP-2026-686',NULL,'2026-11-21 19:25:34'),(62,5,'REPORT_POSTED','expense_reports',8,'Membukukan laporan EXP-2026-686 dengan referensi jurnal JRN-EXP-202611-0004',NULL,'2026-11-21 19:25:34'),(63,5,'REIMBURSEMENT_PAYMENT_RECORDED','reimbursements',4,'Mencatat pembayaran penuh reimbursement #4 senilai Rp 4.500.000 untuk laporan EXP-2026-686',NULL,'2026-11-21 19:25:34'),(64,6,'REPORT_CREATED','expense_reports',9,'Membuat laporan biaya baru: Laporan Uji Penolakan Manajer',NULL,'2026-11-21 19:25:34'),(65,6,'REPORT_EMPLOYEE_ADDED','expense_report_employees',16,'Menambahkan karyawan Andi Pratama (EMP-0115) ke laporan EXP-REFUSE-998',NULL,'2026-11-21 19:25:34'),(66,6,'EXPENSE_CREATED','expenses',18,'Membuat pengeluaran baru: Biaya Makan Siang Meeting Operasional (Rp 150.000)',NULL,'2026-11-21 19:25:34'),(67,6,'REPORT_ITEM_ADDED','expense_report_items',18,'Menambahkan transaksi EXP-2026-000008 ke laporan EXP-REFUSE-998',NULL,'2026-11-21 19:25:34'),(68,6,'REPORT_SUBMITTED','expense_reports',9,'Mengajukan laporan EXP-REFUSE-998 sebesar Rp 150.000 (1 karyawan, 1 item)',NULL,'2026-11-21 19:25:34'),(69,2,'REPORT_REFUSED','expense_reports',9,'Menolak laporan EXP-REFUSE-998 dengan alasan: Bukti struk belum jelas, mohon diperbaiki.',NULL,'2026-11-21 19:25:34'),(70,6,'REPORT_REVISED','expense_reports',9,'Mengembalikan laporan EXP-REFUSE-998 ke draft untuk revisi',NULL,'2026-11-21 19:25:34'),(71,6,'REPORT_SUBMITTED','expense_reports',9,'Mengajukan laporan EXP-REFUSE-998 sebesar Rp 150.000 (1 karyawan, 1 item)',NULL,'2026-11-21 19:25:34'),(72,6,'REPORT_CREATED','expense_reports',10,'Membuat laporan biaya baru: Laporan Pengeluaran Operasional November 2026',NULL,'2026-11-21 19:27:33'),(73,6,'REPORT_EMPLOYEE_ADDED','expense_report_employees',17,'Menambahkan karyawan Andi Pratama (EMP-0115) ke laporan EXP-2026-445',NULL,'2026-11-21 19:27:33'),(74,6,'REPORT_EMPLOYEE_ADDED','expense_report_employees',18,'Menambahkan karyawan Budi Santoso (EMP-0103) ke laporan EXP-2026-445',NULL,'2026-11-21 19:27:33'),(75,6,'REPORT_EMPLOYEE_ADDED','expense_report_employees',19,'Menambahkan karyawan Citra Amelia (EMP-0114) ke laporan EXP-2026-445',NULL,'2026-11-21 19:27:33'),(76,6,'EXPENSE_CREATED','expenses',19,'Membuat pengeluaran baru: Biaya Server Cloud AWS Andi (Rp 1.500.000)',NULL,'2026-11-21 19:27:33'),(77,6,'REPORT_ITEM_ADDED','expense_report_items',19,'Menambahkan transaksi EXP-2026-000009 ke laporan EXP-2026-445',NULL,'2026-11-21 19:27:33'),(78,6,'EXPENSE_CREATED','expenses',20,'Membuat pengeluaran baru: Pelatihan Recruitment & HR Budi (Rp 2.000.000)',NULL,'2026-11-21 19:27:33'),(79,6,'REPORT_ITEM_ADDED','expense_report_items',20,'Menambahkan transaksi EXP-2026-000010 ke laporan EXP-2026-445',NULL,'2026-11-21 19:27:33'),(80,6,'EXPENSE_CREATED','expenses',21,'Membuat pengeluaran baru: Biaya Materai dan Audit Pajak Citra (Rp 1.000.000)',NULL,'2026-11-21 19:27:33'),(81,6,'REPORT_ITEM_ADDED','expense_report_items',21,'Menambahkan transaksi EXP-2026-000011 ke laporan EXP-2026-445',NULL,'2026-11-21 19:27:33'),(82,6,'REPORT_SUBMITTED','expense_reports',10,'Mengajukan laporan EXP-2026-445 sebesar Rp 4.500.000 (3 karyawan, 3 item)',NULL,'2026-11-21 19:27:33'),(83,2,'REPORT_APPROVED','expense_reports',10,'Menyetujui laporan EXP-2026-445',NULL,'2026-11-21 19:27:33'),(84,5,'REPORT_POSTED','expense_reports',10,'Membukukan laporan EXP-2026-445 dengan referensi jurnal JRN-EXP-202611-0005',NULL,'2026-11-21 19:27:33'),(85,6,'REPORT_CREATED','expense_reports',11,'Membuat laporan biaya baru: Laporan Uji Penolakan Manajer',NULL,'2026-11-21 19:27:33'),(86,6,'REPORT_EMPLOYEE_ADDED','expense_report_employees',20,'Menambahkan karyawan Andi Pratama (EMP-0115) ke laporan EXP-REFUSE-157',NULL,'2026-11-21 19:27:33'),(87,6,'EXPENSE_CREATED','expenses',22,'Membuat pengeluaran baru: Biaya Makan Siang Meeting Operasional (Rp 150.000)',NULL,'2026-11-21 19:27:33'),(88,6,'REPORT_ITEM_ADDED','expense_report_items',22,'Menambahkan transaksi EXP-2026-000012 ke laporan EXP-REFUSE-157',NULL,'2026-11-21 19:27:33'),(89,6,'REPORT_SUBMITTED','expense_reports',11,'Mengajukan laporan EXP-REFUSE-157 sebesar Rp 150.000 (1 karyawan, 1 item)',NULL,'2026-11-21 19:27:33'),(90,2,'REPORT_REFUSED','expense_reports',11,'Menolak laporan EXP-REFUSE-157 dengan alasan: Bukti struk belum jelas, mohon diperbaiki.',NULL,'2026-11-21 19:27:33'),(91,6,'REPORT_REVISED','expense_reports',11,'Mengembalikan laporan EXP-REFUSE-157 ke draft untuk revisi',NULL,'2026-11-21 19:27:33'),(92,6,'REPORT_SUBMITTED','expense_reports',11,'Mengajukan laporan EXP-REFUSE-157 sebesar Rp 150.000 (1 karyawan, 1 item)',NULL,'2026-11-21 19:27:33'),(93,6,'REPORT_CREATED','expense_reports',12,'Membuat laporan biaya baru: Laporan Pengeluaran Operasional November 2026',NULL,'2026-11-21 19:36:35'),(94,6,'REPORT_EMPLOYEE_ADDED','expense_report_employees',21,'Menambahkan karyawan Andi Pratama (EMP-0115) ke laporan EXP-2026-406',NULL,'2026-11-21 19:36:35'),(95,6,'REPORT_EMPLOYEE_ADDED','expense_report_employees',22,'Menambahkan karyawan Budi Santoso (EMP-0103) ke laporan EXP-2026-406',NULL,'2026-11-21 19:36:35'),(96,6,'REPORT_EMPLOYEE_ADDED','expense_report_employees',23,'Menambahkan karyawan Citra Amelia (EMP-0114) ke laporan EXP-2026-406',NULL,'2026-11-21 19:36:35'),(97,6,'EXPENSE_CREATED','expenses',23,'Membuat pengeluaran baru: Biaya Server Cloud AWS Andi (Rp 1.500.000)',NULL,'2026-11-21 19:36:35'),(98,6,'REPORT_ITEM_ADDED','expense_report_items',23,'Menambahkan transaksi EXP-2026-000013 ke laporan EXP-2026-406',NULL,'2026-11-21 19:36:35'),(99,6,'EXPENSE_CREATED','expenses',24,'Membuat pengeluaran baru: Pelatihan Recruitment & HR Budi (Rp 2.000.000)',NULL,'2026-11-21 19:36:35'),(100,6,'REPORT_ITEM_ADDED','expense_report_items',24,'Menambahkan transaksi EXP-2026-000014 ke laporan EXP-2026-406',NULL,'2026-11-21 19:36:35'),(101,6,'EXPENSE_CREATED','expenses',25,'Membuat pengeluaran baru: Biaya Materai dan Audit Pajak Citra (Rp 1.000.000)',NULL,'2026-11-21 19:36:35'),(102,6,'REPORT_ITEM_ADDED','expense_report_items',25,'Menambahkan transaksi EXP-2026-000015 ke laporan EXP-2026-406',NULL,'2026-11-21 19:36:35'),(103,6,'REPORT_SUBMITTED','expense_reports',12,'Mengajukan laporan EXP-2026-406 sebesar Rp 4.500.000 (3 karyawan, 3 item)',NULL,'2026-11-21 19:36:35'),(104,2,'REPORT_APPROVED','expense_reports',12,'Menyetujui laporan EXP-2026-406',NULL,'2026-11-21 19:36:35'),(105,5,'REPORT_POSTED','expense_reports',12,'Membukukan laporan EXP-2026-406 dengan referensi jurnal JRN-EXP-202611-0006',NULL,'2026-11-21 19:36:35'),(106,5,'REIMBURSEMENT_PAYMENT_RECORDED','reimbursements',6,'Mencatat pembayaran penuh reimbursement #6 senilai Rp 4.500.000 untuk laporan EXP-2026-406',NULL,'2026-11-21 19:36:35'),(107,6,'REPORT_CREATED','expense_reports',13,'Membuat laporan biaya baru: Laporan Uji Penolakan Manajer',NULL,'2026-11-21 19:36:35'),(108,6,'REPORT_EMPLOYEE_ADDED','expense_report_employees',24,'Menambahkan karyawan Andi Pratama (EMP-0115) ke laporan EXP-REFUSE-650',NULL,'2026-11-21 19:36:35'),(109,6,'EXPENSE_CREATED','expenses',26,'Membuat pengeluaran baru: Biaya Makan Siang Meeting Operasional (Rp 150.000)',NULL,'2026-11-21 19:36:35'),(110,6,'REPORT_ITEM_ADDED','expense_report_items',26,'Menambahkan transaksi EXP-2026-000016 ke laporan EXP-REFUSE-650',NULL,'2026-11-21 19:36:35'),(111,6,'REPORT_SUBMITTED','expense_reports',13,'Mengajukan laporan EXP-REFUSE-650 sebesar Rp 150.000 (1 karyawan, 1 item)',NULL,'2026-11-21 19:36:35'),(112,2,'REPORT_REFUSED','expense_reports',13,'Menolak laporan EXP-REFUSE-650 dengan alasan: Bukti struk belum jelas, mohon diperbaiki.',NULL,'2026-11-21 19:36:35'),(113,6,'REPORT_REVISED','expense_reports',13,'Mengembalikan laporan EXP-REFUSE-650 ke draft untuk revisi',NULL,'2026-11-21 19:36:35'),(114,6,'REPORT_SUBMITTED','expense_reports',13,'Mengajukan laporan EXP-REFUSE-650 sebesar Rp 150.000 (1 karyawan, 1 item)',NULL,'2026-11-21 19:36:35');
 /*!40000 ALTER TABLE `activity_logs` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -107,7 +107,7 @@ CREATE TABLE `categories` (
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_categories_code` (`code`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -143,7 +143,7 @@ CREATE TABLE `customers` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_sales_customer_code` (`code`),
   UNIQUE KEY `uq_customers_customer_id` (`customer_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -164,7 +164,7 @@ UNLOCK TABLES;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/  /*!50003 TRIGGER `trg_customers_before_insert` BEFORE INSERT ON `customers` FOR EACH ROW SET 
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `trg_customers_before_insert` BEFORE INSERT ON `customers` FOR EACH ROW SET 
   NEW.customer_code = IF(NEW.customer_code IS NULL OR NEW.customer_code = '', NEW.code, NEW.customer_code),
   NEW.code = IF(NEW.code IS NULL OR NEW.code = '', NEW.customer_code, NEW.code),
   NEW.customer_name = IF(NEW.customer_name IS NULL OR NEW.customer_name = '', NEW.name, NEW.customer_name),
@@ -183,7 +183,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/  /*!50003 TRIGGER `trg_customers_before_update` BEFORE UPDATE ON `customers` FOR EACH ROW SET 
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `trg_customers_before_update` BEFORE UPDATE ON `customers` FOR EACH ROW SET 
   NEW.customer_code = IF(NEW.customer_code IS NULL OR NEW.customer_code = '', NEW.code, NEW.customer_code),
   NEW.code = IF(NEW.code IS NULL OR NEW.code = '', NEW.customer_code, NEW.code),
   NEW.customer_name = IF(NEW.customer_name IS NULL OR NEW.customer_name = '', NEW.name, NEW.customer_name),
@@ -235,7 +235,7 @@ UNLOCK TABLES;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/  /*!50003 TRIGGER `trg_departments_before_insert` BEFORE INSERT ON `departments` FOR EACH ROW SET NEW.department_code = IF(NEW.department_code IS NULL OR NEW.department_code = '', CONCAT('DEPT-', UPPER(SUBSTRING(REPLACE(REPLACE(NEW.department_name, ' ', ''), '-', ''), 1, 4))), NEW.department_code) */;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `trg_departments_before_insert` BEFORE INSERT ON `departments` FOR EACH ROW SET NEW.department_code = IF(NEW.department_code IS NULL OR NEW.department_code = '', CONCAT('DEPT-', UPPER(SUBSTRING(REPLACE(REPLACE(NEW.department_name, ' ', ''), '-', ''), 1, 4))), NEW.department_code) */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
@@ -315,7 +315,7 @@ UNLOCK TABLES;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/  /*!50003 TRIGGER `trg_employees_before_insert` BEFORE INSERT ON `employees` FOR EACH ROW SET 
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `trg_employees_before_insert` BEFORE INSERT ON `employees` FOR EACH ROW SET 
   NEW.full_name = IF(NEW.full_name IS NULL OR NEW.full_name = '', NEW.nama, NEW.full_name),
   NEW.nama = IF(NEW.nama IS NULL OR NEW.nama = '', NEW.full_name, NEW.nama),
   NEW.position = IF(NEW.position IS NULL OR NEW.position = '', NEW.jabatan, NEW.position),
@@ -336,7 +336,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/  /*!50003 TRIGGER `trg_employees_before_update` BEFORE UPDATE ON `employees` FOR EACH ROW SET 
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `trg_employees_before_update` BEFORE UPDATE ON `employees` FOR EACH ROW SET 
   NEW.full_name = IF(NEW.full_name IS NULL OR NEW.full_name = '', NEW.nama, NEW.full_name),
   NEW.nama = IF(NEW.nama IS NULL OR NEW.nama = '', NEW.full_name, NEW.nama),
   NEW.position = IF(NEW.position IS NULL OR NEW.position = '', NEW.jabatan, NEW.position),
@@ -368,7 +368,7 @@ CREATE TABLE `expense_approvals` (
   KEY `idx_expense_approval_approver` (`approver_id`),
   CONSTRAINT `fk_expense_approval_approver` FOREIGN KEY (`approver_id`) REFERENCES `users` (`user_id`) ON DELETE RESTRICT ON UPDATE CASCADE,
   CONSTRAINT `fk_expense_approval_report` FOREIGN KEY (`report_id`) REFERENCES `expense_reports` (`report_id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=35 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -377,7 +377,7 @@ CREATE TABLE `expense_approvals` (
 
 LOCK TABLES `expense_approvals` WRITE;
 /*!40000 ALTER TABLE `expense_approvals` DISABLE KEYS */;
-INSERT INTO `expense_approvals` VALUES (1,1,2,'APPROVE','Pengeluaran dinas Bandung disetujui, bukti tiket dan kuitansi hotel lengkap','2026-11-04 07:30:00'),(2,2,2,'APPROVE','Klaim ATK dan konsumsi tim disetujui','2026-11-08 08:00:00'),(3,3,2,'APPROVE','Disetujui untuk peningkatan kompetensi tim IT dan kebutuhan software pajak','2026-11-17 04:00:00');
+INSERT INTO `expense_approvals` VALUES (1,1,2,'APPROVE','Pengeluaran dinas Bandung disetujui, bukti tiket dan kuitansi hotel lengkap','2026-11-04 07:30:00'),(2,2,2,'APPROVE','Klaim ATK dan konsumsi tim disetujui','2026-11-08 08:00:00'),(3,3,2,'APPROVE','Disetujui untuk peningkatan kompetensi tim IT dan kebutuhan software pajak','2026-11-17 04:00:00'),(4,6,6,'SUBMITTED','Laporan diajukan untuk persetujuan manajer.','2026-11-21 12:19:27'),(5,6,2,'APPROVED','Disetujui untuk seluruh 3 karyawan.','2026-11-21 12:19:27'),(6,6,5,'POSTED','Laporan telah dibukukan oleh tim Keuangan (Ref: JRN-EXP-202611-0003).','2026-11-21 12:19:27'),(7,6,5,'PAID','Pembayaran reimbursement satu laporan penuh telah diselesaikan (LUNAS). Ref: TRF-FULL-PAY-20261121','2026-11-21 12:19:27'),(8,7,6,'SUBMITTED','Laporan diajukan untuk persetujuan manajer.','2026-11-21 12:19:27'),(9,7,2,'REFUSED','Bukti struk belum jelas, mohon diperbaiki.','2026-11-21 12:19:27'),(10,7,6,'DRAFT','Laporan dikembalikan ke status Draft untuk perbaikan.','2026-11-21 12:19:27'),(11,7,6,'SUBMITTED','Laporan diajukan untuk persetujuan manajer.','2026-11-21 12:19:27'),(12,8,6,'SUBMITTED','Laporan diajukan untuk persetujuan manajer.','2026-11-21 12:25:34'),(13,8,2,'APPROVED','Disetujui untuk seluruh 3 karyawan.','2026-11-21 12:25:34'),(14,8,5,'POSTED','Laporan telah dibukukan oleh tim Keuangan (Ref: JRN-EXP-202611-0004).','2026-11-21 12:25:34'),(15,8,5,'PAID','Pembayaran reimbursement satu laporan penuh telah diselesaikan (LUNAS). Ref: TRF-FULL-PAY-20261121','2026-11-21 12:25:34'),(16,9,6,'SUBMITTED','Laporan diajukan untuk persetujuan manajer.','2026-11-21 12:25:34'),(17,9,2,'REFUSED','Bukti struk belum jelas, mohon diperbaiki.','2026-11-21 12:25:34'),(18,9,6,'DRAFT','Laporan dikembalikan ke status Draft untuk perbaikan.','2026-11-21 12:25:34'),(19,9,6,'SUBMITTED','Laporan diajukan untuk persetujuan manajer.','2026-11-21 12:25:34'),(20,10,6,'SUBMITTED','Laporan diajukan untuk persetujuan manajer.','2026-11-21 12:27:33'),(21,10,2,'APPROVED','Disetujui untuk seluruh 3 karyawan.','2026-11-21 12:27:33'),(22,10,5,'POSTED','Laporan telah dibukukan oleh tim Keuangan (Ref: JRN-EXP-202611-0005).','2026-11-21 12:27:33'),(23,11,6,'SUBMITTED','Laporan diajukan untuk persetujuan manajer.','2026-11-21 12:27:33'),(24,11,2,'REFUSED','Bukti struk belum jelas, mohon diperbaiki.','2026-11-21 12:27:33'),(25,11,6,'DRAFT','Laporan dikembalikan ke status Draft untuk perbaikan.','2026-11-21 12:27:33'),(26,11,6,'SUBMITTED','Laporan diajukan untuk persetujuan manajer.','2026-11-21 12:27:33'),(27,12,6,'SUBMITTED','Laporan diajukan untuk persetujuan manajer.','2026-11-21 12:36:35'),(28,12,2,'APPROVED','Disetujui untuk seluruh 3 karyawan.','2026-11-21 12:36:35'),(29,12,5,'POSTED','Laporan telah dibukukan oleh tim Keuangan (Ref: JRN-EXP-202611-0006).','2026-11-21 12:36:35'),(30,12,5,'PAID','Pembayaran reimbursement satu laporan penuh telah diselesaikan (LUNAS). Ref: TRF-FULL-PAY-20261121','2026-11-21 12:36:35'),(31,13,6,'SUBMITTED','Laporan diajukan untuk persetujuan manajer.','2026-11-21 12:36:35'),(32,13,2,'REFUSED','Bukti struk belum jelas, mohon diperbaiki.','2026-11-21 12:36:35'),(33,13,6,'DRAFT','Laporan dikembalikan ke status Draft untuk perbaikan.','2026-11-21 12:36:35'),(34,13,6,'SUBMITTED','Laporan diajukan untuk persetujuan manajer.','2026-11-21 12:36:35');
 /*!40000 ALTER TABLE `expense_approvals` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -432,7 +432,7 @@ CREATE TABLE `expense_comments` (
   KEY `fk_expense_comments_author` (`author_id`),
   CONSTRAINT `fk_expense_comments_author` FOREIGN KEY (`author_id`) REFERENCES `users` (`user_id`) ON DELETE RESTRICT ON UPDATE CASCADE,
   CONSTRAINT `fk_expense_comments_report` FOREIGN KEY (`report_id`) REFERENCES `expense_reports` (`report_id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -441,7 +441,7 @@ CREATE TABLE `expense_comments` (
 
 LOCK TABLES `expense_comments` WRITE;
 /*!40000 ALTER TABLE `expense_comments` DISABLE KEYS */;
-INSERT INTO `expense_comments` VALUES (1,1,3,'Mohon ditinjau laporannya Bu Rina, semua struk tiket dan hotel sudah saya lampirkan.',0,'2026-11-04 03:05:00'),(2,1,2,'Baik Mas Budi, rincian sudah sesuai kebijakan plafon dinas luar kota. Sudah saya setujui.',0,'2026-11-04 07:31:00'),(3,1,5,'Dana klaim sebesar Rp 1.950.000 telah ditransfer ke rekening BCA Mas Budi.',0,'2026-11-05 08:31:00');
+INSERT INTO `expense_comments` VALUES (1,1,3,'Mohon ditinjau laporannya Bu Rina, semua struk tiket dan hotel sudah saya lampirkan.',0,'2026-11-04 03:05:00'),(2,1,2,'Baik Mas Budi, rincian sudah sesuai kebijakan plafon dinas luar kota. Sudah saya setujui.',0,'2026-11-04 07:31:00'),(3,1,5,'Dana klaim sebesar Rp 1.950.000 telah ditransfer ke rekening BCA Mas Budi.',0,'2026-11-05 08:31:00'),(4,7,2,'Ditolak: Bukti struk belum jelas, mohon diperbaiki.',0,'2026-11-21 12:19:27'),(5,9,2,'Ditolak: Bukti struk belum jelas, mohon diperbaiki.',0,'2026-11-21 12:25:34'),(6,11,2,'Ditolak: Bukti struk belum jelas, mohon diperbaiki.',0,'2026-11-21 12:27:33'),(7,13,2,'Ditolak: Bukti struk belum jelas, mohon diperbaiki.',0,'2026-11-21 12:36:35');
 /*!40000 ALTER TABLE `expense_comments` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -466,7 +466,7 @@ CREATE TABLE `expense_postings` (
   KEY `idx_expense_postings_posted_by` (`posted_by`),
   CONSTRAINT `fk_expense_postings_report` FOREIGN KEY (`report_id`) REFERENCES `expense_reports` (`report_id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fk_expense_postings_user` FOREIGN KEY (`posted_by`) REFERENCES `users` (`user_id`) ON DELETE RESTRICT ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -475,7 +475,7 @@ CREATE TABLE `expense_postings` (
 
 LOCK TABLES `expense_postings` WRITE;
 /*!40000 ALTER TABLE `expense_postings` DISABLE KEYS */;
-INSERT INTO `expense_postings` VALUES (1,1,'JRN-EXP-202611-0001','2026-11-05',5,'2026-11-05 02:00:00','Pembukuan beban perjalanan dinas Bandung EXP-202611-0001'),(2,2,'JRN-EXP-202611-0002','2026-11-09',5,'2026-11-09 03:00:00','Pembukuan beban operasional ATK kantor EXP-202611-0002');
+INSERT INTO `expense_postings` VALUES (1,1,'JRN-EXP-202611-0001','2026-11-05',5,'2026-11-05 02:00:00','Pembukuan beban perjalanan dinas Bandung EXP-202611-0001'),(2,2,'JRN-EXP-202611-0002','2026-11-09',5,'2026-11-09 03:00:00','Pembukuan beban operasional ATK kantor EXP-202611-0002'),(3,6,'JRN-EXP-202611-0003','2026-11-21',5,'2026-11-21 12:19:27',NULL),(4,8,'JRN-EXP-202611-0004','2026-11-21',5,'2026-11-21 12:25:34',NULL),(5,10,'JRN-EXP-202611-0005','2026-11-21',5,'2026-11-21 12:27:33',NULL),(6,12,'JRN-EXP-202611-0006','2026-11-21',5,'2026-11-21 12:36:35',NULL);
 /*!40000 ALTER TABLE `expense_postings` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -506,7 +506,7 @@ CREATE TABLE `expense_reimbursement_payments` (
   KEY `idx_reimb_payments_date` (`payment_date`),
   CONSTRAINT `fk_reimb_payments_reimb` FOREIGN KEY (`reimbursement_id`) REFERENCES `expense_reimbursements` (`reimbursement_id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fk_reimb_payments_user` FOREIGN KEY (`paid_by`) REFERENCES `users` (`user_id`) ON DELETE RESTRICT ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -515,7 +515,7 @@ CREATE TABLE `expense_reimbursement_payments` (
 
 LOCK TABLES `expense_reimbursement_payments` WRITE;
 /*!40000 ALTER TABLE `expense_reimbursement_payments` DISABLE KEYS */;
-INSERT INTO `expense_reimbursement_payments` VALUES (1,1,'PAY-202611-0001','2026-11-05',1950000.00,'BANK_TRANSFER','BCA','TRX-BCA-9812401',NULL,5,'Transfer pencairan klaim dinas Budi Santoso ke rekening BCA','2026-11-05 08:30:00'),(2,2,'PAY-202611-0002','2026-11-09',400000.00,'BANK_TRANSFER','BNI','TRX-BNI-7712390',NULL,5,'Transfer pencairan klaim ATK Sari Putri ke rekening BNI','2026-11-09 09:00:00');
+INSERT INTO `expense_reimbursement_payments` VALUES (1,1,'PAY-202611-0001','2026-11-05',1950000.00,'BANK_TRANSFER','BCA','TRX-BCA-9812401',NULL,5,'Transfer pencairan klaim dinas Budi Santoso ke rekening BCA','2026-11-05 08:30:00'),(2,2,'PAY-202611-0002','2026-11-09',400000.00,'BANK_TRANSFER','BNI','TRX-BNI-7712390',NULL,5,'Transfer pencairan klaim ATK Sari Putri ke rekening BNI','2026-11-09 09:00:00'),(3,3,'PAY-202611-0003','2026-11-21',4500000.00,'BANK_TRANSFER','BCA','TRF-FULL-PAY-20261121',NULL,5,'Pencairan penuh seluruh pengeluaran operasional November 2026','2026-11-21 12:19:27'),(4,4,'PAY-202611-0004','2026-11-21',4500000.00,'BANK_TRANSFER','BCA','TRF-FULL-PAY-20261121',NULL,5,'Pencairan penuh seluruh pengeluaran operasional November 2026','2026-11-21 12:25:34');
 /*!40000 ALTER TABLE `expense_reimbursement_payments` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -546,7 +546,7 @@ CREATE TABLE `expense_reimbursements` (
   CONSTRAINT `fk_expense_reimb_employee` FOREIGN KEY (`employee_id`) REFERENCES `employees` (`employee_id`) ON DELETE RESTRICT ON UPDATE CASCADE,
   CONSTRAINT `fk_expense_reimb_report` FOREIGN KEY (`report_id`) REFERENCES `expense_reports` (`report_id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fk_expense_reimb_report_employee` FOREIGN KEY (`report_employee_id`) REFERENCES `expense_report_employees` (`report_employee_id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -555,7 +555,7 @@ CREATE TABLE `expense_reimbursements` (
 
 LOCK TABLES `expense_reimbursements` WRITE;
 /*!40000 ALTER TABLE `expense_reimbursements` DISABLE KEYS */;
-INSERT INTO `expense_reimbursements` VALUES (1,1,1,3,1950000.00,1950000.00,'PAID','Kewajiban klaim Budi Santoso perjalanan dinas Bandung','2026-11-05 02:00:00','2026-11-21 06:02:51'),(2,2,2,4,400000.00,400000.00,'PAID','Kewajiban klaim Sari Putri operasional kantor','2026-11-09 03:00:00','2026-11-21 06:02:51'),(3,3,3,15,2280000.00,0.00,'PENDING','Kewajiban klaim Andi Pratama (Sertifikasi & Taksi Onsite)','2026-11-17 04:00:00','2026-11-21 06:02:51'),(4,3,4,14,850000.00,0.00,'PENDING','Kewajiban klaim Citra Amelia (Software Pajak)','2026-11-17 04:00:00','2026-11-21 06:02:51');
+INSERT INTO `expense_reimbursements` VALUES (1,1,1,3,1950000.00,1950000.00,'PAID','Kewajiban klaim Budi Santoso perjalanan dinas Bandung','2026-11-05 02:00:00','2026-11-21 06:02:51'),(2,2,2,4,400000.00,400000.00,'PAID','Kewajiban klaim Sari Putri operasional kantor','2026-11-09 03:00:00','2026-11-21 06:02:51'),(3,3,3,15,4500000.00,0.00,'PENDING','Antrean reimbursement gabungan laporan EXP-2026-364','2026-11-17 04:00:00','2026-11-21 12:19:27'),(4,3,4,14,4500000.00,0.00,'PENDING','Antrean reimbursement gabungan laporan EXP-2026-686','2026-11-17 04:00:00','2026-11-21 12:25:34');
 /*!40000 ALTER TABLE `expense_reimbursements` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -580,7 +580,7 @@ CREATE TABLE `expense_report_employees` (
   KEY `idx_rep_emp_employee` (`employee_id`),
   CONSTRAINT `fk_rep_emp_employee` FOREIGN KEY (`employee_id`) REFERENCES `employees` (`employee_id`) ON DELETE RESTRICT ON UPDATE CASCADE,
   CONSTRAINT `fk_rep_emp_report` FOREIGN KEY (`report_id`) REFERENCES `expense_reports` (`report_id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -589,7 +589,7 @@ CREATE TABLE `expense_report_employees` (
 
 LOCK TABLES `expense_report_employees` WRITE;
 /*!40000 ALTER TABLE `expense_report_employees` DISABLE KEYS */;
-INSERT INTO `expense_report_employees` VALUES (1,1,3,'EMP-0103','Budi Santoso','Teknologi Informasi','2026-11-04 02:00:00'),(2,2,4,'EMP-0104','Sari Putri','Keuangan & Akuntansi','2026-11-08 03:00:00'),(3,3,15,'EMP-0115','Andi Pratama','Teknologi Informasi','2026-11-16 04:00:00'),(4,3,14,'EMP-0114','Citra Amelia','Keuangan & Akuntansi','2026-11-16 04:00:00');
+INSERT INTO `expense_report_employees` VALUES (1,1,3,'EMP-0103','Budi Santoso','Teknologi Informasi','2026-11-04 02:00:00'),(2,2,4,'EMP-0104','Sari Putri','Keuangan & Akuntansi','2026-11-08 03:00:00'),(3,3,15,'EMP-0115','Andi Pratama','Teknologi Informasi','2026-11-16 04:00:00'),(4,3,14,'EMP-0114','Citra Amelia','Keuangan & Akuntansi','2026-11-16 04:00:00'),(5,4,6,'EMP-0106','Yudha Dwi Pratama','Human Resources','2026-11-21 12:11:59'),(6,5,6,'EMP-0106','Yudha Dwi Pratama','Human Resources','2026-11-21 12:11:59'),(7,6,6,'EMP-0106','Yudha Dwi Pratama','Human Resources','2026-11-21 12:19:27'),(8,6,15,'EMP-0115','Andi Pratama','Teknologi Informasi','2026-11-21 12:19:27'),(9,6,3,'EMP-0103','Budi Santoso','Teknologi Informasi','2026-11-21 12:19:27'),(10,6,14,'EMP-0114','Citra Amelia','Keuangan & Akuntansi','2026-11-21 12:19:27'),(11,7,6,'EMP-0106','Yudha Dwi Pratama','Human Resources','2026-11-21 12:19:27'),(12,7,15,'EMP-0115','Andi Pratama','Teknologi Informasi','2026-11-21 12:19:27'),(13,8,15,'EMP-0115','Andi Pratama','Teknologi Informasi','2026-11-21 12:25:34'),(14,8,3,'EMP-0103','Budi Santoso','Teknologi Informasi','2026-11-21 12:25:34'),(15,8,14,'EMP-0114','Citra Amelia','Keuangan & Akuntansi','2026-11-21 12:25:34'),(16,9,15,'EMP-0115','Andi Pratama','Teknologi Informasi','2026-11-21 12:25:34'),(17,10,15,'EMP-0115','Andi Pratama','Teknologi Informasi','2026-11-21 12:27:33'),(18,10,3,'EMP-0103','Budi Santoso','Teknologi Informasi','2026-11-21 12:27:33'),(19,10,14,'EMP-0114','Citra Amelia','Keuangan & Akuntansi','2026-11-21 12:27:33'),(20,11,15,'EMP-0115','Andi Pratama','Teknologi Informasi','2026-11-21 12:27:33'),(21,12,15,'EMP-0115','Andi Pratama','Teknologi Informasi','2026-11-21 12:36:35'),(22,12,3,'EMP-0103','Budi Santoso','Teknologi Informasi','2026-11-21 12:36:35'),(23,12,14,'EMP-0114','Citra Amelia','Keuangan & Akuntansi','2026-11-21 12:36:35'),(24,13,15,'EMP-0115','Andi Pratama','Teknologi Informasi','2026-11-21 12:36:35');
 /*!40000 ALTER TABLE `expense_report_employees` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -612,7 +612,7 @@ CREATE TABLE `expense_report_items` (
   CONSTRAINT `fk_report_item_expense` FOREIGN KEY (`expense_id`) REFERENCES `expenses` (`expense_id`) ON DELETE RESTRICT ON UPDATE CASCADE,
   CONSTRAINT `fk_report_item_report` FOREIGN KEY (`report_id`) REFERENCES `expense_reports` (`report_id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fk_report_item_report_employee` FOREIGN KEY (`report_employee_id`) REFERENCES `expense_report_employees` (`report_employee_id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=26 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -621,7 +621,7 @@ CREATE TABLE `expense_report_items` (
 
 LOCK TABLES `expense_report_items` WRITE;
 /*!40000 ALTER TABLE `expense_report_items` DISABLE KEYS */;
-INSERT INTO `expense_report_items` VALUES (1,1,1,1),(2,1,2,1),(3,1,3,1),(4,1,4,1),(5,2,5,2),(6,2,6,2),(7,3,7,3),(8,3,8,3),(9,3,9,4);
+INSERT INTO `expense_report_items` VALUES (1,1,1,1),(2,1,2,1),(3,1,3,1),(4,1,4,1),(5,2,5,2),(6,2,6,2),(7,3,7,3),(8,3,8,3),(9,3,9,4),(10,6,11,8),(11,6,12,9),(12,6,13,10),(13,7,14,12),(14,8,15,13),(15,8,16,14),(16,8,17,15),(17,9,18,16),(18,10,19,17),(19,10,20,18),(20,10,21,19),(21,11,22,20),(22,12,23,21),(23,12,24,22),(24,12,25,23),(25,13,26,24);
 /*!40000 ALTER TABLE `expense_report_items` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -658,7 +658,7 @@ CREATE TABLE `expense_reports` (
   KEY `fk_expense_reports_created_by` (`created_by`),
   CONSTRAINT `fk_expense_report_employee` FOREIGN KEY (`employee_id`) REFERENCES `employees` (`employee_id`) ON DELETE RESTRICT ON UPDATE CASCADE,
   CONSTRAINT `fk_expense_reports_created_by` FOREIGN KEY (`created_by`) REFERENCES `users` (`user_id`) ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -667,7 +667,7 @@ CREATE TABLE `expense_reports` (
 
 LOCK TABLES `expense_reports` WRITE;
 /*!40000 ALTER TABLE `expense_reports` DISABLE KEYS */;
-INSERT INTO `expense_reports` VALUES (1,'EXP-202611-0001',3,'Laporan Biaya Perjalanan Dinas Implementasi Klien Bandung','Perjalanan dinas meeting teknis dan deploy sistem di PT Digital Sinergi Bandung',3,'2026-11-02','2026-11-04',1950000.00,'PAID','2026-11-04 10:00:00','2026-11-04 14:30:00','2026-11-05 09:00:00','2026-11-05 15:30:00',NULL,NULL,'2026-11-04 02:00:00','2026-11-21 06:02:51'),(2,'EXP-202611-0002',4,'Laporan Operasional Tim Keuangan & Materai Pajak','Klaim operasional pembelian materai resmi dan konsumsi rapat tim keuangan',4,'2026-11-06','2026-11-08',400000.00,'PAID','2026-11-08 11:00:00','2026-11-08 15:00:00','2026-11-09 10:00:00','2026-11-09 16:00:00',NULL,NULL,'2026-11-08 03:00:00','2026-11-21 06:02:51'),(3,'EXP-202611-0003',NULL,'Laporan Pengeluaran Gabungan Operasional Q4 (Multi-Karyawan)','Pengajuan pengeluaran gabungan sertifikasi IT Andi Pratama dan software pajak Citra Amelia',1,'2026-11-10','2026-11-16',3130000.00,'APPROVED','2026-11-16 14:00:00','2026-11-17 11:00:00',NULL,NULL,NULL,NULL,'2026-11-16 04:00:00','2026-11-21 06:02:51');
+INSERT INTO `expense_reports` VALUES (1,'EXP-202611-0001',3,'Laporan Biaya Perjalanan Dinas Implementasi Klien Bandung','Perjalanan dinas meeting teknis dan deploy sistem di PT Digital Sinergi Bandung',3,'2026-11-02','2026-11-04',1950000.00,'PAID','2026-11-04 10:00:00','2026-11-04 14:30:00','2026-11-05 09:00:00','2026-11-05 15:30:00',NULL,NULL,'2026-11-04 02:00:00','2026-11-21 06:02:51'),(2,'EXP-202611-0002',4,'Laporan Operasional Tim Keuangan & Materai Pajak','Klaim operasional pembelian materai resmi dan konsumsi rapat tim keuangan',4,'2026-11-06','2026-11-08',400000.00,'PAID','2026-11-08 11:00:00','2026-11-08 15:00:00','2026-11-09 10:00:00','2026-11-09 16:00:00',NULL,NULL,'2026-11-08 03:00:00','2026-11-21 06:02:51'),(3,'EXP-202611-0003',NULL,'Laporan Pengeluaran Gabungan Operasional Q4 (Multi-Karyawan)','Pengajuan pengeluaran gabungan sertifikasi IT Andi Pratama dan software pajak Citra Amelia',1,'2026-11-10','2026-11-16',3130000.00,'APPROVED','2026-11-16 14:00:00','2026-11-17 11:00:00',NULL,NULL,NULL,NULL,'2026-11-16 04:00:00','2026-11-21 06:02:51'),(4,'EXP-2026-804',6,'Laporan Pengeluaran Operasional November 2026','Laporan gabungan karyawan operasional IT, HR, dan Finance',6,'2026-11-01','2026-11-15',0.00,'DRAFT',NULL,NULL,NULL,NULL,NULL,NULL,'2026-11-21 12:11:59','2026-11-21 12:11:59'),(5,'EXP-REFUSE-267',6,'Laporan Uji Penolakan Manajer',NULL,6,'2026-11-01','2026-11-10',0.00,'DRAFT',NULL,NULL,NULL,NULL,NULL,NULL,'2026-11-21 12:11:59','2026-11-21 12:11:59'),(6,'EXP-2026-364',6,'Laporan Pengeluaran Operasional November 2026','Laporan gabungan karyawan operasional IT, HR, dan Finance',6,'2026-11-01','2026-11-15',4500000.00,'PAID','2026-11-21 19:19:27','2026-11-21 19:19:27','2026-11-21 19:19:27','2026-11-21 19:19:27',NULL,NULL,'2026-11-21 12:19:27','2026-11-21 12:19:27'),(7,'EXP-REFUSE-373',6,'Laporan Uji Penolakan Manajer',NULL,6,'2026-11-01','2026-11-10',150000.00,'SUBMITTED','2026-11-21 19:19:27',NULL,NULL,NULL,'2026-11-21 19:19:27','Bukti struk belum jelas, mohon diperbaiki.','2026-11-21 12:19:27','2026-11-21 12:19:27'),(8,'EXP-2026-686',NULL,'Laporan Pengeluaran Operasional November 2026','Laporan gabungan karyawan operasional IT, HR, dan Finance',6,'2026-11-01','2026-11-15',4500000.00,'PAID','2026-11-21 19:25:34','2026-11-21 19:25:34','2026-11-21 19:25:34','2026-11-21 19:25:34',NULL,NULL,'2026-11-21 12:25:34','2026-11-21 12:25:34'),(9,'EXP-REFUSE-998',NULL,'Laporan Uji Penolakan Manajer',NULL,6,'2026-11-01','2026-11-10',150000.00,'SUBMITTED','2026-11-21 19:25:34',NULL,NULL,NULL,'2026-11-21 19:25:34','Bukti struk belum jelas, mohon diperbaiki.','2026-11-21 12:25:34','2026-11-21 12:25:34'),(10,'EXP-2026-445',NULL,'Laporan Pengeluaran Operasional November 2026','Laporan gabungan karyawan operasional IT, HR, dan Finance',6,'2026-11-01','2026-11-15',4500000.00,'POSTED','2026-11-21 19:27:33','2026-11-21 19:27:33','2026-11-21 19:27:33',NULL,NULL,NULL,'2026-11-21 12:27:33','2026-11-21 12:27:33'),(11,'EXP-REFUSE-157',NULL,'Laporan Uji Penolakan Manajer',NULL,6,'2026-11-01','2026-11-10',150000.00,'SUBMITTED','2026-11-21 19:27:33',NULL,NULL,NULL,'2026-11-21 19:27:33','Bukti struk belum jelas, mohon diperbaiki.','2026-11-21 12:27:33','2026-11-21 12:27:33'),(12,'EXP-2026-406',NULL,'Laporan Pengeluaran Operasional November 2026','Laporan gabungan karyawan operasional IT, HR, dan Finance',6,'2026-11-01','2026-11-15',4500000.00,'PAID','2026-11-21 19:36:35','2026-11-21 19:36:35','2026-11-21 19:36:35','2026-11-21 19:36:35',NULL,NULL,'2026-11-21 12:36:35','2026-11-21 12:36:35'),(13,'EXP-REFUSE-650',NULL,'Laporan Uji Penolakan Manajer',NULL,6,'2026-11-01','2026-11-10',150000.00,'SUBMITTED','2026-11-21 19:36:35',NULL,NULL,NULL,'2026-11-21 19:36:35','Bukti struk belum jelas, mohon diperbaiki.','2026-11-21 12:36:35','2026-11-21 12:36:35');
 /*!40000 ALTER TABLE `expense_reports` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -737,7 +737,7 @@ CREATE TABLE `expenses` (
   CONSTRAINT `fk_expense_project` FOREIGN KEY (`project_id`) REFERENCES `projects` (`project_id`) ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT `fk_expense_rejected_by` FOREIGN KEY (`rejected_by`) REFERENCES `users` (`user_id`) ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT `fk_expense_updated_by` FOREIGN KEY (`updated_by`) REFERENCES `users` (`user_id`) ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=27 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -746,7 +746,7 @@ CREATE TABLE `expenses` (
 
 LOCK TABLES `expenses` WRITE;
 /*!40000 ALTER TABLE `expenses` DISABLE KEYS */;
-INSERT INTO `expenses` VALUES (1,'EXP-202611-0001',3,1,'2026-11-02','Tiket Kereta Argo Parahyangan Gambir - Bandung PP',350000.00,'IDR','BANK_TRANSFER','BCA','PT Kereta Api Indonesia',1,NULL,NULL,1,0,'NOT_INVOICED','PAID',NULL,NULL,NULL,NULL,NULL,NULL,3,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'2026-11-02 01:00:00','2026-11-21 06:02:51'),(2,'EXP-202611-0002',3,2,'2026-11-02','Hotel Ibis Pasteur Bandung 2 Malam Kunjungan Klien',1100000.00,'IDR','BANK_TRANSFER','BCA','Ibis Hotel Bandung',1,NULL,NULL,1,0,'NOT_INVOICED','PAID',NULL,NULL,NULL,NULL,NULL,NULL,3,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'2026-11-02 01:00:00','2026-11-21 06:02:51'),(3,'EXP-202611-0003',3,3,'2026-11-03','Makan Siang & Diskusi Teknis Tim PIC Digital Sinergi',380000.00,'IDR','CASH','BCA','Restoran Pagi Sore Pasteur',1,NULL,NULL,1,0,'NOT_INVOICED','PAID',NULL,NULL,NULL,NULL,NULL,NULL,3,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'2026-11-02 01:00:00','2026-11-21 06:02:51'),(4,'EXP-202611-0004',3,1,'2026-11-03','Grab Korporat PP Stasiun - Kantor Klien Dago',120000.00,'IDR','CASH','BCA','Grab Indonesia',1,NULL,NULL,1,0,'NOT_INVOICED','PAID',NULL,NULL,NULL,NULL,NULL,NULL,3,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'2026-11-02 01:00:00','2026-11-21 06:02:51'),(5,'EXP-202611-0005',4,4,'2026-11-06','Pembelian Materai Elektronik & Fisik 10.000 untuk Kontrak',160000.00,'IDR','CASH','BNI','Kantor Pos Sudirman',1,NULL,NULL,1,0,'NOT_INVOICED','PAID',NULL,NULL,NULL,NULL,NULL,NULL,3,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'2026-11-02 01:00:00','2026-11-21 06:02:51'),(6,'EXP-202611-0006',4,3,'2026-11-07','Konsumsi Rapat Koordinasi Rekonsiliasi Pajak Q3',240000.00,'IDR','BANK_TRANSFER','BNI','Kopi Kenangan Tower',1,NULL,NULL,1,0,'NOT_INVOICED','PAID',NULL,NULL,NULL,NULL,NULL,NULL,3,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'2026-11-02 01:00:00','2026-11-21 06:02:51'),(7,'EXP-202611-0007',15,6,'2026-11-10','Biaya Sertifikasi Kubernetes Administrator (CKA)',2100000.00,'IDR','BANK_TRANSFER','BCA','The Linux Foundation',1,NULL,NULL,1,0,'NOT_INVOICED','APPROVED',NULL,NULL,NULL,NULL,NULL,NULL,3,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'2026-11-02 01:00:00','2026-11-21 06:02:51'),(8,'EXP-202611-0008',15,1,'2026-11-11','Taksi Online Onsite Perbaikan Server Datacenter Cyber',180000.00,'IDR','CASH','BCA','Bluebird Taksi',1,NULL,NULL,1,0,'NOT_INVOICED','APPROVED',NULL,NULL,NULL,NULL,NULL,NULL,3,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'2026-11-02 01:00:00','2026-11-21 06:02:51'),(9,'EXP-202611-0009',14,4,'2026-11-15','Langganan Software Tax & E-Faktur Konsultan',850000.00,'IDR','BANK_TRANSFER','Mandiri','Ortax Media Solusindo',1,NULL,NULL,1,0,'NOT_INVOICED','APPROVED',NULL,NULL,NULL,NULL,NULL,NULL,3,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'2026-11-02 01:00:00','2026-11-21 06:02:51'),(10,'EXP-202611-0010',3,5,'2026-11-18','Paket Data Darurat Remote Support Deployment',150000.00,'IDR','CASH','BCA','Telkomsel MyEnterprise',1,NULL,NULL,1,0,'NOT_INVOICED','DRAFT',NULL,NULL,NULL,NULL,NULL,NULL,3,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'2026-11-02 01:00:00','2026-11-21 06:02:51');
+INSERT INTO `expenses` VALUES (1,'EXP-202611-0001',3,1,'2026-11-02','Tiket Kereta Argo Parahyangan Gambir - Bandung PP',350000.00,'IDR','BANK_TRANSFER','BCA','PT Kereta Api Indonesia',1,NULL,NULL,1,0,'NOT_INVOICED','PAID',NULL,NULL,NULL,NULL,NULL,NULL,3,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'2026-11-02 01:00:00','2026-11-21 06:02:51'),(2,'EXP-202611-0002',3,2,'2026-11-02','Hotel Ibis Pasteur Bandung 2 Malam Kunjungan Klien',1100000.00,'IDR','BANK_TRANSFER','BCA','Ibis Hotel Bandung',1,NULL,NULL,1,0,'NOT_INVOICED','PAID',NULL,NULL,NULL,NULL,NULL,NULL,3,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'2026-11-02 01:00:00','2026-11-21 06:02:51'),(3,'EXP-202611-0003',3,3,'2026-11-03','Makan Siang & Diskusi Teknis Tim PIC Digital Sinergi',380000.00,'IDR','CASH','BCA','Restoran Pagi Sore Pasteur',1,NULL,NULL,1,0,'NOT_INVOICED','PAID',NULL,NULL,NULL,NULL,NULL,NULL,3,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'2026-11-02 01:00:00','2026-11-21 06:02:51'),(4,'EXP-202611-0004',3,1,'2026-11-03','Grab Korporat PP Stasiun - Kantor Klien Dago',120000.00,'IDR','CASH','BCA','Grab Indonesia',1,NULL,NULL,1,0,'NOT_INVOICED','PAID',NULL,NULL,NULL,NULL,NULL,NULL,3,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'2026-11-02 01:00:00','2026-11-21 06:02:51'),(5,'EXP-202611-0005',4,4,'2026-11-06','Pembelian Materai Elektronik & Fisik 10.000 untuk Kontrak',160000.00,'IDR','CASH','BNI','Kantor Pos Sudirman',1,NULL,NULL,1,0,'NOT_INVOICED','PAID',NULL,NULL,NULL,NULL,NULL,NULL,3,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'2026-11-02 01:00:00','2026-11-21 06:02:51'),(6,'EXP-202611-0006',4,3,'2026-11-07','Konsumsi Rapat Koordinasi Rekonsiliasi Pajak Q3',240000.00,'IDR','BANK_TRANSFER','BNI','Kopi Kenangan Tower',1,NULL,NULL,1,0,'NOT_INVOICED','PAID',NULL,NULL,NULL,NULL,NULL,NULL,3,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'2026-11-02 01:00:00','2026-11-21 06:02:51'),(7,'EXP-202611-0007',15,6,'2026-11-10','Biaya Sertifikasi Kubernetes Administrator (CKA)',2100000.00,'IDR','BANK_TRANSFER','BCA','The Linux Foundation',1,NULL,NULL,1,0,'NOT_INVOICED','APPROVED',NULL,NULL,NULL,NULL,NULL,NULL,3,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'2026-11-02 01:00:00','2026-11-21 06:02:51'),(8,'EXP-202611-0008',15,1,'2026-11-11','Taksi Online Onsite Perbaikan Server Datacenter Cyber',180000.00,'IDR','CASH','BCA','Bluebird Taksi',1,NULL,NULL,1,0,'NOT_INVOICED','APPROVED',NULL,NULL,NULL,NULL,NULL,NULL,3,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'2026-11-02 01:00:00','2026-11-21 06:02:51'),(9,'EXP-202611-0009',14,4,'2026-11-15','Langganan Software Tax & E-Faktur Konsultan',850000.00,'IDR','BANK_TRANSFER','Mandiri','Ortax Media Solusindo',1,NULL,NULL,1,0,'NOT_INVOICED','APPROVED',NULL,NULL,NULL,NULL,NULL,NULL,3,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'2026-11-02 01:00:00','2026-11-21 06:02:51'),(10,'EXP-202611-0010',3,5,'2026-11-18','Paket Data Darurat Remote Support Deployment',150000.00,'IDR','CASH','BCA','Telkomsel MyEnterprise',1,NULL,NULL,1,0,'NOT_INVOICED','DRAFT',NULL,NULL,NULL,NULL,NULL,NULL,3,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'2026-11-02 01:00:00','2026-11-21 06:02:51'),(11,'EXP-2026-000001',15,1,'2026-11-05','Biaya Server Cloud AWS Andi',1500000.00,'IDR','BANK_TRANSFER','BCA',NULL,1,NULL,NULL,1,0,'NOT_INVOICED','PAID',NULL,NULL,NULL,NULL,NULL,NULL,6,NULL,2,'2026-11-21 19:19:27',NULL,NULL,NULL,5,'2026-11-21 19:19:27','2026-11-21 12:19:27','2026-11-21 12:19:27'),(12,'EXP-2026-000002',3,1,'2026-11-07','Pelatihan Recruitment & HR Budi',2000000.00,'IDR','BANK_TRANSFER','Mandiri',NULL,1,NULL,NULL,1,0,'NOT_INVOICED','PAID',NULL,NULL,NULL,NULL,NULL,NULL,6,NULL,2,'2026-11-21 19:19:27',NULL,NULL,NULL,5,'2026-11-21 19:19:27','2026-11-21 12:19:27','2026-11-21 12:19:27'),(13,'EXP-2026-000003',14,1,'2026-11-10','Biaya Materai dan Audit Pajak Citra',1000000.00,'IDR','BANK_TRANSFER','BCA',NULL,2,NULL,NULL,1,0,'NOT_INVOICED','PAID',NULL,NULL,NULL,NULL,NULL,NULL,6,NULL,2,'2026-11-21 19:19:27',NULL,NULL,NULL,5,'2026-11-21 19:19:27','2026-11-21 12:19:27','2026-11-21 12:19:27'),(14,'EXP-2026-000004',15,1,'2026-11-02','Biaya Makan Siang Meeting Operasional',150000.00,'IDR','CASH','BCA',NULL,1,NULL,NULL,1,0,'NOT_INVOICED','SUBMITTED',NULL,NULL,NULL,NULL,NULL,NULL,6,NULL,NULL,NULL,2,'2026-11-21 19:19:27','Bukti struk belum jelas, mohon diperbaiki.',NULL,NULL,'2026-11-21 12:19:27','2026-11-21 12:19:27'),(15,'EXP-2026-000005',15,1,'2026-11-05','Biaya Server Cloud AWS Andi',1500000.00,'IDR','BANK_TRANSFER','BCA',NULL,1,NULL,NULL,1,0,'NOT_INVOICED','PAID',NULL,NULL,NULL,NULL,NULL,NULL,6,NULL,2,'2026-11-21 19:25:34',NULL,NULL,NULL,5,'2026-11-21 19:25:34','2026-11-21 12:25:34','2026-11-21 12:25:34'),(16,'EXP-2026-000006',3,1,'2026-11-07','Pelatihan Recruitment & HR Budi',2000000.00,'IDR','BANK_TRANSFER','Mandiri',NULL,1,NULL,NULL,1,0,'NOT_INVOICED','PAID',NULL,NULL,NULL,NULL,NULL,NULL,6,NULL,2,'2026-11-21 19:25:34',NULL,NULL,NULL,5,'2026-11-21 19:25:34','2026-11-21 12:25:34','2026-11-21 12:25:34'),(17,'EXP-2026-000007',14,1,'2026-11-10','Biaya Materai dan Audit Pajak Citra',1000000.00,'IDR','BANK_TRANSFER','BCA',NULL,2,NULL,NULL,1,0,'NOT_INVOICED','PAID',NULL,NULL,NULL,NULL,NULL,NULL,6,NULL,2,'2026-11-21 19:25:34',NULL,NULL,NULL,5,'2026-11-21 19:25:34','2026-11-21 12:25:34','2026-11-21 12:25:34'),(18,'EXP-2026-000008',15,1,'2026-11-02','Biaya Makan Siang Meeting Operasional',150000.00,'IDR','CASH','BCA',NULL,1,NULL,NULL,1,0,'NOT_INVOICED','SUBMITTED',NULL,NULL,NULL,NULL,NULL,NULL,6,NULL,NULL,NULL,2,'2026-11-21 19:25:34','Bukti struk belum jelas, mohon diperbaiki.',NULL,NULL,'2026-11-21 12:25:34','2026-11-21 12:25:34'),(19,'EXP-2026-000009',15,1,'2026-11-05','Biaya Server Cloud AWS Andi',1500000.00,'IDR','BANK_TRANSFER','BCA',NULL,1,NULL,NULL,1,0,'NOT_INVOICED','POSTED',NULL,NULL,NULL,NULL,NULL,NULL,6,NULL,2,'2026-11-21 19:27:33',NULL,NULL,NULL,NULL,NULL,'2026-11-21 12:27:33','2026-11-21 12:27:33'),(20,'EXP-2026-000010',3,1,'2026-11-07','Pelatihan Recruitment & HR Budi',2000000.00,'IDR','BANK_TRANSFER','Mandiri',NULL,1,NULL,NULL,1,0,'NOT_INVOICED','POSTED',NULL,NULL,NULL,NULL,NULL,NULL,6,NULL,2,'2026-11-21 19:27:33',NULL,NULL,NULL,NULL,NULL,'2026-11-21 12:27:33','2026-11-21 12:27:33'),(21,'EXP-2026-000011',14,1,'2026-11-10','Biaya Materai dan Audit Pajak Citra',1000000.00,'IDR','BANK_TRANSFER','BCA',NULL,2,NULL,NULL,1,0,'NOT_INVOICED','POSTED',NULL,NULL,NULL,NULL,NULL,NULL,6,NULL,2,'2026-11-21 19:27:33',NULL,NULL,NULL,NULL,NULL,'2026-11-21 12:27:33','2026-11-21 12:27:33'),(22,'EXP-2026-000012',15,1,'2026-11-02','Biaya Makan Siang Meeting Operasional',150000.00,'IDR','CASH','BCA',NULL,1,NULL,NULL,1,0,'NOT_INVOICED','SUBMITTED',NULL,NULL,NULL,NULL,NULL,NULL,6,NULL,NULL,NULL,2,'2026-11-21 19:27:33','Bukti struk belum jelas, mohon diperbaiki.',NULL,NULL,'2026-11-21 12:27:33','2026-11-21 12:27:33'),(23,'EXP-2026-000013',15,1,'2026-11-05','Biaya Server Cloud AWS Andi',1500000.00,'IDR','BANK_TRANSFER','BCA',NULL,1,NULL,NULL,1,0,'NOT_INVOICED','PAID',NULL,NULL,NULL,NULL,NULL,NULL,6,NULL,2,'2026-11-21 19:36:35',NULL,NULL,NULL,5,'2026-11-21 19:36:35','2026-11-21 12:36:35','2026-11-21 12:36:35'),(24,'EXP-2026-000014',3,1,'2026-11-07','Pelatihan Recruitment & HR Budi',2000000.00,'IDR','BANK_TRANSFER','Mandiri',NULL,1,NULL,NULL,1,0,'NOT_INVOICED','PAID',NULL,NULL,NULL,NULL,NULL,NULL,6,NULL,2,'2026-11-21 19:36:35',NULL,NULL,NULL,5,'2026-11-21 19:36:35','2026-11-21 12:36:35','2026-11-21 12:36:35'),(25,'EXP-2026-000015',14,1,'2026-11-10','Biaya Materai dan Audit Pajak Citra',1000000.00,'IDR','BANK_TRANSFER','BCA',NULL,2,NULL,NULL,1,0,'NOT_INVOICED','PAID',NULL,NULL,NULL,NULL,NULL,NULL,6,NULL,2,'2026-11-21 19:36:35',NULL,NULL,NULL,5,'2026-11-21 19:36:35','2026-11-21 12:36:35','2026-11-21 12:36:35'),(26,'EXP-2026-000016',15,1,'2026-11-02','Biaya Makan Siang Meeting Operasional',150000.00,'IDR','CASH','BCA',NULL,1,NULL,NULL,1,0,'NOT_INVOICED','SUBMITTED',NULL,NULL,NULL,NULL,NULL,NULL,6,NULL,NULL,NULL,2,'2026-11-21 19:36:35','Bukti struk belum jelas, mohon diperbaiki.',NULL,NULL,'2026-11-21 12:36:35','2026-11-21 12:36:35');
 /*!40000 ALTER TABLE `expenses` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -771,7 +771,7 @@ CREATE TABLE `goods_receipt_details` (
   CONSTRAINT `fk_grnd_grn` FOREIGN KEY (`goods_receipt_id`) REFERENCES `goods_receipts` (`goods_receipt_id`) ON DELETE CASCADE,
   CONSTRAINT `fk_grnd_po_detail` FOREIGN KEY (`purchase_transaction_detail_id`) REFERENCES `purchase_transaction_details` (`purchase_transaction_detail_id`),
   CONSTRAINT `fk_grnd_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`product_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -806,7 +806,7 @@ CREATE TABLE `goods_receipts` (
   KEY `fk_grn_user` (`received_by`),
   CONSTRAINT `fk_grn_po` FOREIGN KEY (`purchase_transaction_id`) REFERENCES `purchase_transactions` (`purchase_transaction_id`),
   CONSTRAINT `fk_grn_user` FOREIGN KEY (`received_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -839,7 +839,7 @@ CREATE TABLE `invoices` (
   UNIQUE KEY `uq_sales_invoice_no` (`invoice_no`),
   UNIQUE KEY `uq_sales_invoice_order` (`order_id`),
   CONSTRAINT `fk_sales_invoice_order` FOREIGN KEY (`order_id`) REFERENCES `sales_orders` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -868,7 +868,7 @@ CREATE TABLE `login_attempts` (
   PRIMARY KEY (`id`),
   KEY `idx_la_identifier_time` (`identifier`,`attempted_at`),
   KEY `idx_la_ip_time` (`ip_address`,`attempted_at`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -928,7 +928,7 @@ CREATE TABLE `payments` (
   PRIMARY KEY (`id`),
   KEY `idx_sales_payment_invoice` (`invoice_id`),
   CONSTRAINT `fk_sales_payment_invoice` FOREIGN KEY (`invoice_id`) REFERENCES `invoices` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1025,7 +1025,7 @@ CREATE TABLE `products` (
   KEY `idx_products_name` (`product_name`),
   KEY `idx_products_stock` (`stock`),
   CONSTRAINT `fk_products_category` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1093,7 +1093,7 @@ CREATE TABLE `purchase_requisition_details` (
   KEY `fk_prd_product` (`product_id`),
   CONSTRAINT `fk_prd_pr` FOREIGN KEY (`purchase_requisition_id`) REFERENCES `purchase_requisitions` (`purchase_requisition_id`) ON DELETE CASCADE,
   CONSTRAINT `fk_prd_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`product_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1138,7 +1138,7 @@ CREATE TABLE `purchase_requisitions` (
   KEY `fk_pr_approver` (`approved_by`),
   CONSTRAINT `fk_pr_approver` FOREIGN KEY (`approved_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
   CONSTRAINT `fk_pr_requester` FOREIGN KEY (`requester_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1177,7 +1177,7 @@ CREATE TABLE `purchase_returns` (
   CONSTRAINT `fk_pret_grn` FOREIGN KEY (`goods_receipt_id`) REFERENCES `goods_receipts` (`goods_receipt_id`),
   CONSTRAINT `fk_pret_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`product_id`),
   CONSTRAINT `fk_pret_user` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1208,7 +1208,7 @@ CREATE TABLE `purchase_transaction_details` (
   KEY `fk_ptd_product` (`product_id`),
   CONSTRAINT `fk_ptd_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`product_id`),
   CONSTRAINT `fk_ptd_transaction` FOREIGN KEY (`purchase_transaction_id`) REFERENCES `purchase_transactions` (`purchase_transaction_id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1255,7 +1255,7 @@ CREATE TABLE `purchase_transactions` (
   CONSTRAINT `fk_pt_pr` FOREIGN KEY (`purchase_requisition_id`) REFERENCES `purchase_requisitions` (`purchase_requisition_id`),
   CONSTRAINT `fk_pt_supplier` FOREIGN KEY (`supplier_id`) REFERENCES `suppliers` (`supplier_id`),
   CONSTRAINT `fk_pt_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1278,8 +1278,13 @@ DROP TABLE IF EXISTS `reimbursements`;
 CREATE TABLE `reimbursements` (
   `reimbursement_id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `report_id` bigint unsigned NOT NULL,
-  `employee_id` bigint unsigned NOT NULL,
+  `employee_id` bigint unsigned DEFAULT NULL,
   `amount` decimal(15,2) NOT NULL,
+  `recipient_name` varchar(150) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `bank_name` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `account_number` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `account_holder` varchar(150) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `proof_path` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `payment_method` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `payment_reference` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `payment_date` date DEFAULT NULL,
@@ -1298,7 +1303,7 @@ CREATE TABLE `reimbursements` (
   CONSTRAINT `fk_reimbursement_employee` FOREIGN KEY (`employee_id`) REFERENCES `employees` (`employee_id`) ON DELETE RESTRICT ON UPDATE CASCADE,
   CONSTRAINT `fk_reimbursement_processed_by` FOREIGN KEY (`processed_by`) REFERENCES `users` (`user_id`) ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT `fk_reimbursement_report` FOREIGN KEY (`report_id`) REFERENCES `expense_reports` (`report_id`) ON DELETE RESTRICT ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1307,7 +1312,7 @@ CREATE TABLE `reimbursements` (
 
 LOCK TABLES `reimbursements` WRITE;
 /*!40000 ALTER TABLE `reimbursements` DISABLE KEYS */;
-INSERT INTO `reimbursements` VALUES (1,1,3,1950000.00,'BANK_TRANSFER','TRX-BCA-9812401','2026-11-05','Reimbursement dinas Budi Santoso','PAID',5,'2026-11-05 15:30:00','2026-11-05 02:00:00','2026-11-21 06:02:51'),(2,2,4,400000.00,'BANK_TRANSFER','TRX-BNI-7712390','2026-11-09','Reimbursement ATK Sari Putri','PAID',5,'2026-11-09 16:00:00','2026-11-09 03:00:00','2026-11-21 06:02:51');
+INSERT INTO `reimbursements` VALUES (1,1,3,1950000.00,NULL,NULL,NULL,NULL,NULL,'BANK_TRANSFER','TRX-BCA-9812401','2026-11-05','Reimbursement dinas Budi Santoso','PAID',5,'2026-11-05 15:30:00','2026-11-05 02:00:00','2026-11-21 06:02:51'),(2,2,4,400000.00,NULL,NULL,NULL,NULL,NULL,'BANK_TRANSFER','TRX-BNI-7712390','2026-11-09','Reimbursement ATK Sari Putri','PAID',5,'2026-11-09 16:00:00','2026-11-09 03:00:00','2026-11-21 06:02:51'),(3,6,NULL,4500000.00,'Andi Pratama (PIC Operasional)','BCA','8820192837','Andi Pratama',NULL,'BANK_TRANSFER','TRF-FULL-PAY-20261121','2026-11-21','Pencairan penuh seluruh pengeluaran operasional November 2026','PAID',5,'2026-11-21 19:19:27','2026-11-21 12:19:27','2026-11-21 12:19:27'),(4,8,NULL,4500000.00,'Andi Pratama (PIC Operasional)','BCA','8820192837','Andi Pratama',NULL,'BANK_TRANSFER','TRF-FULL-PAY-20261121','2026-11-21','Pencairan penuh seluruh pengeluaran operasional November 2026','PAID',5,'2026-11-21 19:25:34','2026-11-21 12:25:34','2026-11-21 12:25:34'),(5,10,NULL,4500000.00,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'Antrean reimbursement gabungan laporan EXP-2026-445','PENDING',NULL,NULL,'2026-11-21 12:27:33','2026-11-21 12:27:33'),(6,12,NULL,4500000.00,'Andi Pratama (PIC Operasional)','BCA','8820192837','Andi Pratama',NULL,'BANK_TRANSFER','TRF-FULL-PAY-20261121','2026-11-21','Pencairan penuh seluruh pengeluaran operasional November 2026','PAID',5,'2026-11-21 19:36:35','2026-11-21 12:36:35','2026-11-21 12:36:35');
 /*!40000 ALTER TABLE `reimbursements` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1334,7 +1339,7 @@ CREATE TABLE `role_permissions` (
 
 LOCK TABLES `role_permissions` WRITE;
 /*!40000 ALTER TABLE `role_permissions` DISABLE KEYS */;
-INSERT INTO `role_permissions` VALUES (1,1),(2,1),(3,1),(4,1),(5,1),(6,1),(7,1),(8,1),(13,1),(14,1),(15,1),(1,2),(8,2),(1,3),(8,3),(1,4),(6,5),(7,5),(4,6),(5,6),(2,7),(3,7),(2,8),(3,8),(6,9),(7,9),(4,10),(5,10),(4,11),(13,11),(13,12),(1,13),(8,13),(13,13),(14,13),(15,13),(14,14),(1,15),(2,15),(4,15),(6,15),(8,15),(13,15),(14,15),(15,15),(1,16),(8,16),(13,17),(13,18);
+INSERT INTO `role_permissions` VALUES (1,1),(2,1),(3,1),(4,1),(5,1),(6,1),(7,1),(8,1),(13,1),(14,1),(15,1),(1,2),(8,2),(1,3),(8,3),(1,4),(6,5),(7,5),(4,6),(5,6),(2,7),(3,7),(2,8),(3,8),(6,9),(7,9),(4,10),(5,10),(4,11),(13,11),(13,12),(1,13),(8,13),(14,14),(1,15),(2,15),(4,15),(6,15),(8,15),(13,15),(14,15),(15,15),(1,16),(8,16),(13,17),(13,18);
 /*!40000 ALTER TABLE `role_permissions` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1375,7 +1380,7 @@ UNLOCK TABLES;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/  /*!50003 TRIGGER `trg_roles_before_insert` BEFORE INSERT ON `roles` FOR EACH ROW SET NEW.role_id = IF(NEW.role_id IS NULL, NEW.id_role, NEW.role_id) */;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `trg_roles_before_insert` BEFORE INSERT ON `roles` FOR EACH ROW SET NEW.role_id = IF(NEW.role_id IS NULL, NEW.id_role, NEW.role_id) */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
@@ -1390,7 +1395,7 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/  /*!50003 TRIGGER `trg_roles_before_update` BEFORE UPDATE ON `roles` FOR EACH ROW SET NEW.role_id = IF(NEW.role_id IS NULL, NEW.id_role, NEW.role_id) */;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `trg_roles_before_update` BEFORE UPDATE ON `roles` FOR EACH ROW SET NEW.role_id = IF(NEW.role_id IS NULL, NEW.id_role, NEW.role_id) */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
@@ -1416,7 +1421,7 @@ CREATE TABLE `sales_order_items` (
   KEY `idx_sales_item_product` (`product_id`),
   CONSTRAINT `fk_sales_item_order` FOREIGN KEY (`order_id`) REFERENCES `sales_orders` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_sales_item_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`product_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1456,7 +1461,7 @@ CREATE TABLE `sales_orders` (
   KEY `idx_sales_order_creator` (`created_by`),
   CONSTRAINT `fk_sales_order_creator` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
   CONSTRAINT `fk_sales_order_customer` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1551,7 +1556,7 @@ CREATE TABLE `stock_movements` (
   CONSTRAINT `fk_sm_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`product_id`),
   CONSTRAINT `fk_sm_supplier` FOREIGN KEY (`supplier_id`) REFERENCES `suppliers` (`supplier_id`) ON DELETE SET NULL,
   CONSTRAINT `fk_sm_user` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1572,7 +1577,7 @@ UNLOCK TABLES;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/  /*!50003 TRIGGER `trg_stock_movement_after_insert` AFTER INSERT ON `stock_movements` FOR EACH ROW UPDATE `products`
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `trg_stock_movement_after_insert` AFTER INSERT ON `stock_movements` FOR EACH ROW UPDATE `products`
 SET `stock` = `stock` + IF(
   NEW.`type` IN ('PURCHASE', 'SALES_RETURN', 'ADJUSTMENT_IN'),
   NEW.`qty`,
@@ -1606,7 +1611,7 @@ CREATE TABLE `suppliers` (
   PRIMARY KEY (`supplier_id`),
   UNIQUE KEY `supplier_code` (`supplier_code`),
   KEY `idx_suppliers_name` (`supplier_name`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1659,7 +1664,7 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (1,'Hendra Wijaya (Admin GT Expense)','admin_gte','admin@example.test','$2y$10$8IfKnlexnABQtWbHtLfOmO7u2TTjE3w8QAz511VIZ1thIPY3EYctm','ADMIN',1,'2026-10-17 08:00:00','2026-11-21 13:02:51',NULL,1,1,8,NULL),(2,'Rina Manajer (Manager Finance)','rina_manager','manager@example.test','$2y$10$8IfKnlexnABQtWbHtLfOmO7u2TTjE3w8QAz511VIZ1thIPY3EYctm','MANAGER',1,'2026-10-17 08:00:00','2026-11-21 13:03:56',NULL,2,2,14,'2026-11-21 13:03:56'),(3,'Budi Santoso (Staff IT)','budi_employee','budi@example.test','$2y$10$8IfKnlexnABQtWbHtLfOmO7u2TTjE3w8QAz511VIZ1thIPY3EYctm','EMPLOYEE',1,'2026-10-17 08:00:00','2026-11-21 13:02:51',NULL,3,3,15,NULL),(4,'Sari Putri (Staff Finance)','sari_employee','sari@example.test','$2y$10$8IfKnlexnABQtWbHtLfOmO7u2TTjE3w8QAz511VIZ1thIPY3EYctm','EMPLOYEE',1,'2026-10-17 08:00:00','2026-11-21 13:02:51',NULL,4,4,15,NULL),(5,'Dimas Finance (Treasury)','dimas_finance','finance@example.test','$2y$10$8IfKnlexnABQtWbHtLfOmO7u2TTjE3w8QAz511VIZ1thIPY3EYctm','FINANCE',1,'2026-10-17 08:00:00','2026-11-21 13:03:56',NULL,5,5,13,'2026-11-21 13:03:56'),(6,'Yudha Dwi Pratama (Admin HR)','Yuraa_n','yudha@gmail.com','$2y$10$8IfKnlexnABQtWbHtLfOmO7u2TTjE3w8QAz511VIZ1thIPY3EYctm','Admin_HR',1,'2026-10-17 08:00:00','2026-11-21 13:02:51',NULL,6,6,1,NULL),(7,'Salma Suhaimah (Admin Purchase)','saruma','salma@gmail.com','$2y$10$8IfKnlexnABQtWbHtLfOmO7u2TTjE3w8QAz511VIZ1thIPY3EYctm','Admin_Purchase',1,'2026-10-17 08:00:00','2026-11-21 13:02:51',NULL,7,7,2,NULL),(8,'Arafat Hamid (Purchasing Staff)','alfckqih','arafat@gmail.com','$2y$10$8IfKnlexnABQtWbHtLfOmO7u2TTjE3w8QAz511VIZ1thIPY3EYctm','Purchasing_Staff',1,'2026-10-17 08:00:00','2026-11-21 13:02:51',NULL,8,8,3,NULL),(9,'Afsaal Fayyaz (Admin Sales)','fayyaz','afsaal@gmail.com','$2y$10$8IfKnlexnABQtWbHtLfOmO7u2TTjE3w8QAz511VIZ1thIPY3EYctm','Admin_Sales',1,'2026-10-17 08:00:00','2026-11-21 13:02:51',NULL,9,9,4,NULL),(10,'Zakie Kurniawan (Marketing Staff)','zakiee','zakie@gmail.com','$2y$10$8IfKnlexnABQtWbHtLfOmO7u2TTjE3w8QAz511VIZ1thIPY3EYctm','Marketing_Staff',1,'2026-10-17 08:00:00','2026-11-21 13:02:51',NULL,10,10,5,NULL),(11,'Sabiq Hibatul (Admin Warehouse)','masbiku','sabiq@gmail.com','$2y$10$8IfKnlexnABQtWbHtLfOmO7u2TTjE3w8QAz511VIZ1thIPY3EYctm','Admin_Warehouse',1,'2026-10-17 08:00:00','2026-11-21 13:02:51',NULL,11,11,6,NULL),(12,'Halim Thio (Warehouse Staff)','halimawan','thio@gmail.com','$2y$10$8IfKnlexnABQtWbHtLfOmO7u2TTjE3w8QAz511VIZ1thIPY3EYctm','Warehouse_Staff',1,'2026-10-17 08:00:00','2026-11-21 13:02:51',NULL,12,12,7,NULL),(13,'Retno Wulandari (HR Recruiter)','retno_hr','retno@gmail.com','$2y$10$8IfKnlexnABQtWbHtLfOmO7u2TTjE3w8QAz511VIZ1thIPY3EYctm','Admin_HR',1,'2026-10-17 08:00:00','2026-11-21 13:02:51',NULL,13,13,1,NULL),(14,'Citra Amelia (Senior Tax)','citra_finance','citra@example.test','$2y$10$8IfKnlexnABQtWbHtLfOmO7u2TTjE3w8QAz511VIZ1thIPY3EYctm','FINANCE',1,'2026-10-17 08:00:00','2026-11-21 13:02:51',NULL,14,14,13,NULL),(15,'Andi Pratama (IT Specialist)','andi_it','andi.pratama@example.test','$2y$10$8IfKnlexnABQtWbHtLfOmO7u2TTjE3w8QAz511VIZ1thIPY3EYctm','EMPLOYEE',1,'2026-10-17 08:00:00','2026-11-21 13:02:51',NULL,15,15,15,NULL);
+INSERT INTO `users` VALUES (1,'Hendra Wijaya (Admin GT Expense)','admin_gte','admin@example.test','$2y$10$8IfKnlexnABQtWbHtLfOmO7u2TTjE3w8QAz511VIZ1thIPY3EYctm','ADMIN',1,'2026-10-17 08:00:00','2026-11-21 18:05:46',NULL,1,1,8,'2026-11-21 18:05:46'),(2,'Rina Manajer (Manager Finance)','rina_manager','manager@example.test','$2y$10$8IfKnlexnABQtWbHtLfOmO7u2TTjE3w8QAz511VIZ1thIPY3EYctm','MANAGER',1,'2026-10-17 08:00:00','2026-11-21 19:37:24',NULL,2,2,14,'2026-11-21 19:37:24'),(3,'Budi Santoso (Staff IT)','budi_employee','budi@example.test','$2y$10$8IfKnlexnABQtWbHtLfOmO7u2TTjE3w8QAz511VIZ1thIPY3EYctm','EMPLOYEE',1,'2026-10-17 08:00:00','2026-11-21 13:02:51',NULL,3,3,15,NULL),(4,'Sari Putri (Staff Finance)','sari_employee','sari@example.test','$2y$10$8IfKnlexnABQtWbHtLfOmO7u2TTjE3w8QAz511VIZ1thIPY3EYctm','EMPLOYEE',1,'2026-10-17 08:00:00','2026-11-21 13:02:51',NULL,4,4,15,NULL),(5,'Dimas Finance (Treasury)','dimas_finance','finance@example.test','$2y$10$8IfKnlexnABQtWbHtLfOmO7u2TTjE3w8QAz511VIZ1thIPY3EYctm','FINANCE',1,'2026-10-17 08:00:00','2026-11-21 19:37:24',NULL,5,5,13,'2026-11-21 19:37:24'),(6,'Yudha Dwi Pratama (Admin HR)','Yuraa_n','yudha@gmail.com','$2y$10$8IfKnlexnABQtWbHtLfOmO7u2TTjE3w8QAz511VIZ1thIPY3EYctm','Admin_HR',1,'2026-10-17 08:00:00','2026-11-21 18:00:08',NULL,6,6,1,'2026-11-21 18:00:08'),(7,'Salma Suhaimah (Admin Purchase)','saruma','salma@gmail.com','$2y$10$8IfKnlexnABQtWbHtLfOmO7u2TTjE3w8QAz511VIZ1thIPY3EYctm','Admin_Purchase',1,'2026-10-17 08:00:00','2026-11-21 18:00:40',NULL,7,7,2,'2026-11-21 18:00:40'),(8,'Arafat Hamid (Purchasing Staff)','alfckqih','arafat@gmail.com','$2y$10$8IfKnlexnABQtWbHtLfOmO7u2TTjE3w8QAz511VIZ1thIPY3EYctm','Purchasing_Staff',1,'2026-10-17 08:00:00','2026-11-21 13:02:51',NULL,8,8,3,NULL),(9,'Afsaal Fayyaz (Admin Sales)','fayyaz','afsaal@gmail.com','$2y$10$8IfKnlexnABQtWbHtLfOmO7u2TTjE3w8QAz511VIZ1thIPY3EYctm','Admin_Sales',1,'2026-10-17 08:00:00','2026-11-21 18:05:02',NULL,9,9,4,'2026-11-21 18:05:02'),(10,'Zakie Kurniawan (Marketing Staff)','zakiee','zakie@gmail.com','$2y$10$8IfKnlexnABQtWbHtLfOmO7u2TTjE3w8QAz511VIZ1thIPY3EYctm','Marketing_Staff',1,'2026-10-17 08:00:00','2026-11-21 13:02:51',NULL,10,10,5,NULL),(11,'Sabiq Hibatul (Admin Warehouse)','masbiku','sabiq@gmail.com','$2y$10$8IfKnlexnABQtWbHtLfOmO7u2TTjE3w8QAz511VIZ1thIPY3EYctm','Admin_Warehouse',1,'2026-10-17 08:00:00','2026-11-21 18:01:25',NULL,11,11,6,'2026-11-21 18:01:25'),(12,'Halim Thio (Warehouse Staff)','halimawan','thio@gmail.com','$2y$10$8IfKnlexnABQtWbHtLfOmO7u2TTjE3w8QAz511VIZ1thIPY3EYctm','Warehouse_Staff',1,'2026-10-17 08:00:00','2026-11-21 13:02:51',NULL,12,12,7,NULL),(13,'Retno Wulandari (HR Recruiter)','retno_hr','retno@gmail.com','$2y$10$8IfKnlexnABQtWbHtLfOmO7u2TTjE3w8QAz511VIZ1thIPY3EYctm','Admin_HR',1,'2026-10-17 08:00:00','2026-11-21 13:02:51',NULL,13,13,1,NULL),(14,'Citra Amelia (Senior Tax)','citra_finance','citra@example.test','$2y$10$8IfKnlexnABQtWbHtLfOmO7u2TTjE3w8QAz511VIZ1thIPY3EYctm','FINANCE',1,'2026-10-17 08:00:00','2026-11-21 13:02:51',NULL,14,14,13,NULL),(15,'Andi Pratama (IT Specialist)','andi_it','andi.pratama@example.test','$2y$10$8IfKnlexnABQtWbHtLfOmO7u2TTjE3w8QAz511VIZ1thIPY3EYctm','EMPLOYEE',1,'2026-10-17 08:00:00','2026-11-21 13:02:51',NULL,15,15,15,NULL);
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1731,7 +1736,7 @@ CREATE TABLE `vendor_invoices` (
   CONSTRAINT `fk_vi_approved_by` FOREIGN KEY (`approved_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
   CONSTRAINT `fk_vi_entered_by` FOREIGN KEY (`entered_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
   CONSTRAINT `fk_vi_po` FOREIGN KEY (`purchase_transaction_id`) REFERENCES `purchase_transactions` (`purchase_transaction_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1743,10 +1748,6 @@ LOCK TABLES `vendor_invoices` WRITE;
 INSERT INTO `vendor_invoices` VALUES (1,'INV-MST-202611-089',1,25530000.00,'2026-11-12',7,'MATCHED','Sesuai dengan PO-202611-0001 dan GRN-202611-0001 (3-way match valid)','APPROVED',2,'2026-11-13 10:00:00','Disetujui untuk pembayaran via transfer Mandiri','2026-11-12 16:00:00',NULL);
 /*!40000 ALTER TABLE `vendor_invoices` ENABLE KEYS */;
 UNLOCK TABLES;
-
---
--- Dumping routines for database 'hris'
---
 
 --
 -- Current Database: `hris`
@@ -1766,7 +1767,7 @@ USE `hris`;
 /*!50001 SET character_set_results     = cp850 */;
 /*!50001 SET collation_connection      = cp850_general_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
-
+/*!50013 DEFINER=`root`@`localhost` SQL SECURITY DEFINER */
 /*!50001 VIEW `divisi` AS select `departments`.`department_id` AS `id_divisi`,`departments`.`department_name` AS `divisi` from `departments` */;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
@@ -1784,7 +1785,7 @@ USE `hris`;
 /*!50001 SET character_set_results     = utf8mb4 */;
 /*!50001 SET collation_connection      = utf8mb4_general_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
-
+/*!50013 DEFINER=`root`@`localhost` SQL SECURITY DEFINER */
 /*!50001 VIEW `v_employee_summary` AS select `e`.`employee_id` AS `employee_id`,`e`.`employee_number` AS `employee_number`,`e`.`full_name` AS `full_name`,`e`.`position` AS `position`,`d`.`department_code` AS `department_code`,`d`.`department_name` AS `department_name`,`e`.`status` AS `status`,`u`.`username` AS `username`,`r`.`role_name` AS `role_name` from (((`employees` `e` left join `departments` `d` on((`d`.`department_id` = `e`.`department_id`))) left join `users` `u` on((`u`.`employee_id` = `e`.`employee_id`))) left join `roles` `r` on((`r`.`role_id` = `u`.`role_id`))) */;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
@@ -1802,7 +1803,7 @@ USE `hris`;
 /*!50001 SET character_set_results     = utf8mb4 */;
 /*!50001 SET collation_connection      = utf8mb4_general_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
-
+/*!50013 DEFINER=`root`@`localhost` SQL SECURITY DEFINER */
 /*!50001 VIEW `v_product_stock` AS select `p`.`product_id` AS `product_id`,`p`.`sku` AS `sku`,`p`.`product_name` AS `product_name`,`p`.`unit` AS `unit`,`p`.`stock` AS `stock`,`p`.`minimum_stock` AS `minimum_stock`,(case when (`p`.`stock` <= `p`.`minimum_stock`) then 1 else 0 end) AS `is_low_stock` from `products` `p` */;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
@@ -1817,4 +1818,4 @@ USE `hris`;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-11-21 13:04:47
+-- Dump completed on 2026-11-21 19:38:44

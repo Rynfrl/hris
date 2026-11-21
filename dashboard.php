@@ -82,23 +82,142 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard - HRIS</title>
   <style>
+    html {
+      scroll-behavior: smooth;
+    }
     body {
-      font-family: Arial, sans-serif;
-      background: #f4f6f8;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: #f8fafc;
       margin: 0;
+      color: #1e293b;
+    }
+
+    .hris-layout {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .hris-sidebar {
+      width: 260px;
+      background: #1e293b;
+      color: #f1f5f9;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      transition: transform 0.25s ease-in-out;
+      z-index: 100;
+    }
+
+    .hris-sidebar-brand {
+      padding: 18px 20px;
+      font-size: 1.15rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #0f172a;
+      border-bottom: 1px solid #334155;
+    }
+
+    .hris-nav {
+      padding: 12px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .hris-nav-header {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #94a3b8;
+      padding: 14px 10px 4px;
+    }
+
+    .hris-nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      color: #cbd5e1;
+      text-decoration: none;
+      border-radius: 6px;
+      font-size: 0.88rem;
+      font-weight: 500;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .hris-nav-item:hover,
+    .hris-nav-item.active {
+      background: #334155;
+      color: #ffffff;
+    }
+
+    .hris-nav-item.erp-link {
+      color: #38bdf8;
+    }
+
+    .hris-nav-item.erp-link:hover {
+      background: #0284c7;
+      color: #ffffff;
+    }
+
+    .hris-nav-item.text-danger:hover {
+      background: #dc2626;
+      color: #ffffff;
+    }
+
+    .hris-main {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .hris-topbar {
+      background: #ffffff;
+      border-bottom: 1px solid #e2e8f0;
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .hris-toggle {
+      display: none;
+      background: none;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      padding: 6px;
+      cursor: pointer;
+    }
+
+    .hris-user-badge {
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .hris-user-badge .badge {
+      background: #e2e8f0;
+      color: #334155;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
     }
 
     .navbar {
-      background: #2563eb;
-      color: white;
-      padding: 18px 30px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .navbar h2 {
-      margin: 0;
+      display: none;
     }
 
     .logout {
@@ -107,12 +226,15 @@
       background: #1d4ed8;
       padding: 8px 14px;
       border-radius: 6px;
+      font-size: 14px;
     }
 
     .container {
       max-width: 1100px;
-      margin: 40px auto;
+      margin: 20px auto 40px;
       padding: 20px;
+      width: 100%;
+      box-sizing: border-box;
     }
 
     .welcome-card,
@@ -342,28 +464,98 @@
 </head>
 
 <body>
-  <div class="navbar">
-    <h2>HRIS</h2>
-    <a href="logout.php" class="logout">
-      Logout
-    </a>
-  </div>
-  <div class="container">
-    <div class="welcome-card">
-      <h2>
-        Selamat datang, <?= htmlspecialchars($_SESSION['name']) ?>!
-      </h2>
-      <div class="info">
-        <strong>Username:</strong>
-        <?= htmlspecialchars($_SESSION['username'] ?? '-') ?>
-        <br>
-        <strong>Email:</strong>
-        <?= htmlspecialchars($_SESSION['email'] ?? '-') ?>
-        <br>
-        <strong>Role:</strong>
-        <?= htmlspecialchars(trim((string)($_SESSION['role'] ?? '-'))) ?>
+  <div class="hris-layout">
+    <!-- Sidebar HRIS (Section F.5.A) -->
+    <aside class="hris-sidebar" id="hrisSidebar">
+      <div class="hris-sidebar-brand">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="3" width="20" height="14" rx="2"></rect>
+          <line x1="8" y1="21" x2="16" y2="21"></line>
+          <line x1="12" y1="17" x2="12" y2="21"></line>
+        </svg>
+        <span>HRIS &amp; ERP System</span>
       </div>
-    </div>
+
+      <nav class="hris-nav">
+        <div class="hris-nav-header">Modul HRIS</div>
+        <a href="#dashboard" class="hris-nav-item active">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+          <span>Dashboard HR</span>
+        </a>
+        <?php if ($isAdmin): ?>
+          <a href="#employees" class="hris-nav-item">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+            <span>Data Karyawan</span>
+          </a>
+          <a href="#divisions" class="hris-nav-item">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+            <span>Data Divisi</span>
+          </a>
+          <a href="#payrolls" class="hris-nav-item">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+            <span>Payroll</span>
+          </a>
+          <a href="#users" class="hris-nav-item">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+            <span>Manajemen Pengguna</span>
+          </a>
+        <?php endif; ?>
+
+        <div class="hris-nav-header">Modul ERP Terintegrasi</div>
+        <a href="purchasing/dashboard.php" class="hris-nav-item erp-link">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+          <span>Purchasing</span>
+        </a>
+        <a href="sales/index.php" class="hris-nav-item erp-link">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+          <span>Sales</span>
+        </a>
+        <a href="Inventory/pages/dashboard.html" class="hris-nav-item erp-link">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
+          <span>Inventory</span>
+        </a>
+        <a href="expenses/public/dashboard" class="hris-nav-item erp-link">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg>
+          <span>Expense Management</span>
+        </a>
+
+        <div class="hris-nav-header">Akun</div>
+        <a href="logout.php" class="hris-nav-item text-danger">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+          <span>Logout</span>
+        </a>
+      </nav>
+    </aside>
+
+    <!-- Main Content Area -->
+    <div class="hris-main">
+      <header class="hris-topbar">
+        <button class="hris-toggle" id="hrisToggleBtn" type="button" aria-label="Toggle Navigation">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+        </button>
+        <div class="hris-user-badge">
+          <span>Selamat datang, <strong><?= htmlspecialchars($_SESSION['name']) ?></strong></span>
+          <span class="badge"><?= htmlspecialchars(trim((string)($_SESSION['role'] ?? '-'))) ?></span>
+        </div>
+        <a href="logout.php" class="logout">Logout</a>
+      </header>
+
+      <div class="container" id="dashboard">
+        <div class="welcome-card">
+          <h2>
+            Selamat datang, <?= htmlspecialchars($_SESSION['name']) ?>!
+          </h2>
+          <div class="info">
+            <strong>Username:</strong>
+            <?= htmlspecialchars($_SESSION['username'] ?? '-') ?>
+            <br>
+            <strong>Email:</strong>
+            <?= htmlspecialchars($_SESSION['email'] ?? '-') ?>
+            <br>
+            <strong>Role:</strong>
+            <?= htmlspecialchars(trim((string)($_SESSION['role'] ?? '-'))) ?>
+          </div>
+        </div>
 
     <?php if ($flash): ?>
       <div class="notice <?= !empty($flash['error']) ? 'error' : '' ?>" role="status">
@@ -373,7 +565,7 @@
 
     <?php if ($isAdmin): ?>
       <div class="operations">
-        <section class="operation-card">
+        <section class="operation-card" id="users">
           <h3>Tambah User</h3>
           <p>Buat akun yang dapat digunakan untuk masuk ke sistem.</p>
           <form class="add-form" action="proses_user.php" method="POST">
@@ -482,7 +674,7 @@
           </div>
         </section>
 
-        <section class="operation-card">
+        <section class="operation-card" id="employees">
           <h3>Tambah Karyawan</h3>
           <p>Tambahkan data karyawan ke tabel employees.</p>
           <form class="add-form" action="proses_karyawan.php" method="POST">
@@ -617,7 +809,7 @@
           </div>
         </section>
 
-        <section class="operation-card">
+        <section class="operation-card" id="divisions">
           <h3>Tambah Divisi / Departemen</h3>
           <p>Tambahkan nama divisi ke tabel divisi.</p>
           <form class="add-form" action="proses_divisi.php" method="POST">
@@ -677,7 +869,7 @@
           </div>
         </section>
 
-        <section class="operation-card">
+        <section class="operation-card" id="payrolls">
           <h3>Tambah Payroll</h3>
           <p>Catat payroll karyawan pada periode dan tanggal pembayaran.</p>
           <form class="add-form" action="proses_payroll.php" method="POST">
@@ -782,6 +974,32 @@
     <?php else: ?>
       <p class="admin-note">Formulir operasional hanya tersedia untuk akun Admin.</p>
     <?php endif; ?>
-  </div>
+      </div><!-- /.container -->
+    </div><!-- /.hris-main -->
+  </div><!-- /.hris-layout -->
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const toggleBtn = document.getElementById('hrisToggleBtn');
+      const sidebar = document.getElementById('hrisSidebar');
+      if (toggleBtn && sidebar) {
+        toggleBtn.addEventListener('click', function () {
+          sidebar.classList.toggle('open');
+        });
+      }
+
+      // Smooth navigation active update
+      const navLinks = document.querySelectorAll('.hris-nav-item');
+      navLinks.forEach(function (link) {
+        link.addEventListener('click', function () {
+          navLinks.forEach(function (l) { l.classList.remove('active'); });
+          this.classList.add('active');
+          if (window.innerWidth <= 900 && sidebar) {
+            sidebar.classList.remove('open');
+          }
+        });
+      });
+    });
+  </script>
 </body>
 </html>

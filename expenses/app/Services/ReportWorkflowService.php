@@ -43,8 +43,9 @@ class ReportWorkflowService
             throw new InvalidArgumentException('Judul laporan wajib diisi antara 3 hingga 150 karakter.');
         }
 
-        if (($user['role_name'] ?? '') === 'MANAGER') {
-            throw new RuntimeException('Peran Manajer tidak diizinkan untuk membuat laporan pengeluaran.');
+        $userRole = $user['role_name'] ?? '';
+        if ($userRole === 'MANAGER' || $userRole === 'EMPLOYEE') {
+            throw new RuntimeException('Peran Anda tidak diizinkan untuk membuat laporan pengeluaran. Laporan dibuat terpusat oleh Admin Expense.');
         }
 
         $userId = (int) ($user['user_id'] ?? 0);
@@ -66,11 +67,9 @@ class ReportWorkflowService
             }
         } elseif (!empty($data['employee_id'])) {
             $employeeIds[] = (int) $data['employee_id'];
-        } elseif ($empId) {
-            $employeeIds[] = $empId;
         }
 
-        $primaryEmployeeId = !empty($employeeIds) ? $employeeIds[0] : $empId;
+        $primaryEmployeeId = !empty($employeeIds) ? $employeeIds[0] : null;
 
         return Database::transaction(function () use ($data, $primaryEmployeeId, $employeeIds, $title, $startDate, $endDate, $userId) {
             $reportId = $this->reportRepo->create([
@@ -167,23 +166,29 @@ class ReportWorkflowService
         }
 
         $emp = $this->employeeRepo->findById($employeeId);
-        if (!$emp || ($emp['status'] ?? '') !== 'ACTIVE') {
-            throw new InvalidArgumentException('Karyawan tidak ditemukan atau tidak aktif.');
+        $isActive = ($emp && (($emp['status'] ?? 'ACTIVE') === 'ACTIVE' || !empty($emp['is_active'])));
+        if (!$emp || !$isActive) {
+            throw new InvalidArgumentException('Karyawan tidak ditemukan atau sedang tidak aktif.');
         }
 
-        return Database::transaction(function () use ($reportId, $employeeId, $user, $report, $emp) {
-            $repEmpId = $this->reportRepo->addReportEmployee($reportId, $employeeId);
+        $existingList = $this->reportRepo->getReportEmployees($reportId);
+        foreach ($existingList as $item) {
+            if ((int) ($item['employee_id'] ?? 0) === $employeeId) {
+                throw new InvalidArgumentException('Karyawan ini sudah terdaftar dalam laporan yang sama.');
+            }
+        }
 
-            $this->auditRepo->logActivity(
-                (int) ($user['user_id'] ?? 0),
-                'REPORT_EMPLOYEE_ADDED',
-                'expense_reports',
-                $reportId,
-                sprintf('Menambahkan karyawan %s (%s) ke laporan %s', $emp['full_name'], $emp['employee_number'], $report['report_number'])
-            );
+        $repEmpId = $this->reportRepo->addReportEmployee($reportId, $employeeId);
 
-            return $repEmpId;
-        });
+        $this->auditRepo->logActivity(
+            (int) ($user['user_id'] ?? 0),
+            'REPORT_EMPLOYEE_ADDED',
+            'expense_report_employees',
+            $repEmpId,
+            sprintf('Menambahkan karyawan %s (%s) ke laporan %s', $emp['full_name'], $emp['employee_number'], $report['report_number'])
+        );
+
+        return $repEmpId;
     }
 
     public function removeEmployeeFromReport(int $reportId, int $reportEmployeeId, array $user): bool
@@ -193,77 +198,81 @@ class ReportWorkflowService
             throw new RuntimeException('Karyawan hanya dapat dihapus dari laporan berstatus DRAFT.');
         }
 
-        return Database::transaction(function () use ($reportId, $reportEmployeeId, $user, $report) {
-            $ok = $this->reportRepo->removeReportEmployee($reportId, $reportEmployeeId);
+        $items = $this->reportRepo->getReportItems($reportId);
+        foreach ($items as $item) {
+            if ((int) ($item['report_employee_id'] ?? 0) === $reportEmployeeId) {
+                throw new RuntimeException('Tidak dapat menghapus karyawan yang masih memiliki transaksi dalam laporan ini. Hapus transaksi terlebih dahulu.');
+            }
+        }
 
-            $this->auditRepo->logActivity(
-                (int) ($user['user_id'] ?? 0),
-                'REPORT_EMPLOYEE_REMOVED',
-                'expense_reports',
-                $reportId,
-                sprintf('Menghapus karyawan dari laporan %s', $report['report_number'])
-            );
+        $ok = $this->reportRepo->removeReportEmployee($reportId, $reportEmployeeId);
 
-            return $ok;
-        });
+        $this->auditRepo->logActivity(
+            (int) ($user['user_id'] ?? 0),
+            'REPORT_EMPLOYEE_REMOVED',
+            'expense_report_employees',
+            $reportEmployeeId,
+            sprintf('Menghapus data peserta karyawan #%d dari laporan %s', $reportEmployeeId, $report['report_number'])
+        );
+
+        return $ok;
+    }
+
+    public function getReportEmployees(int $reportId): array
+    {
+        return $this->reportRepo->getReportEmployees($reportId);
     }
 
     public function addItem(int $reportId, int $expenseId, array $user, ?int $reportEmployeeId = null): bool
     {
-        $report = $this->reportRepo->findById($reportId);
-        if (!$report || $report['status'] !== 'DRAFT') {
-            throw new RuntimeException('Item hanya dapat ditambahkan pada laporan berstatus DRAFT.');
-        }
-
-        $expense = $this->expenseRepo->findById($expenseId);
-        if (!$expense || $expense['status'] !== 'DRAFT') {
-            throw new RuntimeException('Pengeluaran harus berstatus DRAFT.');
-        }
-
-        // Verify expense is not already linked to another report
-        $pdo = Database::pdo();
-        $chk = $pdo->prepare('SELECT COUNT(*) FROM expense_report_items WHERE expense_id = :id');
-        $chk->execute(['id' => $expenseId]);
-        if ((int) $chk->fetchColumn() > 0) {
-            throw new RuntimeException('Pengeluaran ini sudah terdaftar pada laporan lain.');
-        }
-
-        $reportEmployees = $this->reportRepo->getReportEmployees($reportId);
-        $reportEmployeeIds = array_column($reportEmployees, 'employee_id');
-
-        // Check if report has employees
-        $expEmployeeId = (int) ($expense['employee_id'] ?? 0);
-        if ($expEmployeeId > 0 && !empty($reportEmployeeIds) && !in_array($expEmployeeId, $reportEmployeeIds, true)) {
-            // If single-employee legacy report and owner matches, add employee
-            if (count($reportEmployeeIds) === 0) {
-                $reportEmployeeId = $this->reportRepo->addReportEmployee($reportId, $expEmployeeId);
-            } else {
-                throw new RuntimeException('Pengeluaran harus milik karyawan yang terdaftar dalam laporan ini.');
+        return Database::transaction(function (PDO $pdo) use ($reportId, $expenseId, $user, $reportEmployeeId) {
+            $report = $this->reportRepo->findById($reportId, true);
+            if (!$report || $report['status'] !== 'DRAFT') {
+                throw new RuntimeException('Item hanya dapat ditambahkan pada laporan berstatus DRAFT.');
             }
-        }
 
-        // Resolve reportEmployeeId if null
-        if ($reportEmployeeId === null && $expEmployeeId > 0) {
-            foreach ($reportEmployees as $re) {
-                if ((int) $re['employee_id'] === $expEmployeeId) {
-                    $reportEmployeeId = (int) $re['report_employee_id'];
-                    break;
+            $expense = $this->expenseRepo->findById($expenseId, true);
+            if (!$expense) {
+                throw new RuntimeException('Data pengeluaran tidak ditemukan.');
+            }
+            if ($expense['status'] !== 'DRAFT') {
+                throw new RuntimeException('Pengeluaran harus berstatus DRAFT untuk dimasukkan ke laporan.');
+            }
+
+            // Check if already in another report
+            $chk = $pdo->prepare('SELECT report_id FROM expense_report_items WHERE expense_id = :e_id');
+            $chk->execute(['e_id' => $expenseId]);
+            $existingRep = $chk->fetchColumn();
+            if ($existingRep && (int) $existingRep !== $reportId) {
+                throw new RuntimeException('Pengeluaran ini sudah terdaftar pada laporan lain (# ' . $existingRep . ').');
+            }
+
+            // Resolve report_employee_id
+            $resolvedRepEmpId = $reportEmployeeId;
+            if (!$resolvedRepEmpId && !empty($expense['employee_id'])) {
+                $chkEmp = $pdo->prepare('SELECT report_employee_id FROM expense_report_employees WHERE report_id = :r_id AND employee_id = :e_id');
+                $chkEmp->execute(['r_id' => $reportId, 'e_id' => $expense['employee_id']]);
+                $foundRepEmp = $chkEmp->fetchColumn();
+                if ($foundRepEmp) {
+                    $resolvedRepEmpId = (int) $foundRepEmp;
+                } else {
+                    $resolvedRepEmpId = $this->reportRepo->addReportEmployee($reportId, (int) $expense['employee_id']);
                 }
             }
-            if ($reportEmployeeId === null) {
-                $reportEmployeeId = $this->reportRepo->addReportEmployee($reportId, $expEmployeeId);
-            }
-        }
 
-        return Database::transaction(function () use ($reportId, $expenseId, $reportEmployeeId, $user, $report, $expense) {
-            $ok = $this->reportRepo->addItem($reportId, $expenseId, $reportEmployeeId);
+            $ok = $this->reportRepo->addItem($reportId, $expenseId, $resolvedRepEmpId);
+
+            // Recalculate total amount
+            $total = $this->reportRepo->recalculateTotal($reportId);
+            $stmt = $pdo->prepare('UPDATE expense_reports SET total_amount = :total WHERE report_id = :id');
+            $stmt->execute(['total' => $total, 'id' => $reportId]);
 
             $this->auditRepo->logActivity(
                 (int) ($user['user_id'] ?? 0),
                 'REPORT_ITEM_ADDED',
-                'expense_reports',
-                $reportId,
-                sprintf('Menambahkan item %s ke laporan %s', $expense['expense_number'], $report['report_number'])
+                'expense_report_items',
+                $expenseId,
+                sprintf('Menambahkan transaksi %s ke laporan %s', $expense['expense_number'], $report['report_number'])
             );
 
             return $ok;
@@ -272,20 +281,25 @@ class ReportWorkflowService
 
     public function removeItem(int $reportId, int $expenseId, array $user): bool
     {
-        $report = $this->reportRepo->findById($reportId);
-        if (!$report || $report['status'] !== 'DRAFT') {
-            throw new RuntimeException('Item hanya dapat dilepas dari laporan berstatus DRAFT.');
-        }
+        return Database::transaction(function (PDO $pdo) use ($reportId, $expenseId, $user) {
+            $report = $this->reportRepo->findById($reportId, true);
+            if (!$report || $report['status'] !== 'DRAFT') {
+                throw new RuntimeException('Item hanya dapat dihapus dari laporan berstatus DRAFT.');
+            }
 
-        return Database::transaction(function () use ($reportId, $expenseId, $user, $report) {
             $ok = $this->reportRepo->removeItem($reportId, $expenseId);
+
+            // Recalculate total
+            $total = $this->reportRepo->recalculateTotal($reportId);
+            $stmt = $pdo->prepare('UPDATE expense_reports SET total_amount = :total WHERE report_id = :id');
+            $stmt->execute(['total' => $total, 'id' => $reportId]);
 
             $this->auditRepo->logActivity(
                 (int) ($user['user_id'] ?? 0),
                 'REPORT_ITEM_REMOVED',
-                'expense_reports',
-                $reportId,
-                sprintf('Melepaskan item expense #%d dari laporan %s', $expenseId, $report['report_number'])
+                'expense_report_items',
+                $expenseId,
+                sprintf('Menghapus transaksi #%d dari laporan %s', $expenseId, $report['report_number'])
             );
 
             return $ok;
@@ -479,36 +493,30 @@ class ReportWorkflowService
         return Database::transaction(function (PDO $pdo) use ($reportId, $user) {
             $report = $this->reportRepo->findById($reportId, true);
             if (!$report || $report['status'] !== 'REFUSED') {
-                throw new RuntimeException('Hanya laporan berstatus DITOLAK (REFUSED) yang dapat direvisi kembali ke DRAFT.');
+                throw new RuntimeException('Hanya laporan berstatus REFUSED yang dapat direvisi kembali ke DRAFT.');
             }
 
             $userId = (int) ($user['user_id'] ?? 0);
 
-            // Revert report to DRAFT, clearing active rejection flags
+            // Update report to DRAFT
             $stmt = $pdo->prepare('
                 UPDATE expense_reports
-                SET status = "DRAFT",
-                    refused_at = NULL,
-                    rejection_reason = NULL
+                SET status = "DRAFT"
                 WHERE report_id = :id
             ');
             $stmt->execute(['id' => $reportId]);
 
-            // Revert linked expenses to DRAFT
+            // Update linked expenses to DRAFT
             $stmtExp = $pdo->prepare('
                 UPDATE expenses
-                SET status = "DRAFT",
-                    rejected_by = NULL,
-                    rejected_at = NULL,
-                    rejection_reason = NULL
+                SET status = "DRAFT"
                 WHERE expense_id IN (
                     SELECT expense_id FROM expense_report_items WHERE report_id = :report_id
                 )
             ');
             $stmtExp->execute(['report_id' => $reportId]);
 
-            // Keep historical decision in approvals and add revision record
-            $this->reportRepo->addApproval($reportId, $userId, 'RETURNED_TO_DRAFT', 'Laporan dikembalikan ke status draft untuk revisi.');
+            $this->reportRepo->addApproval($reportId, $userId, 'DRAFT', 'Laporan dikembalikan ke status Draft untuk perbaikan.');
 
             $this->auditRepo->logActivity(
                 $userId,
@@ -562,21 +570,13 @@ class ReportWorkflowService
             ');
             $stmtExp->execute(['report_id' => $reportId]);
 
-            // 4. Automatically generate expense_reimbursements per employee in the report
-            $reportEmployees = $this->reportRepo->getReportEmployees($reportId);
-            foreach ($reportEmployees as $repEmp) {
-                $subtotal = (float) $repEmp['subtotal_amount'];
-                if ($subtotal > 0) {
-                    $this->reimbursementRepo->create([
-                        'report_id' => $reportId,
-                        'report_employee_id' => (int) $repEmp['report_employee_id'],
-                        'employee_id' => (int) $repEmp['employee_id'],
-                        'amount' => $subtotal,
-                        'status' => 'PENDING',
-                        'notes' => 'Antrean reimbursement karyawan ' . $repEmp['employee_name_snapshot'] . ' untuk laporan ' . $report['report_number'],
-                    ]);
-                }
-            }
+            // 4. Create EXACTLY ONE consolidated reimbursement record for the entire report
+            $this->reimbursementRepo->createConsolidated([
+                'report_id' => $reportId,
+                'amount' => (float) $report['total_amount'],
+                'status' => 'PENDING',
+                'notes' => 'Antrean reimbursement gabungan laporan ' . $report['report_number'],
+            ]);
 
             $this->reportRepo->addApproval($reportId, $userId, 'POSTED', sprintf('Laporan telah dibukukan oleh tim Keuangan (Ref: %s).', $finalJournalRef));
 
@@ -596,48 +596,19 @@ class ReportWorkflowService
     {
         return Database::transaction(function (PDO $pdo) use ($reportId, $user) {
             $report = $this->reportRepo->findById($reportId, true);
-            if (!$report || $report['status'] !== 'POSTED') {
-                throw new RuntimeException('Laporan harus berstatus POSTED sebelum dimasukkan ke antrean reimbursement.');
-            }
-
-            // Check if reimbursement records already exist
-            $existingList = $this->reimbursementRepo->getByReportId($reportId);
-            if (!empty($existingList)) {
-                // Return first reimbursement ID
-                $firstId = (int) $existingList[0]['reimbursement_id'];
-                // Update report to REIMBURSEMENT_PENDING if not already
-                $pdo->prepare('UPDATE expense_reports SET status = "REIMBURSEMENT_PENDING" WHERE report_id = ?')->execute([$reportId]);
-                return $firstId;
+            if (!$report || !in_array($report['status'], ['POSTED', 'APPROVED'], true)) {
+                throw new RuntimeException('Laporan harus berstatus POSTED atau APPROVED sebelum dimasukkan ke antrean reimbursement.');
             }
 
             $userId = (int) ($user['user_id'] ?? 0);
-            $reportEmployees = $this->reportRepo->getReportEmployees($reportId);
-            $firstReimbId = 0;
 
-            if (empty($reportEmployees) && !empty($report['employee_id'])) {
-                // Fallback for single employee
-                $firstReimbId = $this->reimbursementRepo->create([
-                    'report_id' => $reportId,
-                    'employee_id' => (int) $report['employee_id'],
-                    'amount' => (float) $report['total_amount'],
-                    'status' => 'PENDING',
-                    'notes' => 'Antrean reimbursement laporan ' . $report['report_number'],
-                ]);
-            } else {
-                foreach ($reportEmployees as $re) {
-                    $rId = $this->reimbursementRepo->create([
-                        'report_id' => $reportId,
-                        'report_employee_id' => (int) $re['report_employee_id'],
-                        'employee_id' => (int) $re['employee_id'],
-                        'amount' => (float) $re['subtotal_amount'],
-                        'status' => 'PENDING',
-                        'notes' => 'Antrean reimbursement laporan ' . $report['report_number'],
-                    ]);
-                    if ($firstReimbId === 0) {
-                        $firstReimbId = $rId;
-                    }
-                }
-            }
+            // Create or get single consolidated reimbursement
+            $reimbId = $this->reimbursementRepo->createConsolidated([
+                'report_id' => $reportId,
+                'amount' => (float) $report['total_amount'],
+                'status' => 'PENDING',
+                'notes' => 'Antrean reimbursement gabungan laporan ' . $report['report_number'],
+            ]);
 
             // Update report to REIMBURSEMENT_PENDING
             $stmt = $pdo->prepare('
@@ -657,17 +628,17 @@ class ReportWorkflowService
             ');
             $stmtExp->execute(['report_id' => $reportId]);
 
-            $this->reportRepo->addApproval($reportId, $userId, 'REIMBURSEMENT_PENDING', 'Dimasukkan ke antrean pembayaran reimbursement.');
+            $this->reportRepo->addApproval($reportId, $userId, 'REIMBURSEMENT_PENDING', 'Dimasukkan ke antrean pembayaran reimbursement satu laporan penuh.');
 
             $this->auditRepo->logActivity(
                 $userId,
                 'REIMBURSEMENT_QUEUED',
                 'reimbursements',
-                $firstReimbId,
-                sprintf('Membuat antrean reimbursement untuk laporan %s', $report['report_number'])
+                $reimbId,
+                sprintf('Membuat antrean reimbursement satu laporan untuk %s', $report['report_number'])
             );
 
-            return $firstReimbId;
+            return $reimbId;
         });
     }
 
@@ -675,8 +646,8 @@ class ReportWorkflowService
     {
         return Database::transaction(function (PDO $pdo) use ($reimbursementId, $paymentData, $user, $proofFile) {
             $reimbursement = $this->reimbursementRepo->findById($reimbursementId, true);
-            if (!$reimbursement || !in_array($reimbursement['status'], ['PENDING', 'PROCESSING', 'PARTIALLY_PAID'], true)) {
-                throw new RuntimeException('Reimbursement hanya dapat dibayarkan jika berstatus PENDING, PROCESSING, atau PARTIALLY_PAID.');
+            if (!$reimbursement || !in_array($reimbursement['status'], ['PENDING', 'PROCESSING'], true)) {
+                throw new RuntimeException('Reimbursement hanya dapat dibayarkan jika berstatus PENDING atau PROCESSING.');
             }
 
             $reportId = (int) $reimbursement['report_id'];
@@ -704,47 +675,44 @@ class ReportWorkflowService
 
             $paymentData['proof_path'] = $proofPath ?? ($paymentData['proof_path'] ?? null);
 
-            // Record payment in reimbursement repository
+            // Record payment in reimbursement repository (enforces full payment)
             $paymentId = $this->reimbursementRepo->recordPayment($reimbursementId, $paymentData, $userId);
 
-            // Check if all reimbursements for the report are fully PAID
-            if ($this->reimbursementRepo->isReportFullyPaid($reportId)) {
-                // Update report to PAID
-                $stmt = $pdo->prepare('
-                    UPDATE expense_reports
-                    SET status = "PAID",
-                        paid_at = NOW()
-                    WHERE report_id = :id
-                ');
-                $stmt->execute(['id' => $reportId]);
+            // Update report to PAID
+            $stmt = $pdo->prepare('
+                UPDATE expense_reports
+                SET status = "PAID",
+                    paid_at = NOW()
+                WHERE report_id = :id
+            ');
+            $stmt->execute(['id' => $reportId]);
 
-                // Update linked expenses to PAID
-                $stmtExp = $pdo->prepare('
-                    UPDATE expenses
-                    SET status = "PAID",
-                        paid_by = :paid_by,
-                        paid_at = NOW()
-                    WHERE expense_id IN (
-                        SELECT expense_id FROM expense_report_items WHERE report_id = :report_id
-                    )
-                ');
-                $stmtExp->execute(['paid_by' => $userId, 'report_id' => $reportId]);
+            // Update linked expenses to PAID
+            $stmtExp = $pdo->prepare('
+                UPDATE expenses
+                SET status = "PAID",
+                    paid_by = :paid_by,
+                    paid_at = NOW()
+                WHERE expense_id IN (
+                    SELECT expense_id FROM expense_report_items WHERE report_id = :report_id
+                )
+            ');
+            $stmtExp->execute(['paid_by' => $userId, 'report_id' => $reportId]);
 
-                $payRef = $paymentData['bank_reference'] ?? $paymentData['payment_number'] ?? '-';
-                $this->reportRepo->addApproval(
-                    $reportId,
-                    $userId,
-                    'PAID',
-                    sprintf('Seluruh reimbursement telah diselesaikan dan dibayarkan (LUNAS). Ref terakhir: %s', $payRef)
-                );
-            }
+            $payRef = $paymentData['bank_reference'] ?? $paymentData['payment_number'] ?? '-';
+            $this->reportRepo->addApproval(
+                $reportId,
+                $userId,
+                'PAID',
+                sprintf('Pembayaran reimbursement satu laporan penuh telah diselesaikan (LUNAS). Ref: %s', $payRef)
+            );
 
             $this->auditRepo->logActivity(
                 $userId,
                 'REIMBURSEMENT_PAYMENT_RECORDED',
-                'expense_reimbursements',
+                'reimbursements',
                 $reimbursementId,
-                sprintf('Mencatat pembayaran reimbursement #%d senilai Rp %s untuk laporan %s', $reimbursementId, number_format((float) $paymentData['amount'], 0, ',', '.'), $report['report_number'])
+                sprintf('Mencatat pembayaran penuh reimbursement #%d senilai Rp %s untuk laporan %s', $reimbursementId, number_format((float) ($paymentData['amount'] ?? $report['total_amount']), 0, ',', '.'), $report['report_number'])
             );
 
             return $paymentId;
@@ -758,13 +726,14 @@ class ReportWorkflowService
             throw new RuntimeException('Data reimbursement tidak ditemukan.');
         }
 
-        $remaining = (float) ($reimb['remaining_amount'] ?? $reimb['approved_amount'] ?? $reimb['amount'] ?? 0);
-        $payAmount = !empty($paymentDetails['amount']) ? (float) $paymentDetails['amount'] : $remaining;
-
+        $approvedAmount = (float) ($reimb['approved_amount'] ?? $reimb['amount'] ?? 0);
         $paymentData = [
-            'amount' => $payAmount,
-            'payment_method' => $paymentDetails['payment_method'] ?? 'BANK_TRANSFER',
+            'amount' => $approvedAmount,
+            'recipient_name' => $paymentDetails['recipient_name'] ?? ($reimb['employee_name'] ?? null),
             'bank_name' => $paymentDetails['bank_name'] ?? ($reimb['bank_name'] ?? null),
+            'account_number' => $paymentDetails['account_number'] ?? ($reimb['account_number'] ?? null),
+            'account_holder' => $paymentDetails['account_holder'] ?? ($reimb['account_holder'] ?? null),
+            'payment_method' => $paymentDetails['payment_method'] ?? 'BANK_TRANSFER',
             'bank_reference' => $paymentDetails['payment_reference'] ?? ($paymentDetails['bank_reference'] ?? null),
             'payment_date' => $paymentDetails['payment_date'] ?? date('Y-m-d'),
             'notes' => $paymentDetails['notes'] ?? null,
@@ -788,7 +757,7 @@ class ReportWorkflowService
     public function markFailed(int $reimbursementId, string $reason, array $user): bool
     {
         $reimbursement = $this->reimbursementRepo->findById($reimbursementId);
-        if (!$reimbursement || !in_array($reimbursement['status'], ['PENDING', 'PROCESSING', 'PARTIALLY_PAID'], true)) {
+        if (!$reimbursement || !in_array($reimbursement['status'], ['PENDING', 'PROCESSING'], true)) {
             throw new RuntimeException('Reimbursement gagal hanya dapat dicatat jika belum berstatus PAID/CANCELLED.');
         }
 

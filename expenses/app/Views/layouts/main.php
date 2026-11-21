@@ -12,13 +12,17 @@ $user = Auth::user();
 $role = Auth::role();
 $currentUri = Url::currentPath();
 $flashMessages = Flash::getMessages();
+
+$isAdminExpense = in_array($role, ['ADMIN', 'ADMIN_EXPENSE', 'Admin_HR'], true) || Auth::hasPermission('expense.manage');
+$isManagerExpense = ($role === 'MANAGER') || Auth::hasPermission('expense.approve');
+$isFinance = ($role === 'FINANCE') || Auth::hasPermission('expense.post') || Auth::hasPermission('expense.reimburse');
 ?>
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= View::e($title ?? 'Expenses') ?> — Expenses</title>
+    <title><?= View::e($title ?? 'Expenses') ?> — GT Expense</title>
     <link rel="stylesheet" href="/assets/vendor/bootstrap/bootstrap.min.css">
     <link rel="stylesheet" href="/assets/css/app.css">
 </head>
@@ -31,7 +35,7 @@ $flashMessages = Flash::getMessages();
                 <rect x="2" y="5" width="20" height="14" rx="2"></rect>
                 <line x1="2" y1="10" x2="22" y2="10"></line>
             </svg>
-            <span>Expenses</span>
+            <span>GT Expense</span>
         </a>
 
         <nav class="sidebar-nav">
@@ -41,65 +45,114 @@ $flashMessages = Flash::getMessages();
                 <span>Dashboard</span>
             </a>
 
-            <a href="/expenses" class="sidebar-link <?= Url::isActive('/expenses') ? 'active' : '' ?>">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
-                <span><?= $role === 'MANAGER' ? 'Pengeluaran Tim' : 'Pengeluaran Saya' ?></span>
-            </a>
-
-            <a href="/reports" class="sidebar-link <?= Url::isActive('/reports') ? 'active' : '' ?>">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-                <span><?= $role === 'MANAGER' ? 'Laporan Tim' : 'Laporan Saya' ?></span>
-            </a>
-
-            <?php if ($role === 'MANAGER' || Auth::hasPermission('expense.approve')): ?>
-                <div class="nav-section-title">Manajer</div>
-                <a href="/approvals" class="sidebar-link <?= Url::isActive('/approvals') ? 'active' : '' ?>">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
-                    <span>Persetujuan Tim</span>
+            <?php if ($isAdminExpense): ?>
+                <!-- ADMIN EXPENSE SIDEBAR (Section F.2) -->
+                <div class="nav-section-title">Admin Expense</div>
+                <a href="/reports/create" class="sidebar-link <?= Url::isActive('/reports/create') ? 'active' : '' ?>">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    <span>Buat Laporan Baru</span>
                 </a>
-            <?php endif; ?>
+                <a href="/reports" class="sidebar-link <?= (Url::isActive('/reports') && !Url::isActive('/reports/create')) ? 'active' : '' ?>">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                    <span>Daftar Laporan</span>
+                </a>
+                <a href="/expenses" class="sidebar-link <?= Url::isActive('/expenses') ? 'active' : '' ?>">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                    <span>Daftar Transaksi</span>
+                </a>
 
-            <?php if ($role === 'FINANCE' || Auth::hasPermission('expense.post') || Auth::hasPermission('expense.reimburse')): ?>
-                <div class="nav-section-title">Keuangan</div>
-                <?php if ($role === 'FINANCE' || Auth::hasPermission('expense.post')): ?>
-                    <a href="/finance/posting" class="sidebar-link <?= Url::isActive('/finance') ? 'active' : '' ?>">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
-                        <span>Pembukuan (Posting)</span>
-                    </a>
-                <?php endif; ?>
-                <?php if ($role === 'FINANCE' || Auth::hasPermission('expense.reimburse')): ?>
-                    <a href="/reimbursements" class="sidebar-link <?= Url::isActive('/reimbursements') ? 'active' : '' ?>">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
-                        <span>Reimbursement</span>
-                    </a>
-                <?php endif; ?>
-            <?php endif; ?>
-
-            <div class="nav-section-title">Laporan</div>
-            <a href="/analytics" class="sidebar-link <?= (Url::isActive('/analytics') || Url::isActive('/exports')) ? 'active' : '' ?>">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
-                <span>Analitik & Ekspor</span>
-            </a>
-
-            <?php if ($role === 'ADMIN' || Auth::hasPermission('settings.manage') || Auth::hasPermission('users.manage')): ?>
-                <div class="nav-section-title">Pengaturan</div>
+                <div class="nav-section-title">Master Data</div>
                 <a href="/settings/users" class="sidebar-link <?= Url::isActive('/settings/users') ? 'active' : '' ?>">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-                    <span>Pengguna</span>
+                    <span>Karyawan &amp; Akun</span>
                 </a>
                 <a href="/settings/categories" class="sidebar-link <?= Url::isActive('/settings/categories') ? 'active' : '' ?>">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
-                    <span>Kategori</span>
+                    <span>Kategori Pengeluaran</span>
                 </a>
                 <a href="/settings/departments" class="sidebar-link <?= Url::isActive('/settings/departments') ? 'active' : '' ?>">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"></path><path d="M5 21V7l8-4v18"></path><path d="M19 21V11l-6-4"></path></svg>
                     <span>Departemen</span>
                 </a>
+
+                <div class="nav-section-title">Laporan &amp; Log</div>
+                <a href="/analytics" class="sidebar-link <?= (Url::isActive('/analytics') || Url::isActive('/exports')) ? 'active' : '' ?>">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                    <span>Analitik &amp; Ekspor</span>
+                </a>
                 <a href="/settings/audit-logs" class="sidebar-link <?= Url::isActive('/settings/audit-logs') ? 'active' : '' ?>">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
                     <span>Audit Log</span>
                 </a>
+
+            <?php elseif ($isManagerExpense): ?>
+                <!-- MANAGER EXPENSE SIDEBAR (Section F.3) -->
+                <div class="nav-section-title">Persetujuan Manajer</div>
+                <a href="/approvals" class="sidebar-link <?= Url::isActive('/approvals') ? 'active' : '' ?>">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+                    <span>Menunggu Persetujuan</span>
+                </a>
+                <a href="/reports?status=APPROVED" class="sidebar-link <?= (Url::isActive('/reports') && ($_GET['status'] ?? '') === 'APPROVED') ? 'active' : '' ?>">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    <span>Riwayat Disetujui</span>
+                </a>
+                <a href="/reports" class="sidebar-link <?= (Url::isActive('/reports') && empty($_GET['status'])) ? 'active' : '' ?>">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                    <span>Semua Laporan Tim</span>
+                </a>
+
+                <div class="nav-section-title">Analisis</div>
+                <a href="/analytics" class="sidebar-link <?= Url::isActive('/analytics') ? 'active' : '' ?>">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                    <span>Analitik Pengeluaran</span>
+                </a>
+
+            <?php elseif ($isFinance): ?>
+                <!-- FINANCE SIDEBAR (Section F.4) -->
+                <div class="nav-section-title">Pembukuan Finance</div>
+                <a href="/finance/posting" class="sidebar-link <?= Url::isActive('/finance/posting') ? 'active' : '' ?>">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                    <span>Antrean Pembukuan</span>
+                </a>
+                <a href="/reports?status=POSTED" class="sidebar-link <?= (Url::isActive('/reports') && ($_GET['status'] ?? '') === 'POSTED') ? 'active' : '' ?>">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                    <span>Riwayat Pembukuan</span>
+                </a>
+
+                <div class="nav-section-title">Pencairan Dana</div>
+                <a href="/reimbursements" class="sidebar-link <?= (Url::isActive('/reimbursements') && !Url::isActive('/reimbursements/history')) ? 'active' : '' ?>">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+                    <span>Antrean Reimbursement</span>
+                </a>
+                <a href="/reimbursements/history" class="sidebar-link <?= Url::isActive('/reimbursements/history') ? 'active' : '' ?>">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    <span>Riwayat Reimbursement</span>
+                </a>
+
+                <div class="nav-section-title">Laporan Keuangan</div>
+                <a href="/analytics" class="sidebar-link <?= Url::isActive('/analytics') ? 'active' : '' ?>">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                    <span>Laporan Pengeluaran</span>
+                </a>
             <?php endif; ?>
+
+            <div class="nav-section-title">Navigasi ERP</div>
+            <a href="/dashboard.php" class="sidebar-link text-info">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 8 8 12 12 16"></polyline><line x1="16" y1="12" x2="8" y2="12"></line></svg>
+                <span>Kembali ke HRIS</span>
+            </a>
+            <a href="/purchasing/dashboard.php" class="sidebar-link">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+                <span>Modul Purchasing</span>
+            </a>
+            <a href="/sales/index.php" class="sidebar-link">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                <span>Modul Sales</span>
+            </a>
+            <a href="/Inventory/pages/dashboard.html" class="sidebar-link">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
+                <span>Modul Inventory</span>
+            </a>
         </nav>
     </aside>
 
@@ -120,6 +173,10 @@ $flashMessages = Flash::getMessages();
             </div>
 
             <div class="d-flex align-items-center gap-2">
+                <a href="/dashboard.php" class="btn btn-sm btn-outline-secondary d-none d-md-flex align-items-center gap-1">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
+                    <span>Menu Utama HRIS</span>
+                </a>
                 <form action="/logout" method="POST" class="d-inline">
                     <?= Csrf::field() ?>
                     <button type="submit" class="btn btn-sm btn-outline-danger d-flex align-items-center gap-1">

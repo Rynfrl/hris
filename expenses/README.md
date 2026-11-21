@@ -29,6 +29,7 @@ Modul Expenses beroperasi di atas database terpadu `hris` (atau `erp_database` u
 - `database/seeds/gt_expense_roles_permissions.sql` — seed penambahan peran `EMPLOYEE` serta hak akses *posting* dan *reimbursement*.
 - `database/migrations/001_gt_expense_integrity.sql` — migrasi penegakan integritas relasi 1 expense per report, 1 reimbursement per report, dan tabel komentar (`expense_comments`).
 - `database/migrations/002_add_bank_name_to_expenses.sql` — migrasi penambahan kolom pilihan bank/rekening pembayaran (`bank_name VARCHAR(100) NULL`) pada tabel `expenses`.
+- `database/migrations/004_consolidated_expense_reimbursement_workflow.sql` — migrasi skema reimbursement gabungan (nullable employee_id, recipient metadata: name, bank, account number/holder, proof_path) dan pembaruan hak akses peran.
 - `docs/09-database-schema.md` & `docs/21-existing-database-integration.md` — dokumentasi pemetaan skema dan aturan integrasi.
 
 > [!IMPORTANT]

@@ -63,6 +63,32 @@ function menuActive($name, $current) {
                     </li>
                 <?php endif; ?>
 
+                <li class="nav-header text-uppercase text-secondary small px-3 mt-3 mb-1" style="font-size: 0.75rem; letter-spacing: 0.05em;">Navigasi ERP</li>
+                <li class="nav-item">
+                    <a href="<?= $bp ?>../dashboard.php" class="nav-link text-info">
+                        <i class="nav-icon fas fa-arrow-circle-left"></i>
+                        <p>Kembali ke HRIS</p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="<?= $bp ?>../purchasing/dashboard.php" class="nav-link">
+                        <i class="nav-icon fas fa-shopping-cart"></i>
+                        <p>Modul Purchasing</p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="<?= $bp ?>../Inventory/pages/dashboard.html" class="nav-link">
+                        <i class="nav-icon fas fa-warehouse"></i>
+                        <p>Modul Inventory</p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="<?= $bp ?>../expenses/public/dashboard" class="nav-link">
+                        <i class="nav-icon fas fa-money-bill-wave"></i>
+                        <p>Modul Expenses</p>
+                    </a>
+                </li>
+
                 <li class="nav-item mt-3 pt-3 sidebar-logout-item">
                     <form method="POST" action="<?= $bp ?>../logout.php" class="m-0">
                         <input type="hidden" name="csrf_token" value="<?= h(csrfToken()) ?>">

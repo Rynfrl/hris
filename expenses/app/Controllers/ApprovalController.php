@@ -36,7 +36,6 @@ class ApprovalController
     public function index(): string
     {
         $user = Auth::user();
-        $empId = !empty($user['employee_id']) ? (int) $user['employee_id'] : null;
         $role = $user['role_name'] ?? '';
 
         if ($role !== 'MANAGER' && !Auth::hasPermission('expense.approve')) {
@@ -44,25 +43,21 @@ class ApprovalController
             return View::render('errors/403', ['title' => 'Akses Ditolak'], 'layouts/error');
         }
 
-        $directReports = $empId ? $this->employeeRepo->getDirectReports($empId) : [];
-        $subordinateIds = array_column($directReports, 'employee_id');
-
-        $reports = [];
-        if ($role === 'ADMIN' || in_array('expense.approve', $user['permissions'] ?? [])) {
-            $data = $this->reportRepo->getReports(['status' => 'SUBMITTED'], 1, 100);
-            $reports = $data['items'];
-        } elseif (!empty($subordinateIds)) {
-            $data = $this->reportRepo->getReports([
-                'status' => 'SUBMITTED',
-                'employee_ids' => $subordinateIds,
-            ], 1, 100);
-            $reports = $data['items'];
+        $statusFilter = !empty($_GET['status']) ? strtoupper(trim((string)$_GET['status'])) : 'SUBMITTED';
+        $filters = [];
+        if ($statusFilter === 'HISTORY') {
+            $filters['status_in'] = ['APPROVED', 'REFUSED', 'POSTED', 'REIMBURSEMENT_PENDING', 'PAID'];
+        } elseif ($statusFilter !== 'ALL') {
+            $filters['status'] = $statusFilter;
         }
 
+        $data = $this->reportRepo->getReports($filters, 1, 100);
+        $reports = $data['items'];
+
         return View::render('approvals/index', [
-            'title' => 'Persetujuan Laporan Pengeluaran',
+            'title' => 'Persetujuan Laporan Pengeluaran (Manager)',
             'reports' => $reports,
-            'directReportsCount' => count($directReports),
+            'currentStatus' => $statusFilter,
             'user' => $user,
         ]);
     }
@@ -78,10 +73,11 @@ class ApprovalController
             Url::redirect('/reports/' . $reportId);
         }
 
+        $comment = trim($_POST['comment'] ?? '');
+
         try {
-            $comment = !empty($_POST['comment']) ? trim($_POST['comment']) : null;
-            $this->workflowService->approveReport($reportId, $comment, $user);
-            Flash::success('Laporan ' . $report['report_number'] . ' berhasil disetujui.');
+            $this->workflowService->approveReport($reportId, $comment ?: null, $user);
+            Flash::success('Laporan ' . $report['report_number'] . ' berhasil DISETUJUI.');
         } catch (Throwable $e) {
             Flash::error($e->getMessage());
         }
@@ -100,10 +96,15 @@ class ApprovalController
             Url::redirect('/reports/' . $reportId);
         }
 
+        $reason = trim($_POST['reason'] ?? '');
+        if ($reason === '') {
+            Flash::error('Alasan penolakan wajib diisi untuk memberikan catatan revisi kepada Admin Expense.');
+            Url::redirect('/reports/' . $reportId);
+        }
+
         try {
-            $reason = trim($_POST['reason'] ?? '');
             $this->workflowService->refuseReport($reportId, $reason, $user);
-            Flash::warning('Laporan ' . $report['report_number'] . ' ditolak dengan alasan yang telah disampaikan.');
+            Flash::warning('Laporan ' . $report['report_number'] . ' telah DITOLAK (REFUSED) dengan catatan yang tersimpan.');
         } catch (Throwable $e) {
             Flash::error($e->getMessage());
         }

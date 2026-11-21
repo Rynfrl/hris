@@ -1,8 +1,22 @@
 # 05 — Workflows and State Machines
 
+## Model Workflow Terkonsolidasi (Consolidated Expense Management)
+
+Sistem menerapkan arsitektur workflow terpusat:
+`ADMIN EXPENSE → MANAGER EXPENSE → FINANCE`
+
+Peraturan Bisnis Pokok:
+1. Karyawan biasa tidak lagi membuat pengajuan expense mandiri. Seluruh pencatatan dan pelaporan dikelola terpusat oleh **Admin Expense**.
+2. **Laporan Gabungan (Consolidated Report):** Admin Expense dapat memasukkan banyak karyawan lintas departemen dalam 1 laporan gabungan (misal EXP-2026-001 memuat Andi Pratama - IT, Budi Santoso - HR, Citra Amelia - Finance).
+3. **Persetujuan Manajer (Manager Expense):** Manager memeriksa dan memberikan satu keputusan utuh (`APPROVE` atau `REFUSE`) pada level laporan, bukan keputusan terpisah per karyawan. Penolakan wajib menyertakan alasan penolakan.
+4. **Pembukuan Keuangan (Finance Posting):** Finance membukukan satu laporan yang telah disetujui manajer menjadi 1 jurnal posting.
+5. **Reimbursement Penuh Tunggal:**
+   **1 LAPORAN = 1 REIMBURSEMENT = 1 PEMBAYARAN PENUH.**
+   Finance mencairkan total dana seluruh pengeluaran dalam satu laporan sekaligus kepada penanggung jawab / rekening pencairan. Sistem secara tegas melarang pembayaran parsial/bertahap.
+
 ## Status database
 
-Status pada `expenses` dan `expense_reports` harus memakai enum uppercase yang disediakan database: `DRAFT`, `SUBMITTED`, `APPROVED`, `REFUSED`, `POSTED`, `REIMBURSEMENT_PENDING`, `PAID`, `CANCELLED`. UI boleh menampilkan label Bahasa Indonesia, tetapi jangan menyimpan label UI ke database.
+Status pada `expenses` dan `expense_reports` memakai enum uppercase yang disediakan database: `DRAFT`, `SUBMITTED`, `APPROVED`, `REFUSED`, `POSTED`, `REIMBURSEMENT_PENDING`, `PAID`, `CANCELLED`.
 
 ## 1. Siklus report dan expense
 
@@ -13,26 +27,28 @@ DRAFT → SUBMITTED → APPROVED → POSTED → REIMBURSEMENT_PENDING → PAID
 
 `CANCELLED` hanya boleh dipakai pada pembatalan yang sah sebelum pembayaran selesai. Transisi harus eksplisit di service; tidak boleh ada update status bebas dari form.
 
-- Expense yang belum ada pada report berstatus `DRAFT`.
-- Menambahkan expense ke report draft membuat relasi di `expense_report_items`; tidak ada kolom `expenses.report_id`.
-- Saat report disubmit, report dan semua expense yang terhubung berubah ke `SUBMITTED`.
-- Manager yang berwenang menyetujui atau menolak report dan seluruh expense terkait.
-- Report yang ditolak dapat dikembalikan ke `DRAFT`; histori penolakan tetap tersimpan pada `expense_approvals`/audit log.
-- Finance mem-posting report yang disetujui, memasukkannya ke antrean reimbursement, lalu mencatat pembayaran.
+- Expense dicatat oleh Admin Expense atas nama karyawan terkait berstatus `DRAFT`.
+- Menambahkan peserta karyawan dicatat pada `expense_report_employees`.
+- Transaksi pengeluaran dikaitkan ke laporan gabungan melalui `expense_report_items`.
+- Saat report disubmit oleh Admin Expense, status report dan seluruh item expense berubah ke `SUBMITTED`.
+- Manager Expense yang berwenang memeriksa dan menyetujui (`APPROVED`) atau menolak (`REFUSED`) report secara utuh.
+- Report yang ditolak dapat direvisi oleh Admin Expense kembali ke `DRAFT`; histori penolakan tetap tersimpan pada `expense_approvals`/audit log.
+- Finance mem-posting report yang disetujui, memasukkannya ke antrean reimbursement tunggal, lalu mencatat pembayaran lunas penuh.
 
 ## 2. Transisi report
 
 | Aksi | Status awal | Status akhir | Pelaku | Syarat |
 |---|---|---|---|---|
-| Buat report | — | `DRAFT` | Karyawan | Akun aktif terhubung ke employee |
-| Tambah/hapus item | `DRAFT` | `DRAFT` | Pemilik | Expense milik employee yang sama, draft, tidak terkait report lain |
-| Submit | `DRAFT` | `SUBMITTED` | Pemilik | Ada minimal satu item dan data valid |
-| Approve | `SUBMITTED` | `APPROVED` | Manager terkait | Direct manager valid dan memiliki permission `expense.approve` |
-| Refuse | `SUBMITTED` | `REFUSED` | Manager terkait | Alasan penolakan wajib |
-| Revisi | `REFUSED` | `DRAFT` | Pemilik | Belum diposting/dibayar; histori tidak dihapus |
-| Post | `APPROVED` | `POSTED` | Finance | Permission `expense.post` |
-| Masukkan antrean reimbursement | `POSTED` | `REIMBURSEMENT_PENDING` | Finance | Nilai eligible valid; belum ada reimbursement |
-| Tandai dibayar | `REIMBURSEMENT_PENDING` | `PAID` | Finance | Record reimbursement `PENDING`/`PROCESSING`; detail pembayaran valid |
+| Buat report gabungan | — | `DRAFT` | Admin Expense | Peran ADMIN / ADMIN_EXPENSE |
+| Tambah peserta karyawan | `DRAFT` | `DRAFT` | Admin Expense | Karyawan aktif, belum ada dalam laporan yang sama |
+| Tambah transaksi karyawan | `DRAFT` | `DRAFT` | Admin Expense | Karyawan terdaftar dalam laporan, kategori aktif |
+| Submit | `DRAFT` | `SUBMITTED` | Admin Expense | Minimal satu transaksi, total valid > 0 |
+| Approve | `SUBMITTED` | `APPROVED` | Manager Expense | Peran MANAGER / izin `expense.approve` |
+| Refuse | `SUBMITTED` | `REFUSED` | Manager Expense | Alasan penolakan wajib diisi (minimal 5 karakter) |
+| Revisi | `REFUSED` | `DRAFT` | Admin Expense | Membuka kunci revisi laporan dan transaksi |
+| Post (Pembukuan) | `APPROVED` | `POSTED` | Finance | Izin `expense.post` |
+| Masukkan antrean reimbursement | `POSTED` | `REIMBURSEMENT_PENDING` | Finance | 1 record reimbursement tunggal per report |
+| Pembayaran Penuh | `REIMBURSEMENT_PENDING` | `PAID` | Finance | 1 kali bayar penuh 100% nominal laporan; status report & expense otomatis `PAID` |
 | Batalkan draft | `DRAFT` | `CANCELLED` | Pemilik/administrator berwenang | Belum pernah diajukan |
 
 Tidak ada transisi langsung dari `DRAFT` ke `APPROVED`, `SUBMITTED` ke `POSTED`, atau status belum dibayar ke `PAID`.

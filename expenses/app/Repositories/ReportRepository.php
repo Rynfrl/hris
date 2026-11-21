@@ -447,6 +447,11 @@ class ReportRepository
         return $stmt->fetchAll();
     }
 
+    public function getHistory(int $reportId): array
+    {
+        return $this->getApprovalHistory($reportId);
+    }
+
     public function getComments(int $reportId): array
     {
         $pdo = Database::pdo();

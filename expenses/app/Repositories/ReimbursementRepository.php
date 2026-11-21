@@ -14,22 +14,36 @@ class ReimbursementRepository
     public function findById(int $id, bool $forUpdate = false): ?array
     {
         $pdo = Database::pdo();
-        // Check expense_reimbursements first
         $sql = '
-            SELECT er.*,
-                   er.approved_amount as amount,
-                   (er.approved_amount - er.paid_amount) as remaining_amount,
-                   r.report_number, r.title as report_title, r.total_amount as report_total,
-                   COALESCE(ere.employee_name_snapshot, emp.full_name) as employee_name,
-                   COALESCE(ere.employee_number_snapshot, emp.employee_number) as employee_number,
-                   COALESCE(ere.department_name_snapshot, d.department_name) as department_name,
-                   emp.bank_name, emp.bank_account
-            FROM expense_reimbursements er
-            JOIN expense_reports r ON r.report_id = er.report_id
-            JOIN employees emp ON emp.employee_id = er.employee_id
-            LEFT JOIN departments d ON d.department_id = emp.department_id
-            LEFT JOIN expense_report_employees ere ON ere.report_employee_id = er.report_employee_id
-            WHERE er.reimbursement_id = :id
+            SELECT rem.*,
+                   rem.amount as approved_amount,
+                   CASE WHEN rem.status = "PAID" THEN rem.amount ELSE 0.00 END as paid_amount,
+                   CASE WHEN rem.status = "PAID" THEN 0.00 ELSE rem.amount END as remaining_amount,
+                   r.report_number, r.title as report_title, r.total_amount as report_total, r.status as report_status,
+                   COALESCE(
+                       rem.recipient_name,
+                       (SELECT GROUP_CONCAT(ere.employee_name_snapshot SEPARATOR ", ") FROM expense_report_employees ere WHERE ere.report_id = rem.report_id),
+                       emp.full_name,
+                       "Kas Operasional"
+                   ) as employee_name,
+                   COALESCE(
+                       (SELECT GROUP_CONCAT(CONCAT(ere.employee_name_snapshot, " (", ere.employee_number_snapshot, ")") SEPARATOR ", ") FROM expense_report_employees ere WHERE ere.report_id = rem.report_id),
+                       emp.full_name,
+                       "-"
+                   ) as employees_summary,
+                   COALESCE(
+                       (SELECT COUNT(*) FROM expense_report_employees ere WHERE ere.report_id = rem.report_id),
+                       1
+                   ) as employee_count,
+                   COALESCE(rem.bank_name, emp.bank_name) as bank_name,
+                   COALESCE(rem.account_number, emp.bank_account) as bank_account,
+                   COALESCE(rem.account_holder, emp.full_name) as account_holder,
+                   u.username as processor_username
+            FROM reimbursements rem
+            JOIN expense_reports r ON r.report_id = rem.report_id
+            LEFT JOIN employees emp ON emp.employee_id = rem.employee_id
+            LEFT JOIN users u ON u.user_id = rem.processed_by
+            WHERE rem.reimbursement_id = :id
             LIMIT 1
         ';
         if ($forUpdate) {
@@ -39,94 +53,47 @@ class ReimbursementRepository
         $stmt = $pdo->prepare($sql);
         $stmt->execute(['id' => $id]);
         $row = $stmt->fetch();
-        if ($row) {
-            return $row;
-        }
-
-        // Fallback to legacy reimbursements table if not found
-        $sqlLegacy = '
-            SELECT rem.*,
-                   rem.amount as approved_amount,
-                   CASE WHEN rem.status = "PAID" THEN rem.amount ELSE 0.00 END as paid_amount,
-                   CASE WHEN rem.status = "PAID" THEN 0.00 ELSE rem.amount END as remaining_amount,
-                   r.report_number, r.title as report_title, r.total_amount as report_total,
-                   emp.full_name as employee_name, emp.employee_number, emp.bank_name, emp.bank_account,
-                   u.username as processor_username
-            FROM reimbursements rem
-            JOIN expense_reports r ON r.report_id = rem.report_id
-            JOIN employees emp ON emp.employee_id = rem.employee_id
-            LEFT JOIN users u ON u.user_id = rem.processed_by
-            WHERE rem.reimbursement_id = :id
-            LIMIT 1
-        ';
-        if ($forUpdate) {
-            $sqlLegacy .= ' FOR UPDATE';
-        }
-        $stmtLegacy = $pdo->prepare($sqlLegacy);
-        $stmtLegacy->execute(['id' => $id]);
-        $legacyRow = $stmtLegacy->fetch();
-        return $legacyRow ?: null;
+        return $row ?: null;
     }
 
     public function findByReportId(int $reportId): ?array
     {
         $pdo = Database::pdo();
-        $stmt = $pdo->prepare('
-            SELECT er.*, er.approved_amount as amount
-            FROM expense_reimbursements er
-            WHERE er.report_id = :report_id
-            LIMIT 1
-        ');
+        $stmt = $pdo->prepare('SELECT * FROM reimbursements WHERE report_id = :report_id LIMIT 1');
         $stmt->execute(['report_id' => $reportId]);
         $row = $stmt->fetch();
-        if ($row) {
-            return $row;
-        }
-
-        // Fallback
-        $stmtLegacy = $pdo->prepare('SELECT * FROM reimbursements WHERE report_id = :report_id LIMIT 1');
-        $stmtLegacy->execute(['report_id' => $reportId]);
-        $legacy = $stmtLegacy->fetch();
-        return $legacy ?: null;
+        return $row ?: null;
     }
 
     public function getByReportId(int $reportId): array
     {
         $pdo = Database::pdo();
         $stmt = $pdo->prepare('
-            SELECT er.*,
-                   (er.approved_amount - er.paid_amount) as remaining_amount,
-                   COALESCE(ere.employee_name_snapshot, emp.full_name) as employee_name,
-                   COALESCE(ere.employee_number_snapshot, emp.employee_number) as employee_number,
-                   COALESCE(ere.department_name_snapshot, d.department_name) as department_name,
-                   emp.bank_name, emp.bank_account
-            FROM expense_reimbursements er
-            LEFT JOIN expense_report_employees ere ON ere.report_employee_id = er.report_employee_id
-            LEFT JOIN employees emp ON emp.employee_id = er.employee_id
-            LEFT JOIN departments d ON d.department_id = emp.department_id
-            WHERE er.report_id = :report_id
-            ORDER BY er.reimbursement_id ASC
+            SELECT rem.*,
+                   rem.amount as approved_amount,
+                   CASE WHEN rem.status = "PAID" THEN rem.amount ELSE 0.00 END as paid_amount,
+                   CASE WHEN rem.status = "PAID" THEN 0.00 ELSE rem.amount END as remaining_amount,
+                   r.report_number, r.title as report_title, r.total_amount as report_total,
+                   COALESCE(
+                       rem.recipient_name,
+                       (SELECT GROUP_CONCAT(ere.employee_name_snapshot SEPARATOR ", ") FROM expense_report_employees ere WHERE ere.report_id = rem.report_id),
+                       emp.full_name,
+                       "Kas Operasional"
+                   ) as employee_name,
+                   COALESCE(
+                       (SELECT COUNT(*) FROM expense_report_employees ere WHERE ere.report_id = rem.report_id),
+                       1
+                   ) as employee_count,
+                   COALESCE(rem.bank_name, emp.bank_name) as bank_name,
+                   COALESCE(rem.account_number, emp.bank_account) as bank_account
+            FROM reimbursements rem
+            JOIN expense_reports r ON r.report_id = rem.report_id
+            LEFT JOIN employees emp ON emp.employee_id = rem.employee_id
+            WHERE rem.report_id = :report_id
+            ORDER BY rem.reimbursement_id ASC
         ');
         $stmt->execute(['report_id' => $reportId]);
-        $results = $stmt->fetchAll();
-
-        if (empty($results)) {
-            // Check legacy
-            $stmtLegacy = $pdo->prepare('
-                SELECT rem.*,
-                       rem.amount as approved_amount,
-                       CASE WHEN rem.status = "PAID" THEN rem.amount ELSE 0.00 END as paid_amount,
-                       CASE WHEN rem.status = "PAID" THEN 0.00 ELSE rem.amount END as remaining_amount,
-                       emp.full_name as employee_name, emp.employee_number, emp.bank_name, emp.bank_account
-                FROM reimbursements rem
-                JOIN employees emp ON emp.employee_id = rem.employee_id
-                WHERE rem.report_id = :report_id
-            ');
-            $stmtLegacy->execute(['report_id' => $reportId]);
-            $results = $stmtLegacy->fetchAll();
-        }
-
-        return $results;
+        return $stmt->fetchAll();
     }
 
     public function getReimbursements(array $filters = [], int $page = 1, int $perPage = 20): array
@@ -136,70 +103,70 @@ class ReimbursementRepository
         $params = [];
 
         if (!empty($filters['status'])) {
-            $where[] = 'er.status = :status';
+            $where[] = 'rem.status = :status';
             $params['status'] = strtoupper($filters['status']);
         }
 
         if (!empty($filters['report_id'])) {
-            $where[] = 'er.report_id = :report_id';
+            $where[] = 'rem.report_id = :report_id';
             $params['report_id'] = (int) $filters['report_id'];
         }
 
         if (!empty($filters['search'])) {
-            $where[] = '(r.report_number LIKE :q1 OR emp.full_name LIKE :q2 OR ere.employee_name_snapshot LIKE :q3)';
+            $where[] = '(r.report_number LIKE :q1 OR r.title LIKE :q2 OR rem.recipient_name LIKE :q3 OR emp.full_name LIKE :q4)';
             $qVal = '%' . trim((string) $filters['search']) . '%';
             $params['q1'] = $qVal;
             $params['q2'] = $qVal;
             $params['q3'] = $qVal;
+            $params['q4'] = $qVal;
         }
 
         $whereClause = implode(' AND ', $where);
 
-        $countStmt = $pdo->prepare("
+        // Count total
+        $countSql = "
             SELECT COUNT(*)
-            FROM expense_reimbursements er
-            JOIN expense_reports r ON r.report_id = er.report_id
-            JOIN employees emp ON emp.employee_id = er.employee_id
-            LEFT JOIN expense_report_employees ere ON ere.report_employee_id = er.report_employee_id
+            FROM reimbursements rem
+            JOIN expense_reports r ON r.report_id = rem.report_id
+            LEFT JOIN employees emp ON emp.employee_id = rem.employee_id
             WHERE {$whereClause}
-        ");
+        ";
+        $countStmt = $pdo->prepare($countSql);
         $countStmt->execute($params);
         $total = (int) $countStmt->fetchColumn();
 
-        $offset = max(0, ($page - 1) * $perPage);
+        $offset = ($page - 1) * $perPage;
+
         $sql = "
-            SELECT er.*,
-                   er.approved_amount as amount,
-                   (er.approved_amount - er.paid_amount) as remaining_amount,
-                   r.report_number, r.title as report_title,
-                   COALESCE(ere.employee_name_snapshot, emp.full_name) as employee_name,
-                   COALESCE(ere.employee_number_snapshot, emp.employee_number) as employee_number,
-                   COALESCE(ere.department_name_snapshot, d.department_name) as department_name,
-                   emp.bank_name, emp.bank_account,
-                   (SELECT COUNT(*) FROM expense_reimbursement_payments WHERE reimbursement_id = er.reimbursement_id) as payments_count,
+            SELECT rem.*,
+                   rem.amount as approved_amount,
+                   CASE WHEN rem.status = 'PAID' THEN rem.amount ELSE 0.00 END as paid_amount,
+                   CASE WHEN rem.status = 'PAID' THEN 0.00 ELSE rem.amount END as remaining_amount,
+                   r.report_number, r.title as report_title, r.total_amount as report_total,
                    COALESCE(
-                       (SELECT p.payment_method FROM expense_reimbursement_payments p WHERE p.reimbursement_id = er.reimbursement_id ORDER BY p.payment_id DESC LIMIT 1),
-                       rem_legacy.payment_method,
-                       'BANK_TRANSFER'
-                   ) as payment_method,
+                       rem.recipient_name,
+                       (SELECT GROUP_CONCAT(ere.employee_name_snapshot SEPARATOR ', ') FROM expense_report_employees ere WHERE ere.report_id = rem.report_id),
+                       emp.full_name,
+                       'Kas Operasional'
+                   ) as employee_name,
                    COALESCE(
-                       (SELECT COALESCE(p.bank_reference, p.payment_number) FROM expense_reimbursement_payments p WHERE p.reimbursement_id = er.reimbursement_id ORDER BY p.payment_id DESC LIMIT 1),
-                       rem_legacy.payment_reference,
+                       (SELECT GROUP_CONCAT(CONCAT(ere.employee_name_snapshot, ' (', ere.employee_number_snapshot, ')') SEPARATOR ', ') FROM expense_report_employees ere WHERE ere.report_id = rem.report_id),
+                       emp.full_name,
                        '-'
-                   ) as payment_reference,
+                   ) as employees_summary,
                    COALESCE(
-                       (SELECT p.payment_date FROM expense_reimbursement_payments p WHERE p.reimbursement_id = er.reimbursement_id ORDER BY p.payment_id DESC LIMIT 1),
-                       rem_legacy.payment_date,
-                       DATE(er.updated_at)
-                   ) as payment_date
-            FROM expense_reimbursements er
-            JOIN expense_reports r ON r.report_id = er.report_id
-            JOIN employees emp ON emp.employee_id = er.employee_id
-            LEFT JOIN departments d ON d.department_id = emp.department_id
-            LEFT JOIN expense_report_employees ere ON ere.report_employee_id = er.report_employee_id
-            LEFT JOIN reimbursements rem_legacy ON rem_legacy.reimbursement_id = er.reimbursement_id
+                       (SELECT COUNT(*) FROM expense_report_employees ere WHERE ere.report_id = rem.report_id),
+                       1
+                   ) as employee_count,
+                   COALESCE(rem.bank_name, emp.bank_name, 'Bank Transfer') as bank_name,
+                   COALESCE(rem.account_number, emp.bank_account, '-') as bank_account,
+                   COALESCE(rem.account_holder, rem.recipient_name, emp.full_name) as account_holder,
+                   (SELECT COUNT(*) FROM expense_reimbursement_payments WHERE reimbursement_id = rem.reimbursement_id) as payments_count
+            FROM reimbursements rem
+            JOIN expense_reports r ON r.report_id = rem.report_id
+            LEFT JOIN employees emp ON emp.employee_id = rem.employee_id
             WHERE {$whereClause}
-            ORDER BY er.reimbursement_id DESC
+            ORDER BY rem.reimbursement_id DESC
             LIMIT {$perPage} OFFSET {$offset}
         ";
         $stmt = $pdo->prepare($sql);
@@ -215,75 +182,73 @@ class ReimbursementRepository
         ];
     }
 
-    public function create(array $data): int
+    public function createConsolidated(array $data): int
     {
         $pdo = Database::pdo();
         $reportId = (int) $data['report_id'];
-        $employeeId = (int) $data['employee_id'];
         $amount = (float) $data['amount'];
         $status = $data['status'] ?? 'PENDING';
-        $notes = $data['notes'] ?? null;
-
-        // Resolve report_employee_id
-        $reportEmployeeId = !empty($data['report_employee_id']) ? (int) $data['report_employee_id'] : 0;
-        if ($reportEmployeeId <= 0) {
-            $chk = $pdo->prepare('SELECT report_employee_id FROM expense_report_employees WHERE report_id = :r_id AND employee_id = :e_id');
-            $chk->execute(['r_id' => $reportId, 'e_id' => $employeeId]);
-            $repEmpId = $chk->fetchColumn();
-            if ($repEmpId) {
-                $reportEmployeeId = (int) $repEmpId;
-            } else {
-                $repRepo = new ReportRepository();
-                $reportEmployeeId = $repRepo->addReportEmployee($reportId, $employeeId);
-            }
-        }
+        $notes = $data['notes'] ?? ('Reimbursement gabungan laporan #' . $reportId);
+        $employeeId = !empty($data['employee_id']) ? (int) $data['employee_id'] : null;
 
         $stmt = $pdo->prepare('
-            INSERT INTO expense_reimbursements (
-                report_id, report_employee_id, employee_id, approved_amount, paid_amount, status, notes
+            INSERT INTO reimbursements (
+                report_id, employee_id, amount, status, notes
             ) VALUES (
-                :report_id, :report_employee_id, :employee_id, :approved_amount, :paid_amount, :status, :notes
+                :report_id, :employee_id, :amount, :status, :notes
             )
             ON DUPLICATE KEY UPDATE
-                approved_amount = VALUES(approved_amount),
+                amount = VALUES(amount),
                 status = VALUES(status),
-                notes = VALUES(notes)
+                notes = VALUES(notes),
+                updated_at = NOW()
         ');
         $stmt->execute([
             'report_id' => $reportId,
-            'report_employee_id' => $reportEmployeeId,
             'employee_id' => $employeeId,
-            'approved_amount' => $amount,
-            'paid_amount' => $status === 'PAID' ? $amount : 0.00,
+            'amount' => $amount,
             'status' => $status,
             'notes' => $notes,
         ]);
+
         $reimbId = (int) $pdo->lastInsertId();
         if ($reimbId === 0) {
-            $findStmt = $pdo->prepare('SELECT reimbursement_id FROM expense_reimbursements WHERE report_id = :r AND employee_id = :e');
-            $findStmt->execute(['r' => $reportId, 'e' => $employeeId]);
-            $reimbId = (int) $findStmt->fetchColumn();
+            $stmtFind = $pdo->prepare('SELECT reimbursement_id FROM reimbursements WHERE report_id = :r');
+            $stmtFind->execute(['r' => $reportId]);
+            $reimbId = (int) $stmtFind->fetchColumn();
         }
 
-        // Keep legacy table synced if needed
+        // Keep expense_reimbursements synchronized with single consolidated record
         try {
-            $legacyStmt = $pdo->prepare('
-                INSERT INTO reimbursements (report_id, employee_id, amount, payment_method, status, notes)
-                VALUES (:r, :e, :a, "BANK_TRANSFER", :s, :n)
-                ON DUPLICATE KEY UPDATE amount = VALUES(amount), status = VALUES(status)
+            $syncStmt = $pdo->prepare('
+                INSERT INTO expense_reimbursements (
+                    reimbursement_id, report_id, report_employee_id, employee_id, approved_amount, paid_amount, status, notes
+                ) VALUES (
+                    :reimb_id, :report_id, 0, COALESCE(:employee_id, 0), :amount, 0.00, :status, :notes
+                )
+                ON DUPLICATE KEY UPDATE
+                    approved_amount = VALUES(approved_amount),
+                    status = VALUES(status),
+                    notes = VALUES(notes)
             ');
-            $legacyStmt->execute([
-                'r' => $reportId,
-                'e' => $employeeId,
-                'a' => $amount,
-                's' => $status,
-                'n' => $notes,
+            $syncStmt->execute([
+                'reimb_id' => $reimbId,
+                'report_id' => $reportId,
+                'employee_id' => $employeeId,
+                'amount' => $amount,
+                'status' => $status,
+                'notes' => $notes,
             ]);
-        } catch (\Throwable $e) {
-            // Ignore legacy unique constraint conflict if report has multiple employees
+        } catch (\Throwable) {
+            // Ignore if expense_reimbursements has extra constraints
         }
 
         return $reimbId;
+    }
+
+    public function create(array $data): int
+    {
+        return $this->createConsolidated($data);
     }
 
     public function recordPayment(int $reimbursementId, array $data, int $paidBy): int
@@ -294,84 +259,117 @@ class ReimbursementRepository
             throw new RuntimeException('Data reimbursement tidak ditemukan.');
         }
 
-        $approvedAmount = (float) $reimb['approved_amount'];
-        $currentPaid = (float) $reimb['paid_amount'];
-        $remaining = round($approvedAmount - $currentPaid, 2);
+        if ($reimb['status'] === 'PAID') {
+            throw new RuntimeException('Laporan reimbursement ini sudah dibayar penuh (PAID) dan tidak dapat dibayar ulang.');
+        }
 
-        $payAmount = round((float) ($data['amount'] ?? 0), 2);
+        $approvedAmount = (float) $reimb['approved_amount'];
+        $payAmount = round((float) ($data['amount'] ?? $approvedAmount), 2);
+
         if ($payAmount <= 0) {
             throw new InvalidArgumentException('Nominal pembayaran harus lebih besar dari 0.');
         }
 
-        if ($payAmount > $remaining) {
-            throw new InvalidArgumentException(sprintf('Nominal pembayaran (Rp %s) melebihi sisa kewajiban reimbursement (Rp %s).', number_format($payAmount, 0, ',', '.'), number_format($remaining, 0, ',', '.')));
+        // Business Rule: One Report = One Reimbursement = One FULL Payment. No partial payments allowed.
+        if (abs($payAmount - $approvedAmount) > 0.01) {
+            throw new InvalidArgumentException(sprintf(
+                'Pembayaran harus satu kali penuh sebesar total laporan (Rp %s). Pembayaran parsial tidak didukung.',
+                number_format($approvedAmount, 0, ',', '.')
+            ));
+        }
+
+        $recipientName = trim((string) ($data['recipient_name'] ?? ''));
+        if ($recipientName === '') {
+            $recipientName = $reimb['employee_name'] ?? 'Kas Operasional';
         }
 
         $paymentNumber = !empty($data['payment_number']) ? trim($data['payment_number']) : $this->generatePaymentNumber();
         $paymentDate = !empty($data['payment_date']) ? $data['payment_date'] : date('Y-m-d');
         $paymentMethod = $data['payment_method'] ?? 'BANK_TRANSFER';
-        $bankName = !empty($data['bank_name']) ? trim($data['bank_name']) : null;
-        $bankRef = !empty($data['bank_reference']) ? trim($data['bank_reference']) : null;
+        $bankName = !empty($data['bank_name']) ? trim($data['bank_name']) : ($reimb['bank_name'] ?? 'Bank Transfer');
+        $bankRef = !empty($data['bank_reference']) ? trim($data['bank_reference']) : (!empty($data['payment_reference']) ? trim($data['payment_reference']) : $paymentNumber);
+        $accountNumber = !empty($data['account_number']) ? trim($data['account_number']) : ($reimb['account_number'] ?? '-');
+        $accountHolder = !empty($data['account_holder']) ? trim($data['account_holder']) : ($reimb['account_holder'] ?? $recipientName);
         $proofPath = !empty($data['proof_path']) ? $data['proof_path'] : null;
         $notes = !empty($data['notes']) ? trim($data['notes']) : null;
 
-        $stmtPay = $pdo->prepare('
-            INSERT INTO expense_reimbursement_payments (
-                reimbursement_id, payment_number, payment_date, amount, payment_method, bank_name, bank_reference, proof_path, paid_by, notes
-            ) VALUES (
-                :reimbursement_id, :payment_number, :payment_date, :amount, :payment_method, :bank_name, :bank_reference, :proof_path, :paid_by, :notes
-            )
-        ');
-        $stmtPay->execute([
-            'reimbursement_id' => $reimbursementId,
-            'payment_number' => $paymentNumber,
-            'payment_date' => $paymentDate,
-            'amount' => $payAmount,
-            'payment_method' => $paymentMethod,
-            'bank_name' => $bankName,
-            'bank_reference' => $bankRef,
-            'proof_path' => $proofPath,
-            'paid_by' => $paidBy,
-            'notes' => $notes,
-        ]);
-        $paymentId = (int) $pdo->lastInsertId();
+        // 1. Insert into expense_reimbursement_payments if parent exists in expense_reimbursements
+        $paymentId = $reimbursementId;
+        try {
+            $stmtPay = $pdo->prepare('
+                INSERT INTO expense_reimbursement_payments (
+                    reimbursement_id, payment_number, payment_date, amount, payment_method, bank_name, bank_reference, proof_path, paid_by, notes
+                ) VALUES (
+                    :reimbursement_id, :payment_number, :payment_date, :amount, :payment_method, :bank_name, :bank_reference, :proof_path, :paid_by, :notes
+                )
+            ');
+            $stmtPay->execute([
+                'reimbursement_id' => $reimbursementId,
+                'payment_number' => $paymentNumber,
+                'payment_date' => $paymentDate,
+                'amount' => $payAmount,
+                'payment_method' => $paymentMethod,
+                'bank_name' => $bankName,
+                'bank_reference' => $bankRef,
+                'proof_path' => $proofPath,
+                'paid_by' => $paidBy,
+                'notes' => $notes,
+            ]);
+            $paymentId = (int) $pdo->lastInsertId();
+        } catch (\Throwable) {
+            // reimbursements table is the authoritative single-reimbursement store
+        }
 
-        // Update reimbursement paid amount and status
-        $newPaid = round($currentPaid + $payAmount, 2);
-        $newStatus = ($newPaid >= $approvedAmount) ? 'PAID' : 'PARTIALLY_PAID';
-
+        // 2. Update reimbursements table with recipient details and PAID status
         $stmtUp = $pdo->prepare('
-            UPDATE expense_reimbursements
-            SET paid_amount = :paid_amount,
-                status = :status,
+            UPDATE reimbursements
+            SET amount = :amount,
+                recipient_name = :recipient_name,
+                bank_name = :bank_name,
+                account_number = :account_number,
+                account_holder = :account_holder,
+                payment_method = :payment_method,
+                payment_reference = :payment_reference,
+                payment_date = :payment_date,
+                proof_path = :proof_path,
+                notes = :notes,
+                status = "PAID",
+                processed_by = :processed_by,
+                processed_at = NOW(),
                 updated_at = NOW()
             WHERE reimbursement_id = :id
         ');
         $stmtUp->execute([
-            'paid_amount' => $newPaid,
-            'status' => $newStatus,
+            'amount' => $payAmount,
+            'recipient_name' => $recipientName,
+            'bank_name' => $bankName,
+            'account_number' => $accountNumber,
+            'account_holder' => $accountHolder,
+            'payment_method' => $paymentMethod,
+            'payment_reference' => $bankRef,
+            'payment_date' => $paymentDate,
+            'proof_path' => $proofPath,
+            'notes' => $notes,
+            'processed_by' => $paidBy,
             'id' => $reimbursementId,
         ]);
 
-        // Sync legacy table if present
+        // 3. Keep expense_reimbursements synced
         try {
-            $stmtLeg = $pdo->prepare('
-                UPDATE reimbursements
-                SET status = :status,
-                    payment_reference = :ref,
-                    payment_date = :pdate,
-                    processed_by = :proc,
-                    processed_at = NOW()
-                WHERE reimbursement_id = :id
+            $stmtSync = $pdo->prepare('
+                UPDATE expense_reimbursements
+                SET approved_amount = :amount,
+                    paid_amount = :amount,
+                    status = "PAID",
+                    updated_at = NOW()
+                WHERE reimbursement_id = :id OR report_id = :report_id
             ');
-            $stmtLeg->execute([
-                'status' => $newStatus === 'PARTIALLY_PAID' ? 'PROCESSING' : $newStatus,
-                'ref' => $bankRef,
-                'pdate' => $paymentDate,
-                'proc' => $paidBy,
+            $stmtSync->execute([
+                'amount' => $payAmount,
                 'id' => $reimbursementId,
+                'report_id' => (int) $reimb['report_id'],
             ]);
-        } catch (\Throwable $e) {
+        } catch (\Throwable) {
             // Ignore
         }
 
@@ -396,14 +394,10 @@ class ReimbursementRepository
     public function isReportFullyPaid(int $reportId): bool
     {
         $pdo = Database::pdo();
-        $stmt = $pdo->prepare('
-            SELECT COUNT(*)
-            FROM expense_reimbursements
-            WHERE report_id = :report_id AND status != "PAID"
-        ');
+        $stmt = $pdo->prepare('SELECT status FROM reimbursements WHERE report_id = :report_id LIMIT 1');
         $stmt->execute(['report_id' => $reportId]);
-        $unpaidCount = (int) $stmt->fetchColumn();
-        return $unpaidCount === 0;
+        $status = $stmt->fetchColumn();
+        return $status === 'PAID';
     }
 
     public function updateStatus(int $id, string $status, ?int $processedBy = null, ?array $paymentDetails = null): bool
@@ -426,28 +420,18 @@ class ReimbursementRepository
         }
 
         $stmt = $pdo->prepare('
-            UPDATE expense_reimbursements
+            UPDATE reimbursements
             SET status = :status,
+                processed_by = :processed_by,
+                processed_at = NOW(),
                 updated_at = NOW()
             WHERE reimbursement_id = :id
         ');
-        $ok = $stmt->execute(['status' => $statusUpper, 'id' => $id]);
-
-        // Also update legacy if exists
-        try {
-            $stmtLegacy = $pdo->prepare('
-                UPDATE reimbursements
-                SET status = :status,
-                    processed_by = :processed_by,
-                    processed_at = NOW()
-                WHERE reimbursement_id = :id
-            ');
-            $stmtLegacy->execute(['status' => $statusUpper, 'processed_by' => $processedBy, 'id' => $id]);
-        } catch (\Throwable $e) {
-            // Ignore
-        }
-
-        return $ok;
+        return $stmt->execute([
+            'status' => $statusUpper,
+            'processed_by' => $processedBy,
+            'id' => $id,
+        ]);
     }
 
     public function generatePaymentNumber(): string
