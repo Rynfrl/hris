@@ -174,6 +174,64 @@ $test('generatePaymentNumber produces non-empty unique sequence numbers', functi
     }
 });
 
+$test('Router dispatches /reports/{id}/employees/{employeeId}/remove without named parameter errors', function () {
+    $router = new Router();
+    $registerRoutes = require dirname(__DIR__) . '/config/routes.php';
+    $registerRoutes($router);
+
+    // Test reflection invocation of invokeHandler
+    $ref = new ReflectionClass($router);
+    $method = $ref->getMethod('invokeHandler');
+    $method->setAccessible(true);
+
+    $dummyController = new class {
+        public ?int $gotId = null;
+        public ?int $gotEmpId = null;
+        public function removeEmployee(string|int $id, string|int $employeeId = 0, string|int $reportEmployeeId = 0): void {
+            $this->gotId = (int) $id;
+            $this->gotEmpId = (int) ($employeeId ?: $reportEmployeeId);
+        }
+    };
+
+    $params = ['id' => '136', 'employeeId' => '150'];
+    $method->invoke($router, [$dummyController, 'removeEmployee'], $params);
+
+    if ($dummyController->gotId !== 136 || $dummyController->gotEmpId !== 150) {
+        throw new Exception("Expected 136 and 150, got {$dummyController->gotId} and {$dummyController->gotEmpId}");
+    }
+});
+
+$test('GET fallback routes exist for employee and item removal', function () {
+    $router = new Router();
+    $registerRoutes = require dirname(__DIR__) . '/config/routes.php';
+    $registerRoutes($router);
+
+    $ref = new ReflectionClass($router);
+    $prop = $ref->getProperty('routes');
+    $prop->setAccessible(true);
+    $routes = $prop->getValue($router);
+
+    $getRoutes = $routes['GET'] ?? [];
+    $hasEmpRemove = false;
+    $hasItemRemove = false;
+
+    foreach ($getRoutes as $r) {
+        if (preg_match($r['pattern'], '/reports/136/employees/150/remove')) {
+            $hasEmpRemove = true;
+        }
+        if (preg_match($r['pattern'], '/reports/136/items/45/remove')) {
+            $hasItemRemove = true;
+        }
+    }
+
+    if (!$hasEmpRemove) {
+        throw new Exception('GET /reports/{id}/employees/{employeeId}/remove fallback missing');
+    }
+    if (!$hasItemRemove) {
+        throw new Exception('GET /reports/{id}/items/{expenseId}/remove fallback missing');
+    }
+});
+
 echo "\n========================================================\n";
 echo "TEST RESULTS: {$passCount} PASSED, {$failCount} FAILED\n";
 echo "========================================================\n";

@@ -48,9 +48,15 @@ return function (Router $router): void {
     $router->post('/reports/{id}/update', [ReportController::class, 'update'], [AuthMiddleware::class, CsrfMiddleware::class]);
     $router->post('/reports/{id}/employees', [ReportController::class, 'addEmployee'], [AuthMiddleware::class, CsrfMiddleware::class]);
     $router->post('/reports/{id}/employees/{employeeId}/remove', [ReportController::class, 'removeEmployee'], [AuthMiddleware::class, CsrfMiddleware::class]);
+    $router->get('/reports/{id}/employees/{employeeId}/remove', function (string|int $id) {
+        \App\Core\Url::redirect('/reports/' . (int) $id);
+    }, [AuthMiddleware::class]);
     $router->post('/reports/{id}/expenses/create', [ReportController::class, 'createExpenseItem'], [AuthMiddleware::class, CsrfMiddleware::class]);
     $router->post('/reports/{id}/items', [ReportController::class, 'addItem'], [AuthMiddleware::class, CsrfMiddleware::class]);
     $router->post('/reports/{id}/items/{expenseId}/remove', [ReportController::class, 'removeItem'], [AuthMiddleware::class, CsrfMiddleware::class]);
+    $router->get('/reports/{id}/items/{expenseId}/remove', function (string|int $id) {
+        \App\Core\Url::redirect('/reports/' . (int) $id);
+    }, [AuthMiddleware::class]);
     $router->post('/reports/{id}/submit', [ReportController::class, 'submit'], [AuthMiddleware::class, CsrfMiddleware::class]);
     $router->post('/reports/{id}/revise', [ReportController::class, 'revise'], [AuthMiddleware::class, CsrfMiddleware::class]);
     $router->get('/reports/{id}/submit', function (string|int $id) {

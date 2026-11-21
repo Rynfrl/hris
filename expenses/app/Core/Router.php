@@ -125,12 +125,13 @@ class Router
 
     private function invokeHandler(callable|array $handler, array $params): mixed
     {
+        $args = array_values($params);
         if (is_array($handler)) {
-            [$class, $method] = $handler;
-            $controller = new $class();
-            return call_user_func_array([$controller, $method], $params);
+            [$classOrObject, $method] = $handler;
+            $controller = is_object($classOrObject) ? $classOrObject : new $classOrObject();
+            return call_user_func_array([$controller, $method], $args);
         }
 
-        return call_user_func_array($handler, $params);
+        return call_user_func_array($handler, $args);
     }
 }

@@ -257,10 +257,10 @@ class ReportController
         Url::redirect('/reports/' . $reportId);
     }
 
-    public function removeEmployee(string|int $id, string|int $reportEmployeeId): void
+    public function removeEmployee(string|int $id, string|int $employeeId = 0, string|int $reportEmployeeId = 0): void
     {
         $reportId = (int) $id;
-        $repEmpId = (int) $reportEmployeeId;
+        $repEmpId = (int) ($employeeId ?: $reportEmployeeId);
         $report = $this->reportRepo->findById($reportId);
         $user = Auth::user();
 
