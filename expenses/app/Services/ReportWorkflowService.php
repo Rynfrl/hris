@@ -198,13 +198,6 @@ class ReportWorkflowService
             throw new RuntimeException('Karyawan hanya dapat dihapus dari laporan berstatus DRAFT.');
         }
 
-        $items = $this->reportRepo->getReportItems($reportId);
-        foreach ($items as $item) {
-            if ((int) ($item['report_employee_id'] ?? 0) === $reportEmployeeId) {
-                throw new RuntimeException('Tidak dapat menghapus karyawan yang masih memiliki transaksi dalam laporan ini. Hapus transaksi terlebih dahulu.');
-            }
-        }
-
         $ok = $this->reportRepo->removeReportEmployee($reportId, $reportEmployeeId);
 
         $this->auditRepo->logActivity(

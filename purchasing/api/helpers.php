@@ -364,6 +364,8 @@ function pur_compute_three_way_match(PDO $pdo, array $po, float $invoiceAmount):
 /** role ERP (roles.role_name) => role di aplikasi. Role lain (HR, SALES) tidak punya akses. */
 const PUR_ROLE_MAP = [
     'ADMIN' => 'Admin',
+    'ADMIN_HR' => 'Admin',
+    'ADMIN_EXPENSE' => 'Admin',
     'ADMIN_PURCHASE' => 'Admin',
     'ADMIN_PURCHASING' => 'Admin',
     'PURCHASING' => 'Purchasing Staff',

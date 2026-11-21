@@ -7,5 +7,5 @@
     RewriteRule ^ - [L]
 
     # Route expense management module paths to expenses/public/index.php
-    RewriteRule ^(reports|approvals|finance|reimbursements|analytics|exports)(/.*)?$ expenses/public/index.php [L,QSA]
+    RewriteRule ^(dashboard|expenses|reports|approvals|finance|reimbursements|analytics|exports|settings)(/.*)?$ expenses/public/index.php [L,QSA]
 </IfModule>

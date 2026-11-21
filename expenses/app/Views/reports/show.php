@@ -38,14 +38,14 @@ $isPosted = in_array($report['status'], ['POSTED', 'REIMBURSEMENT_PENDING', 'PAI
 
     <!-- Workflow Action Buttons -->
     <div class="d-flex flex-wrap gap-2">
-        <a href="/reports" class="btn btn-outline-secondary btn-sm">Kembali</a>
+        <a href="<?= Url::to('/reports') ?>" class="btn btn-outline-secondary btn-sm">Kembali</a>
 
         <?php if ($canEdit): ?>
-            <a href="/reports/<?= (int) $report['report_id'] ?>/edit" class="btn btn-outline-primary btn-sm">Edit Laporan</a>
+            <a href="<?= Url::to('/reports/' . (int) $report['report_id'] . '/edit') ?>" class="btn btn-outline-primary btn-sm">Edit Laporan</a>
         <?php endif; ?>
 
         <?php if ($canSubmit): ?>
-            <form action="/reports/<?= (int) $report['report_id'] ?>/submit" method="POST" data-confirm="Ajukan laporan ini untuk persetujuan manajer?">
+            <form action="<?= Url::to('/reports/' . (int) $report['report_id'] . '/submit') ?>" method="POST" data-confirm="Ajukan laporan ini untuk persetujuan manajer?">
                 <?= Csrf::field() ?>
                 <button type="submit" class="btn btn-primary btn-sm" <?= (empty($items) || empty($reportEmployees)) ? 'disabled title="Tambahkan minimal satu karyawan dan satu transaksi"' : '' ?>>
                     Ajukan Laporan Gabungan
@@ -54,7 +54,7 @@ $isPosted = in_array($report['status'], ['POSTED', 'REIMBURSEMENT_PENDING', 'PAI
         <?php endif; ?>
 
         <?php if ($canRevise): ?>
-            <form action="/reports/<?= (int) $report['report_id'] ?>/revise" method="POST" data-confirm="Kembalikan laporan ini ke status draft untuk direvisi?">
+            <form action="<?= Url::to('/reports/' . (int) $report['report_id'] . '/revise') ?>" method="POST" data-confirm="Kembalikan laporan ini ke status draft untuk direvisi?">
                 <?= Csrf::field() ?>
                 <button type="submit" class="btn btn-warning btn-sm">
                     Revisi Laporan (Kembali ke Draft)
@@ -78,7 +78,7 @@ $isPosted = in_array($report['status'], ['POSTED', 'REIMBURSEMENT_PENDING', 'PAI
         <?php endif; ?>
 
         <?php if ($canReimburse && $report['status'] === 'POSTED'): ?>
-            <a href="/reimbursements" class="btn btn-warning btn-sm">
+            <a href="<?= Url::to('/reimbursements') ?>" class="btn btn-warning btn-sm">
                 Lihat Antrean Reimbursement
             </a>
         <?php endif; ?>
@@ -169,7 +169,7 @@ $isPosted = in_array($report['status'], ['POSTED', 'REIMBURSEMENT_PENDING', 'PAI
     <!-- Add Employee Collapse Form -->
     <?php if ($canEdit): ?>
         <div class="collapse border-bottom bg-light p-3" id="addEmployeeCollapse">
-            <form action="/reports/<?= (int) $report['report_id'] ?>/employees" method="POST" class="row g-2 align-items-center">
+            <form action="<?= Url::to('/reports/' . (int) $report['report_id'] . '/employees') ?>" method="POST" class="row g-2 align-items-center">
                 <?= Csrf::field() ?>
                 <div class="col-md-9">
                     <select name="employee_id" class="form-select form-select-sm" required>
@@ -259,7 +259,7 @@ $isPosted = in_array($report['status'], ['POSTED', 'REIMBURSEMENT_PENDING', 'PAI
                                             + Catat Transaksi
                                         </button>
                                         <?php if ((int) $repEmp['item_count'] === 0): ?>
-                                            <form action="/reports/<?= (int) $report['report_id'] ?>/employees/<?= (int) $repEmp['report_employee_id'] ?>/remove" method="POST" data-confirm="Hapus karyawan ini dari laporan?">
+                                            <form action="<?= Url::to('/reports/' . (int) $report['report_id'] . '/employees/' . (int) $repEmp['report_employee_id'] . '/remove') ?>" method="POST" data-confirm="Hapus karyawan ini dari laporan?">
                                                 <?= Csrf::field() ?>
                                                 <button type="submit" class="btn btn-sm btn-outline-danger" title="Hapus Karyawan">✕</button>
                                             </form>
@@ -292,7 +292,7 @@ $isPosted = in_array($report['status'], ['POSTED', 'REIMBURSEMENT_PENDING', 'PAI
     <!-- Link Existing Draft Expenses Collapse -->
     <?php if ($canEdit && !empty($unassignedExpenses)): ?>
         <div class="collapse border-bottom bg-light p-3" id="linkExistingExpenseCollapse">
-            <form action="/reports/<?= (int) $report['report_id'] ?>/items" method="POST" class="row g-2 align-items-center">
+            <form action="<?= Url::to('/reports/' . (int) $report['report_id'] . '/items') ?>" method="POST" class="row g-2 align-items-center">
                 <?= Csrf::field() ?>
                 <div class="col-md-9">
                     <select name="expense_id" class="form-select form-select-sm" required>
@@ -346,7 +346,7 @@ $isPosted = in_array($report['status'], ['POSTED', 'REIMBURSEMENT_PENDING', 'PAI
                     <?php foreach ($items as $item): ?>
                         <tr>
                             <td>
-                                <a href="/expenses/<?= (int) $item['expense_id'] ?>" class="fw-semibold text-primary text-decoration-none">
+                                <a href="<?= Url::to('/expenses/' . (int) $item['expense_id']) ?>" class="fw-semibold text-primary text-decoration-none">
                                     <?= View::e($item['expense_number']) ?>
                                 </a>
                             </td>
@@ -373,7 +373,7 @@ $isPosted = in_array($report['status'], ['POSTED', 'REIMBURSEMENT_PENDING', 'PAI
                             </td>
                             <td>
                                 <?php if (!empty($item['receipt_path'])): ?>
-                                    <a href="/expenses/<?= (int) $item['expense_id'] ?>/receipt" target="_blank" class="btn btn-xs btn-outline-primary" style="font-size: 0.75rem;">
+                                    <a href="<?= Url::to('/expenses/' . (int) $item['expense_id'] . '/receipt') ?>" target="_blank" class="btn btn-xs btn-outline-primary" style="font-size: 0.75rem;">
                                         Lihat Bukti
                                     </a>
                                 <?php else: ?>
@@ -385,7 +385,7 @@ $isPosted = in_array($report['status'], ['POSTED', 'REIMBURSEMENT_PENDING', 'PAI
                             </td>
                             <?php if ($canEdit): ?>
                                 <td class="text-end">
-                                    <form action="/reports/<?= (int) $report['report_id'] ?>/items/<?= (int) $item['expense_id'] ?>/remove" method="POST" data-confirm="Keluarkan transaksi ini dari laporan?">
+                                    <form action="<?= Url::to('/reports/' . (int) $report['report_id'] . '/items/' . (int) $item['expense_id'] . '/remove') ?>" method="POST" data-confirm="Keluarkan transaksi ini dari laporan?">
                                         <?= Csrf::field() ?>
                                         <button type="submit" class="btn btn-sm btn-outline-danger" title="Lepaskan dari laporan">✕</button>
                                     </form>
@@ -464,7 +464,7 @@ $isPosted = in_array($report['status'], ['POSTED', 'REIMBURSEMENT_PENDING', 'PAI
                     <?php endif; ?>
                 </div>
 
-                <form action="/reports/<?= (int) $report['report_id'] ?>/comments" method="POST" class="mt-auto">
+                <form action="<?= Url::to('/reports/' . (int) $report['report_id'] . '/comments') ?>" method="POST" class="mt-auto">
                     <?= Csrf::field() ?>
                     <div class="input-group">
                         <input type="text" name="comment_body" class="form-control form-control-sm" placeholder="Tulis komentar atau instruksi..." required>
@@ -481,7 +481,7 @@ $isPosted = in_array($report['status'], ['POSTED', 'REIMBURSEMENT_PENDING', 'PAI
 <div class="modal fade" id="createExpenseModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <form action="/reports/<?= (int) $report['report_id'] ?>/expenses/create" method="POST" enctype="multipart/form-data">
+            <form action="<?= Url::to('/reports/' . (int) $report['report_id'] . '/expenses/create') ?>" method="POST" enctype="multipart/form-data">
                 <?= Csrf::field() ?>
                 <div class="modal-header">
                     <h5 class="modal-title fw-bold">Catat Transaksi Pengeluaran Karyawan</h5>
@@ -572,7 +572,7 @@ $isPosted = in_array($report['status'], ['POSTED', 'REIMBURSEMENT_PENDING', 'PAI
 <div class="modal fade" id="approveModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form action="/reports/<?= (int) $report['report_id'] ?>/approve" method="POST">
+            <form action="<?= Url::to('/reports/' . (int) $report['report_id'] . '/approve') ?>" method="POST">
                 <?= Csrf::field() ?>
                 <div class="modal-header">
                     <h5 class="modal-title fw-bold">Persetujuan Laporan Pengeluaran</h5>
@@ -598,7 +598,7 @@ $isPosted = in_array($report['status'], ['POSTED', 'REIMBURSEMENT_PENDING', 'PAI
 <div class="modal fade" id="refuseModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form action="/reports/<?= (int) $report['report_id'] ?>/refuse" method="POST">
+            <form action="<?= Url::to('/reports/' . (int) $report['report_id'] . '/refuse') ?>" method="POST">
                 <?= Csrf::field() ?>
                 <div class="modal-header">
                     <h5 class="modal-title fw-bold text-danger">Tolak Laporan Pengeluaran</h5>
@@ -626,7 +626,7 @@ $isPosted = in_array($report['status'], ['POSTED', 'REIMBURSEMENT_PENDING', 'PAI
 <div class="modal fade" id="postingModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form action="/reports/<?= (int) $report['report_id'] ?>/post" method="POST">
+            <form action="<?= Url::to('/reports/' . (int) $report['report_id'] . '/post') ?>" method="POST">
                 <?= Csrf::field() ?>
                 <div class="modal-header">
                     <h5 class="modal-title fw-bold">Pembukuan Laporan (Posting Finance)</h5>

@@ -134,6 +134,18 @@ class ReportRepository
     public function removeReportEmployee(int $reportId, int $reportEmployeeId): bool
     {
         $pdo = Database::pdo();
+        // Resolve real report_employee_id if employee_id was provided
+        $findStmt = $pdo->prepare('
+            SELECT report_employee_id FROM expense_report_employees
+            WHERE report_id = :r_id AND (report_employee_id = :re_id OR employee_id = :re_id)
+            LIMIT 1
+        ');
+        $findStmt->execute(['r_id' => $reportId, 're_id' => $reportEmployeeId]);
+        $row = $findStmt->fetch();
+        if ($row) {
+            $reportEmployeeId = (int) $row['report_employee_id'];
+        }
+
         // Unlink or remove items linked to this report employee
         $stmtItems = $pdo->prepare('
             DELETE FROM expense_report_items 
