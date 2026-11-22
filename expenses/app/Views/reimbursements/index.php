@@ -3,9 +3,11 @@
 declare(strict_types=1);
 
 use App\Core\Csrf;
+use App\Core\Url;
 use App\Core\View;
 
 $suggestedPayNumber = $suggestedPayNumber ?? ('PAY-' . date('Ym') . '-0001');
+$currentStatus = $currentStatus ?? '';
 ?>
 
 <div class="d-flex align-items-center justify-content-between mb-4">
@@ -14,11 +16,35 @@ $suggestedPayNumber = $suggestedPayNumber ?? ('PAY-' . date('Ym') . '-0001');
         <p class="text-secondary small mb-0">Satu Laporan = Satu Reimbursement = Satu Pembayaran Penuh (Tidak menerima pembayaran parsial)</p>
     </div>
     <div>
-        <a href="/reimbursements/history" class="btn btn-outline-secondary btn-sm">
+        <a href="<?= Url::to('/reimbursements/history') ?>" class="btn btn-outline-secondary btn-sm">
             Riwayat Pembayaran Selesai
         </a>
     </div>
 </div>
+
+<!-- Status Filter Tabs (Perbaikan 2 & 12) -->
+<ul class="nav nav-pills mb-3 gap-2">
+    <li class="nav-item">
+        <a class="nav-link <?= empty($currentStatus) ? 'active' : '' ?>" href="<?= Url::to('/reimbursements') ?>">
+            Semua Antrean
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link <?= $currentStatus === 'PENDING' ? 'active' : '' ?>" href="<?= Url::to('/reimbursements?status=PENDING') ?>">
+            Pending
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link <?= $currentStatus === 'PROCESSING' ? 'active' : '' ?>" href="<?= Url::to('/reimbursements?status=PROCESSING') ?>">
+            Sedang Diproses
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link <?= $currentStatus === 'FAILED' ? 'active text-white bg-danger' : 'text-danger' ?>" href="<?= Url::to('/reimbursements?status=FAILED') ?>">
+            Pembayaran Gagal
+        </a>
+    </li>
+</ul>
 
 <!-- Active Reimbursements Waiting for Full Payment -->
 <div class="card card-gt">
@@ -42,18 +68,20 @@ $suggestedPayNumber = $suggestedPayNumber ?? ('PAY-' . date('Ym') . '-0001');
                 <?php if (empty($activeReimbursements)): ?>
                     <tr>
                         <td colspan="7" class="text-center py-5 text-muted">
-                            <div class="fw-semibold">Tidak ada reimbursement yang menunggu pembayaran.</div>
-                            <div class="small">Laporan yang telah dibukukan oleh Finance akan muncul di daftar antrean ini.</div>
+                            <div class="fw-semibold">Tidak ada reimbursement dalam antrean ini.</div>
+                            <div class="small">Laporan yang telah dibukukan oleh Finance akan muncul di antrean ini.</div>
                         </td>
                     </tr>
                 <?php else: ?>
                     <?php foreach ($activeReimbursements as $rem): ?>
                         <?php
-                            $approved = (float) ($rem['approved_amount'] ?? $rem['amount'] ?? 0);
+                            $approved = (string) ($rem['approved_amount'] ?? $rem['amount'] ?? '0.00');
                             $empCount = (int) ($rem['employee_count'] ?? 1);
                             $empSummary = !empty($rem['employees_summary']) ? $rem['employees_summary'] : ($rem['employee_name'] ?? '-');
+                            $isFailed = ($rem['status'] === 'FAILED');
+                            $failureReason = $rem['latest_failure_reason'] ?? $rem['notes'] ?? null;
                         ?>
-                        <tr>
+                        <tr class="<?= $isFailed ? 'table-danger' : '' ?>">
                             <td>
                                 <a href="/reports/<?= (int) $rem['report_id'] ?>" class="fw-semibold text-primary text-decoration-none">
                                     <?= View::e($rem['report_number']) ?>
@@ -61,6 +89,11 @@ $suggestedPayNumber = $suggestedPayNumber ?? ('PAY-' . date('Ym') . '-0001');
                             </td>
                             <td>
                                 <div class="fw-semibold"><?= View::e($rem['report_title'] ?? $rem['title'] ?? '-') ?></div>
+                                <?php if ($isFailed && !empty($failureReason)): ?>
+                                    <div class="badge bg-danger text-wrap text-start mt-1">
+                                        Gagal: <?= View::e($failureReason) ?>
+                                    </div>
+                                <?php endif; ?>
                             </td>
                             <td>
                                 <span class="badge bg-secondary rounded-pill me-1"><?= $empCount ?> Karyawan</span>
@@ -75,16 +108,67 @@ $suggestedPayNumber = $suggestedPayNumber ?? ('PAY-' . date('Ym') . '-0001');
                             </td>
                             <td><?= View::statusBadge($rem['status']) ?></td>
                             <td class="text-end">
-                                <?php if ($rem['status'] === 'PENDING'): ?>
-                                    <form action="/reimbursements/<?= (int) $rem['reimbursement_id'] ?>/processing" method="POST" class="d-inline me-1">
-                                        <?= Csrf::field() ?>
-                                        <button type="submit" class="btn btn-sm btn-outline-info">Proses</button>
-                                    </form>
-                                <?php endif; ?>
+                                <div class="d-inline-flex gap-1 justify-content-end">
+                                    <?php if ($rem['status'] === 'PENDING'): ?>
+                                        <form action="/reimbursements/<?= (int) $rem['reimbursement_id'] ?>/processing" method="POST" class="d-inline">
+                                            <?= Csrf::field() ?>
+                                            <button type="submit" class="btn btn-sm btn-outline-info">Proses</button>
+                                        </form>
+                                    <?php endif; ?>
 
-                                <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#payModal<?= (int) $rem['reimbursement_id'] ?>">
-                                    Bayar Penuh
-                                </button>
+                                    <?php if ($isFailed): ?>
+                                        <!-- Retry action (Perbaikan 2) -->
+                                        <form action="/reimbursements/<?= (int) $rem['reimbursement_id'] ?>/retry" method="POST" class="d-inline" data-confirm="Ulangi proses transfer untuk reimbursement ini?">
+                                            <?= Csrf::field() ?>
+                                            <button type="submit" class="btn btn-sm btn-warning">Ulangi Transfer</button>
+                                        </form>
+                                    <?php endif; ?>
+
+                                    <?php if ($rem['status'] === 'PROCESSING'): ?>
+                                        <!-- Mark Failed Button -->
+                                        <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#failModal<?= (int) $rem['reimbursement_id'] ?>">
+                                            Tandai Gagal
+                                        </button>
+                                    <?php endif; ?>
+
+                                    <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#payModal<?= (int) $rem['reimbursement_id'] ?>">
+                                        <?= $isFailed ? 'Bayar Ulang' : 'Bayar Penuh' ?>
+                                    </button>
+                                </div>
+
+                                <!-- Mark Failed Modal -->
+                                <?php if ($rem['status'] === 'PROCESSING'): ?>
+                                    <div class="modal fade" id="failModal<?= (int) $rem['reimbursement_id'] ?>" tabindex="-1" aria-hidden="true">
+                                        <div class="modal-dialog text-start">
+                                            <form action="/reimbursements/<?= (int) $rem['reimbursement_id'] ?>/failed" method="POST">
+                                                <?= Csrf::field() ?>
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title h6 fw-bold">Tandai Pembayaran Gagal</h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <div class="modal-body p-3">
+                                                        <div class="alert alert-warning small mb-3">
+                                                            Pencairan dana untuk laporan <strong><?= View::e($rem['report_number']) ?></strong> akan ditandai gagal dan dicatat ke histori audit kegagalan. Finance dapat melakukan percobaan ulang (retry) kemudian.
+                                                        </div>
+                                                        <div class="mb-3">
+                                                            <label class="form-label small fw-semibold">Alasan Kegagalan <span class="text-danger">*</span></label>
+                                                            <textarea name="reason" class="form-control form-control-sm" rows="3" required placeholder="Contoh: Nomor rekening tujuan tidak aktif / salah digit transfer / saldo bank operasional belum mencukupi..."></textarea>
+                                                        </div>
+                                                        <div class="mb-2">
+                                                            <label class="form-label small">No. Referensi Bank (Opsional)</label>
+                                                            <input type="text" name="payment_reference" class="form-control form-control-sm" placeholder="Contoh: REF-FAILED-001">
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Batal</button>
+                                                        <button type="submit" class="btn btn-sm btn-danger">Simpan Status Gagal</button>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                <?php endif; ?>
 
                                 <!-- Full Payment Modal -->
                                 <div class="modal fade" id="payModal<?= (int) $rem['reimbursement_id'] ?>" tabindex="-1" aria-labelledby="payModalLabel<?= (int) $rem['reimbursement_id'] ?>" aria-hidden="true">
@@ -105,7 +189,7 @@ $suggestedPayNumber = $suggestedPayNumber ?? ('PAY-' . date('Ym') . '-0001');
                                                         <div>Karyawan Terlibat (<?= $empCount ?>): <strong><?= View::e($empSummary) ?></strong></div>
                                                     </div>
 
-                                                    <input type="hidden" name="amount" value="<?= $approved ?>">
+                                                    <input type="hidden" name="amount" value="<?= View::e($approved) ?>">
 
                                                     <div class="row g-3">
                                                         <div class="col-md-6">
@@ -155,8 +239,8 @@ $suggestedPayNumber = $suggestedPayNumber ?? ('PAY-' . date('Ym') . '-0001');
 
                                                         <div class="col-12">
                                                             <label class="form-label fw-semibold small">Upload Bukti Transfer / Pembayaran Penuh <span class="text-danger">*</span></label>
-                                                            <input type="file" name="proof" class="form-control form-control-sm" accept="image/*,.pdf" required>
-                                                            <small class="text-muted">Lampirkan bukti mutasi bank atau resi transfer (JPG, PNG, PDF)</small>
+                                                            <input type="file" name="proof" class="form-control form-control-sm" accept="image/jpeg,image/png,image/jpg,application/pdf" required>
+                                                            <small class="text-muted">Lampirkan bukti mutasi bank atau resi transfer (Maks 10MB, JPG, PNG, PDF)</small>
                                                         </div>
 
                                                         <div class="col-12">

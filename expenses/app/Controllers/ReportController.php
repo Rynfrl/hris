@@ -61,14 +61,43 @@ class ReportController
             return View::render('errors/403', ['title' => 'Akses Ditolak'], 'layouts/error');
         }
 
+        $role = $user['role_name'] ?? '';
+        $isAdmin = in_array($role, ['ADMIN', 'Admin_HR', 'ADMIN_EXPENSE'], true) || Auth::hasPermission('expenses.manage');
+        $isManager = ($role === 'MANAGER') || Auth::hasPermission('expense.approve');
+        $isFinance = ($role === 'FINANCE') || Auth::hasPermission('expense.post') || Auth::hasPermission('expense.reimburse');
+
         $filters = [
-            'status' => $_GET['status'] ?? null,
             'start_date' => $_GET['start_date'] ?? null,
             'end_date' => $_GET['end_date'] ?? null,
             'search' => $_GET['search'] ?? null,
             'sort' => $_GET['sort'] ?? 'created_at',
             'order' => $_GET['order'] ?? 'DESC',
         ];
+
+        $reqStatus = !empty($_GET['status']) ? strtoupper(trim((string)$_GET['status'])) : null;
+
+        if ($isFinance && !$isAdmin) {
+            // Finance role scoping: strictly APPROVED, POSTED, REIMBURSEMENT_PENDING, PAID (Perbaikan 6)
+            $financeAllowed = ['APPROVED', 'POSTED', 'REIMBURSEMENT_PENDING', 'PAID'];
+            if ($reqStatus && in_array($reqStatus, $financeAllowed, true)) {
+                $filters['status'] = $reqStatus;
+            } else {
+                $filters['status_in'] = $financeAllowed;
+            }
+        } elseif ($isManager && !$isAdmin) {
+            // Manager role scoping: SUBMITTED, APPROVED, POSTED, REIMBURSEMENT_PENDING, PAID, REFUSED
+            $managerAllowed = ['SUBMITTED', 'APPROVED', 'POSTED', 'REIMBURSEMENT_PENDING', 'PAID', 'REFUSED'];
+            if ($reqStatus && in_array($reqStatus, $managerAllowed, true)) {
+                $filters['status'] = $reqStatus;
+            } else {
+                $filters['status_in'] = $managerAllowed;
+            }
+        } else {
+            // Admin role: can filter by any status
+            if ($reqStatus) {
+                $filters['status'] = $reqStatus;
+            }
+        }
 
         $page = max(1, (int) ($_GET['page'] ?? 1));
         $data = $this->reportRepo->getReports($filters, $page, 20);

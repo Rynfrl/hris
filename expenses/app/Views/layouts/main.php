@@ -13,9 +13,12 @@ $role = Auth::role();
 $currentUri = Url::currentPath();
 $flashMessages = Flash::getMessages();
 
-$isAdminExpense = in_array($role, ['ADMIN', 'ADMIN_EXPENSE', 'Admin_HR'], true) || Auth::hasPermission('expenses.manage');
+$hasExpenseManage = Auth::hasPermission('expenses.manage') || Auth::hasPermission('expense.manage');
+$isAdminExpense = in_array($role, ['ADMIN', 'ADMIN_EXPENSE'], true) || ($role === 'Admin_HR' && $hasExpenseManage) || $hasExpenseManage;
 $isManagerExpense = ($role === 'MANAGER') || Auth::hasPermission('expense.approve');
-$isFinance = ($role === 'FINANCE') || Auth::hasPermission('expense.post') || Auth::hasPermission('expense.reimburse');
+$hasPostPerm = in_array($role, ['FINANCE', 'ADMIN'], true) || Auth::hasPermission('expense.post');
+$hasReimbursePerm = in_array($role, ['FINANCE', 'ADMIN'], true) || Auth::hasPermission('expense.reimburse');
+$isFinance = ($role === 'FINANCE') || $hasPostPerm || $hasReimbursePerm;
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -109,25 +112,33 @@ $isFinance = ($role === 'FINANCE') || Auth::hasPermission('expense.post') || Aut
 
             <?php elseif ($isFinance): ?>
                 <!-- FINANCE SIDEBAR -->
-                <div class="nav-section-title">Pembukuan Finance</div>
-                <a href="<?= Url::to('/finance/posting') ?>" class="sidebar-link <?= Url::isActive('/finance/posting') ? 'active' : '' ?>">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
-                    <span>Antrean Pembukuan</span>
-                </a>
-                <a href="<?= Url::to('/finance/history') ?>" class="sidebar-link <?= Url::isActive('/finance/history') ? 'active' : '' ?>">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
-                    <span>Riwayat Pembukuan</span>
-                </a>
+                <?php if ($hasPostPerm): ?>
+                    <div class="nav-section-title">Pembukuan Finance</div>
+                    <a href="<?= Url::to('/finance/posting') ?>" class="sidebar-link <?= Url::isActive('/finance/posting') ? 'active' : '' ?>">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                        <span>Antrean Pembukuan</span>
+                    </a>
+                    <a href="<?= Url::to('/finance/history') ?>" class="sidebar-link <?= Url::isActive('/finance/history') ? 'active' : '' ?>">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                        <span>Riwayat Pembukuan</span>
+                    </a>
+                <?php endif; ?>
 
-                <div class="nav-section-title">Pencairan Dana</div>
-                <a href="<?= Url::to('/reimbursements') ?>" class="sidebar-link <?= (Url::isActive('/reimbursements') && !Url::isActive('/reimbursements/history')) ? 'active' : '' ?>">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
-                    <span>Antrean Reimbursement</span>
-                </a>
-                <a href="<?= Url::to('/reimbursements/history') ?>" class="sidebar-link <?= Url::isActive('/reimbursements/history') ? 'active' : '' ?>">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                    <span>Riwayat Reimbursement</span>
-                </a>
+                <?php if ($hasReimbursePerm): ?>
+                    <div class="nav-section-title">Pencairan Dana</div>
+                    <a href="<?= Url::to('/reimbursements') ?>" class="sidebar-link <?= (Url::isActive('/reimbursements') && !Url::isActive('/reimbursements/history') && ($_GET['status'] ?? '') !== 'FAILED') ? 'active' : '' ?>">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+                        <span>Antrean Reimbursement</span>
+                    </a>
+                    <a href="<?= Url::to('/reimbursements?status=FAILED') ?>" class="sidebar-link <?= (Url::isActive('/reimbursements') && ($_GET['status'] ?? '') === 'FAILED') ? 'active text-danger' : 'text-danger' ?>">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                        <span>Pembayaran Gagal</span>
+                    </a>
+                    <a href="<?= Url::to('/reimbursements/history') ?>" class="sidebar-link <?= Url::isActive('/reimbursements/history') ? 'active' : '' ?>">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                        <span>Riwayat Reimbursement</span>
+                    </a>
+                <?php endif; ?>
 
                 <div class="nav-section-title">Laporan Keuangan</div>
                 <a href="<?= Url::to('/reports') ?>" class="sidebar-link <?= (Url::isActive('/reports') && !Url::isActive('/reports/create')) ? 'active' : '' ?>">

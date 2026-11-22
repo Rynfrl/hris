@@ -502,25 +502,25 @@
         <?php endif; ?>
 
         <div class="hris-nav-header">Modul ERP Terintegrasi</div>
-        <a href="purchasing/dashboard.php" class="hris-nav-item erp-link">
+        <a href="/purchasing/dashboard.php" class="hris-nav-item erp-link">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
           <span>Purchasing</span>
         </a>
-        <a href="sales/index.php" class="hris-nav-item erp-link">
+        <a href="/sales/index.php" class="hris-nav-item erp-link">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
           <span>Sales</span>
         </a>
-        <a href="Inventory/pages/dashboard.html" class="hris-nav-item erp-link">
+        <a href="/Inventory/pages/dashboard.html" class="hris-nav-item erp-link">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
           <span>Inventory</span>
         </a>
-        <a href="expenses/public/dashboard" class="hris-nav-item erp-link">
+        <a href="/expenses/dashboard" class="hris-nav-item erp-link">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg>
           <span>Expense Management</span>
         </a>
 
         <div class="hris-nav-header">Akun</div>
-        <a href="logout.php" class="hris-nav-item text-danger">
+        <a href="/logout.php" class="hris-nav-item text-danger">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
           <span>Logout</span>
         </a>

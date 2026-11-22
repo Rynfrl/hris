@@ -28,6 +28,37 @@ class AnalyticsController
         $this->csvService = $csvService ?? new CsvExportService();
     }
 
+    private function getScopeConditions(array $user, string $alias = 'e'): array
+    {
+        $role = $user['role_name'] ?? 'EMPLOYEE';
+        $isAdmin = in_array($role, ['ADMIN', 'Admin_HR', 'ADMIN_EXPENSE'], true) || Auth::hasPermission('expenses.manage');
+        $isManager = ($role === 'MANAGER') || Auth::hasPermission('expense.approve');
+        $isFinance = ($role === 'FINANCE') || Auth::hasPermission('expense.post') || Auth::hasPermission('expense.reimburse');
+        $userId = (int) ($user['user_id'] ?? 0);
+
+        if ($isAdmin) {
+            return ['', []];
+        }
+
+        if ($isFinance) {
+            // Finance only ever sees approved, posted, reimbursement pending, or paid
+            return [
+                "{$alias}.status IN ('APPROVED', 'POSTED', 'REIMBURSEMENT_PENDING', 'PAID')",
+                []
+            ];
+        }
+
+        if ($isManager) {
+            // Manager sees submitted, decided reports, and own created drafts
+            return [
+                "({$alias}.status IN ('SUBMITTED', 'APPROVED', 'POSTED', 'REIMBURSEMENT_PENDING', 'PAID', 'REFUSED') OR {$alias}.created_by = :scope_user_id)",
+                ['scope_user_id' => $userId]
+            ];
+        }
+
+        return ['1=0', []];
+    }
+
     public function index(): string
     {
         $user = Auth::user();
@@ -47,9 +78,29 @@ class AnalyticsController
         $where = ['e.expense_date >= :start_date', 'e.expense_date <= :end_date'];
         $params = ['start_date' => $startDate, 'end_date' => $endDate];
 
+        // Apply strict role scoping (Perbaikan 1)
+        [$scopeSql, $scopeParams] = $this->getScopeConditions($user, 'e');
+        if ($scopeSql !== '') {
+            $where[] = $scopeSql;
+            $params = array_merge($params, $scopeParams);
+        }
+
         if (!empty($status)) {
-            $where[] = 'e.status = :status';
-            $params['status'] = strtoupper($status);
+            $statusUpper = strtoupper($status);
+            $role = $user['role_name'] ?? '';
+            $isFinance = ($role === 'FINANCE') || Auth::hasPermission('expense.post') || Auth::hasPermission('expense.reimburse');
+            $isAdmin = in_array($role, ['ADMIN', 'Admin_HR', 'ADMIN_EXPENSE'], true) || Auth::hasPermission('expenses.manage');
+
+            // Prevent Finance from broadening access via status parameter
+            if ($isFinance && !$isAdmin) {
+                if (in_array($statusUpper, ['APPROVED', 'POSTED', 'REIMBURSEMENT_PENDING', 'PAID'], true)) {
+                    $where[] = 'e.status = :status';
+                    $params['status'] = $statusUpper;
+                }
+            } else {
+                $where[] = 'e.status = :status';
+                $params['status'] = $statusUpper;
+            }
         }
 
         $whereClause = implode(' AND ', $where);
@@ -117,6 +168,13 @@ class AnalyticsController
         $where = ['1=1'];
         $params = [];
 
+        // Apply role scoping (Perbaikan 1)
+        [$scopeSql, $scopeParams] = $this->getScopeConditions($user, 'e');
+        if ($scopeSql !== '') {
+            $where[] = $scopeSql;
+            $params = array_merge($params, $scopeParams);
+        }
+
         if (!empty($startDate)) {
             $where[] = 'e.expense_date >= :start_date';
             $params['start_date'] = $startDate;
@@ -126,8 +184,19 @@ class AnalyticsController
             $params['end_date'] = $endDate;
         }
         if (!empty($status)) {
-            $where[] = 'e.status = :status';
-            $params['status'] = strtoupper($status);
+            $statusUpper = strtoupper($status);
+            $isFinance = ($role === 'FINANCE') || Auth::hasPermission('expense.post') || Auth::hasPermission('expense.reimburse');
+            $isAdmin = in_array($role, ['ADMIN', 'Admin_HR', 'ADMIN_EXPENSE'], true) || Auth::hasPermission('expenses.manage');
+
+            if ($isFinance && !$isAdmin) {
+                if (in_array($statusUpper, ['APPROVED', 'POSTED', 'REIMBURSEMENT_PENDING', 'PAID'], true)) {
+                    $where[] = 'e.status = :status';
+                    $params['status'] = $statusUpper;
+                }
+            } else {
+                $where[] = 'e.status = :status';
+                $params['status'] = $statusUpper;
+            }
         }
 
         $whereClause = implode(' AND ', $where);
@@ -182,6 +251,13 @@ class AnalyticsController
         $where = ['1=1'];
         $params = [];
 
+        // Apply role scoping (Perbaikan 1)
+        [$scopeSql, $scopeParams] = $this->getScopeConditions($user, 'r');
+        if ($scopeSql !== '') {
+            $where[] = $scopeSql;
+            $params = array_merge($params, $scopeParams);
+        }
+
         if (!empty($startDate)) {
             $where[] = 'r.created_at >= :start_date';
             $params['start_date'] = $startDate . ' 00:00:00';
@@ -191,22 +267,37 @@ class AnalyticsController
             $params['end_date'] = $endDate . ' 23:59:59';
         }
         if (!empty($status)) {
-            $where[] = 'r.status = :status';
-            $params['status'] = strtoupper($status);
+            $statusUpper = strtoupper($status);
+            $isFinance = ($role === 'FINANCE') || Auth::hasPermission('expense.post') || Auth::hasPermission('expense.reimburse');
+            $isAdmin = in_array($role, ['ADMIN', 'Admin_HR', 'ADMIN_EXPENSE'], true) || Auth::hasPermission('expenses.manage');
+
+            if ($isFinance && !$isAdmin) {
+                if (in_array($statusUpper, ['APPROVED', 'POSTED', 'REIMBURSEMENT_PENDING', 'PAID'], true)) {
+                    $where[] = 'r.status = :status';
+                    $params['status'] = $statusUpper;
+                }
+            } else {
+                $where[] = 'r.status = :status';
+                $params['status'] = $statusUpper;
+            }
         }
 
         $whereClause = implode(' AND ', $where);
 
+        // Multi-employee consolidated query (Perbaikan 11)
         $sql = "
             SELECT r.report_id, r.report_number, r.title,
-                   emp.employee_number, emp.full_name as employee_name,
-                   d.department_name, r.status,
-                   (SELECT COUNT(*) FROM expense_report_items WHERE report_id = r.report_id) as expense_count,
-                   r.total_amount, r.submitted_at, r.approved_at, r.posted_at, r.refused_at,
+                   COALESCE(emp_cre.full_name, u_cre.username, 'Admin') as creator_name,
+                   (SELECT COUNT(DISTINCT ere.employee_id) FROM expense_report_employees ere WHERE ere.report_id = r.report_id) as employee_count,
+                   (SELECT GROUP_CONCAT(DISTINCT ere.employee_name_snapshot ORDER BY ere.employee_name_snapshot ASC SEPARATOR '; ') 
+                    FROM expense_report_employees ere WHERE ere.report_id = r.report_id) as participant_names,
+                   (SELECT COUNT(*) FROM expense_report_items eri WHERE eri.report_id = r.report_id) as transaction_count,
+                   r.total_amount, r.status,
+                   r.submitted_at, r.approved_at, r.posted_at, r.refused_at,
                    r.rejection_reason, r.paid_at
             FROM expense_reports r
-            JOIN employees emp ON emp.employee_id = r.employee_id
-            LEFT JOIN departments d ON d.department_id = emp.department_id
+            JOIN users u_cre ON u_cre.user_id = r.created_by
+            LEFT JOIN employees emp_cre ON emp_cre.employee_id = u_cre.employee_id
             WHERE {$whereClause}
             ORDER BY r.created_at DESC, r.report_id DESC
         ";
@@ -215,10 +306,9 @@ class AnalyticsController
         $rows = $stmt->fetchAll(PDO::FETCH_NUM);
 
         $headers = [
-            'ID Laporan', 'No. Laporan', 'Judul Laporan',
-            'No. Karyawan', 'Nama Karyawan', 'Departemen', 'Status',
-            'Jumlah Item', 'Total Nominal', 'Diajukan Pada', 'Disetujui Pada',
-            'Dibukukan Pada', 'Ditolak Pada', 'Alasan Penolakan', 'Dibayar Pada'
+            'ID Laporan', 'No. Laporan', 'Judul Laporan', 'Pembuat Laporan',
+            'Jumlah Karyawan', 'Daftar Karyawan Terlibat', 'Jumlah Transaksi', 'Total Nominal', 'Status',
+            'Diajukan Pada', 'Disetujui Pada', 'Dibukukan Pada', 'Ditolak Pada', 'Alasan Penolakan', 'Dibayar Pada'
         ];
 
         $filename = 'expense-reports-' . date('Y-m-d') . '.csv';

@@ -75,6 +75,14 @@ class Router
             $normalizedPath = '/';
         }
 
+        // Auto-heal duplicate prefix in URL via 301 redirect
+        if (str_starts_with($parsedUrl, '/expenses/expenses')) {
+            $rawQuery = parse_url($uri, PHP_URL_QUERY);
+            $cleanTarget = ($basePath !== '' ? $basePath : '/expenses') . ($normalizedPath === '/' ? '' : $normalizedPath) . ($rawQuery ? '?' . $rawQuery : '');
+            header('Location: ' . $cleanTarget, true, 301);
+            exit;
+        }
+
         Url::setCurrentPath($normalizedPath);
 
         $candidates = array_unique(array_filter([$normalizedPath, $path, $parsedUrl]));

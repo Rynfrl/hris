@@ -178,15 +178,15 @@ echo "\n--- TEMUAN 5: HILANGKAN DUAL REIMBURSEMENT STORAGE MODEL ---\n";
 $dummyCheck = $pdo->query("SELECT COUNT(*) FROM expense_reimbursements WHERE report_id = {$reportId} AND report_employee_id = 0")->fetchColumn();
 assertTest("5.1 No dummy record (report_employee_id = 0) inserted into expense_reimbursements", (int) $dummyCheck === 0);
 
-// 5.2 getReportEmployees derives reimbursement status directly from reimbursements table
+// 5.2 getReportEmployees enforces employee privacy and consolidated report-level reimbursement
 $repEmployees = $reportRepo->getReportEmployees($reportId);
-$reimbStatusConsistent = true;
+$privacyEnforced = true;
 foreach ($repEmployees as $re) {
-    if ($re['reimbursement_status'] !== 'PENDING') {
-        $reimbStatusConsistent = false;
+    if (isset($re['bank_account']) || isset($re['reimbursement_status'])) {
+        $privacyEnforced = false;
     }
 }
-assertTest("5.2 getReportEmployees() displays accurate reimbursement status from reimbursements table", count($repEmployees) === 3 && $reimbStatusConsistent);
+assertTest("5.2 getReportEmployees() protects privacy and removes duplicate per-employee reimbursement", count($repEmployees) === 3 && $privacyEnforced);
 
 echo "\n--- TEMUAN 6: INTEGRITAS HISTORI PEMBAYARAN & DATABASE TRANSACTION ---\n";
 $reimbId = (int) $reimb['reimbursement_id'];

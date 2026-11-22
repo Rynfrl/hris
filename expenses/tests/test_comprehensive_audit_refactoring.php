@@ -236,6 +236,86 @@ foreach ($routes['GET'] ?? [] as $r) {
 }
 assertTest("Point 10: Route /finance/history exists in Router", $hasPostingHistoryRoute);
 
+$hasRetryRoute = false;
+foreach ($routes['POST'] ?? [] as $r) {
+    if ($r['path'] === '/reimbursements/{id}/retry') {
+        $hasRetryRoute = true;
+    }
+}
+assertTest("Point 10b: Route POST /reimbursements/{id}/retry exists in Router", $hasRetryRoute);
+
+// PERBAIKAN 2 & 3: FAILED lifecycle, failure audit trail, and RETRY flow
+$failedReportId = $reportRepo->create([
+    'title' => 'Test Failure and Retry Flow',
+    'created_by' => 1,
+    'employee_ids' => [1],
+]);
+$pdo->prepare("UPDATE expense_reports SET status = 'POSTED' WHERE report_id = :id")->execute(['id' => $failedReportId]);
+$failedReimbId = $reimbRepo->createConsolidated([
+    'report_id' => $failedReportId,
+    'amount' => '500000.00',
+    'status' => 'PROCESSING',
+    'recipient_name' => 'Budi PIC',
+    'bank_name' => 'BCA',
+    'account_number' => '1234567890',
+]);
+
+// Mark as FAILED with audit
+$failReason = 'Nomor rekening tujuan tidak valid / salah cabang';
+$workflowService->markFailed($failedReimbId, $failReason, $financeUser, 'TRF-FAIL-001');
+$reimbAfterFail = $reimbRepo->findById($failedReimbId);
+$failures = $reimbRepo->getFailures($failedReimbId);
+
+assertTest("Perbaikan 2 & 3: Status becomes FAILED and note is recorded", $reimbAfterFail['status'] === 'FAILED' && str_contains($reimbAfterFail['notes'], $failReason));
+assertTest("Perbaikan 3: Failure recorded in expense_reimbursement_failures table", count($failures) >= 1 && $failures[0]['failure_reason'] === $failReason && (int)$failures[0]['attempt_number'] === 1);
+
+// Retry Reimbursement
+$retryOk = $workflowService->retryReimbursement($failedReimbId, $financeUser);
+$reimbAfterRetry = $reimbRepo->findById($failedReimbId);
+assertTest("Perbaikan 2: retryReimbursement returns status to PROCESSING", $retryOk && $reimbAfterRetry['status'] === 'PROCESSING');
+
+// PERBAIKAN 4: Employee bank privacy removed from getReportEmployees
+$reportEmps = $reportRepo->getReportEmployees($failedReportId);
+$hasBankColumn = false;
+if (!empty($reportEmps)) {
+    if (isset($reportEmps[0]['bank_account']) || isset($reportEmps[0]['bank_name'])) {
+        $hasBankColumn = true;
+    }
+}
+assertTest("Perbaikan 4: getReportEmployees hides bank accounts from participant list", !$hasBankColumn);
+
+// PERBAIKAN 7: Event-based approval history
+$historyData = $reportRepo->getApprovalEventsHistory(['search' => 'Test Failure and Retry Flow']);
+assertTest("Perbaikan 7: getApprovalEventsHistory captures FAILED & RETRY events", isset($historyData['data']) && count($historyData['data']) >= 2);
+
+// PERBAIKAN 8: Strict Proof Validation
+$invalidExtProof = [
+    'name' => 'script.php',
+    'type' => 'text/php',
+    'tmp_name' => __FILE__,
+    'error' => UPLOAD_ERR_OK,
+    'size' => 1024,
+];
+$proofBlocked = false;
+try {
+    $workflowService->recordReimbursementPayment($failedReimbId, [
+        'amount' => '500000.00',
+        'recipient_name' => 'Budi PIC',
+        'payment_method' => 'BANK_TRANSFER',
+        'bank_reference' => 'TRF-SUCCESS-001',
+    ], $financeUser, $invalidExtProof);
+} catch (RuntimeException $e) {
+    $proofBlocked = str_contains($e->getMessage(), 'Format berkas bukti pembayaran tidak valid');
+}
+assertTest("Perbaikan 8: Uploading non-allowed extension proof is rejected", $proofBlocked);
+
+// Clean up test data
+$pdo->prepare("DELETE FROM expense_reimbursement_failures WHERE reimbursement_id = :id")->execute(['id' => $failedReimbId]);
+$pdo->prepare("DELETE FROM reimbursements WHERE reimbursement_id = :id")->execute(['id' => $failedReimbId]);
+$pdo->prepare("DELETE FROM expense_approvals WHERE report_id = :id")->execute(['id' => $failedReportId]);
+$pdo->prepare("DELETE FROM expense_report_employees WHERE report_id = :id")->execute(['id' => $failedReportId]);
+$pdo->prepare("DELETE FROM expense_reports WHERE report_id = :id")->execute(['id' => $failedReportId]);
+
 // Clean up test data
 $pdo->prepare("DELETE FROM expense_reimbursement_payments WHERE reimbursement_id IN (:r1, :r2)")->execute(['r1' => $reimbId, 'r2' => $testReimbId2]);
 $pdo->prepare("DELETE FROM reimbursements WHERE report_id = :id")->execute(['id' => $testReportId]);

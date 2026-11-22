@@ -93,6 +93,7 @@ return function (Router $router): void {
     $router->post('/reimbursements/{id}/processing', [ReimbursementController::class, 'setProcessing'], [AuthMiddleware::class, CsrfMiddleware::class]);
     $router->post('/reimbursements/{id}/paid', [ReimbursementController::class, 'markPaid'], [AuthMiddleware::class, CsrfMiddleware::class]);
     $router->post('/reimbursements/{id}/failed', [ReimbursementController::class, 'markFailed'], [AuthMiddleware::class, CsrfMiddleware::class]);
+    $router->post('/reimbursements/{id}/retry', [ReimbursementController::class, 'retryPayment'], [AuthMiddleware::class, CsrfMiddleware::class]);
     $router->get('/reimbursements/history', [ReimbursementController::class, 'history'], [AuthMiddleware::class]);
 
     // Settings / Master Data

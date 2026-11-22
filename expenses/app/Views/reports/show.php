@@ -118,6 +118,44 @@ $isPosted = in_array($report['status'], ['POSTED', 'REIMBURSEMENT_PENDING', 'PAI
     </div>
 <?php endif; ?>
 
+<!-- Reimbursement Satu Laporan Penuh Banner / Card -->
+<?php if (!empty($reimbursements)): ?>
+    <?php $mainReimb = $reimbursements[0]; ?>
+    <div class="card card-gt mb-4 border-start border-4 <?= ($mainReimb['status'] === 'PAID') ? 'border-success' : (($mainReimb['status'] === 'FAILED') ? 'border-danger' : 'border-warning') ?>">
+        <div class="card-body p-3 d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <div>
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <span class="fw-bold">Pencairan Dana (Reimbursement Satu Laporan):</span>
+                    <?= View::statusBadge($mainReimb['status']) ?>
+                    <strong class="text-primary ms-1"><?= View::formatRupiah($mainReimb['approved_amount'] ?? $mainReimb['amount'] ?? 0) ?></strong>
+                </div>
+                <div class="small text-muted">
+                    No. Antrean: <strong>#<?= (int) $mainReimb['reimbursement_id'] ?></strong> &bull;
+                    Metode: <strong><?= View::e($mainReimb['payment_method'] ?? 'Bank Transfer') ?></strong>
+                    <?php if (in_array(Auth::role(), ['FINANCE', 'ADMIN'], true) || Auth::hasPermission('expense.reimburse')): ?>
+                        &bull; Tujuan: <strong><?= View::e($mainReimb['recipient_name'] ?? '-') ?> (<?= View::e($mainReimb['bank_name'] ?? '-') ?>)</strong>
+                    <?php endif; ?>
+                    <?php if (!empty($mainReimb['paid_at'])): ?>
+                        &bull; Lunas pada: <?= View::formatDate($mainReimb['paid_at'], 'd M Y H:i') ?>
+                    <?php endif; ?>
+                </div>
+                <?php if ($mainReimb['status'] === 'FAILED' && !empty($mainReimb['notes'])): ?>
+                    <div class="text-danger small mt-1">
+                        <strong>Alasan Kegagalan:</strong> <?= View::e($mainReimb['notes']) ?>
+                    </div>
+                <?php endif; ?>
+            </div>
+            <?php if (in_array(Auth::role(), ['FINANCE', 'ADMIN'], true) || Auth::hasPermission('expense.reimburse')): ?>
+                <div>
+                    <a href="<?= Url::to('/reimbursements') ?>" class="btn btn-sm btn-outline-primary">
+                        Kelola di Antrean Reimbursement
+                    </a>
+                </div>
+            <?php endif; ?>
+        </div>
+    </div>
+<?php endif; ?>
+
 <!-- Summary & Metadata Cards -->
 <div class="row g-3 mb-4">
     <div class="col-md-8">
@@ -202,12 +240,8 @@ $isPosted = in_array($report['status'], ['POSTED', 'REIMBURSEMENT_PENDING', 'PAI
                     <th>Nama Karyawan</th>
                     <th>NIK / No. Karyawan</th>
                     <th>Divisi / Departemen</th>
-                    <th>Rekening Bank</th>
                     <th class="text-center">Jml Transaksi</th>
                     <th class="text-end">Subtotal Nominal</th>
-                    <?php if ($isPosted): ?>
-                        <th>Status Reimbursement</th>
-                    <?php endif; ?>
                     <?php if ($canEdit): ?>
                         <th class="text-end">Aksi Transaksi</th>
                     <?php endif; ?>
@@ -216,7 +250,7 @@ $isPosted = in_array($report['status'], ['POSTED', 'REIMBURSEMENT_PENDING', 'PAI
             <tbody>
                 <?php if (empty($reportEmployees)): ?>
                     <tr>
-                        <td colspan="<?= ($isPosted ? 8 : 7) + ($canEdit ? 1 : 0) ?>" class="text-center py-4 text-muted">
+                        <td colspan="<?= 6 + ($canEdit ? 1 : 0) ?>" class="text-center py-4 text-muted">
                             Belum ada karyawan yang ditambahkan ke laporan ini. Silakan pilih minimal 1 karyawan.
                         </td>
                     </tr>
@@ -229,27 +263,12 @@ $isPosted = in_array($report['status'], ['POSTED', 'REIMBURSEMENT_PENDING', 'PAI
                             </td>
                             <td><code><?= View::e($repEmp['employee_number_snapshot']) ?></code></td>
                             <td><span class="badge bg-secondary"><?= View::e($repEmp['department_name_snapshot'] ?? 'Umum') ?></span></td>
-                            <td class="small text-muted">
-                                <?= !empty($repEmp['bank_name']) ? View::e($repEmp['bank_name'] . ' - ' . $repEmp['bank_account']) : '<span class="text-muted">-</span>' ?>
-                            </td>
                             <td class="text-center">
                                 <span class="badge bg-light text-dark border"><?= (int) $repEmp['item_count'] ?> item</span>
                             </td>
                             <td class="text-end fw-bold text-primary">
                                 <?= View::formatRupiah($repEmp['subtotal_amount']) ?>
                             </td>
-                            <?php if ($isPosted): ?>
-                                <td>
-                                    <?php if (!empty($repEmp['reimbursement_status'])): ?>
-                                        <?= View::statusBadge($repEmp['reimbursement_status']) ?>
-                                        <div class="small text-muted">
-                                            Dibayar: <?= View::formatRupiah($repEmp['paid_amount'] ?? 0) ?>
-                                        </div>
-                                    <?php else: ?>
-                                        <span class="badge bg-secondary">Pending</span>
-                                    <?php endif; ?>
-                                </td>
-                            <?php endif; ?>
                             <?php if ($canEdit): ?>
                                 <td class="text-end">
                                     <div class="d-inline-flex gap-1">

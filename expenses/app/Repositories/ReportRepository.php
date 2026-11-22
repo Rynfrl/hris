@@ -47,7 +47,7 @@ class ReportRepository
         $pdo = Database::pdo();
         $stmt = $pdo->prepare('
             SELECT ere.*,
-                   emp.bank_name, emp.bank_account, emp.email, emp.position,
+                   emp.email, emp.position,
                    (
                        SELECT COUNT(*) 
                        FROM expense_report_items eri 
@@ -58,14 +58,9 @@ class ReportRepository
                        FROM expense_report_items eri
                        JOIN expenses exp ON exp.expense_id = eri.expense_id
                        WHERE eri.report_employee_id = ere.report_employee_id
-                   ) as subtotal_amount,
-                   rem.reimbursement_id,
-                   rem.amount as approved_amount,
-                   (CASE WHEN rem.status = "PAID" THEN rem.amount ELSE 0.00 END) as paid_amount,
-                   rem.status as reimbursement_status
+                   ) as subtotal_amount
             FROM expense_report_employees ere
             LEFT JOIN employees emp ON emp.employee_id = ere.employee_id
-            LEFT JOIN reimbursements rem ON rem.report_id = ere.report_id
             WHERE ere.report_id = :report_id
             ORDER BY ere.report_employee_id ASC
         ');
@@ -486,6 +481,99 @@ class ReportRepository
     public function getHistory(int $reportId): array
     {
         return $this->getApprovalHistory($reportId);
+    }
+
+    public function getApprovalEventsHistory(array $filters = [], int $page = 1, int $perPage = 20): array
+    {
+        $pdo = Database::pdo();
+        $conditions = [];
+        $params = [];
+
+        // Scope to decision actions typically made by managers / workflow
+        if (!empty($filters['action'])) {
+            $conditions[] = 'a.action = :action';
+            $params['action'] = strtoupper((string) $filters['action']);
+        } else {
+            $conditions[] = 'a.action IN ("APPROVED", "REFUSED", "REVISED", "SUBMITTED", "FAILED", "RETRY", "PAID")';
+        }
+
+        if (!empty($filters['search'])) {
+            $conditions[] = '(
+                r.report_number LIKE :search1 
+                OR r.title LIKE :search2 
+                OR a.comment LIKE :search3 
+                OR u_app.username LIKE :search4 
+                OR emp_app.full_name LIKE :search5
+                OR emp_cre.full_name LIKE :search6
+            )';
+            $searchTerm = '%' . trim((string) $filters['search']) . '%';
+            for ($i = 1; $i <= 6; $i++) {
+                $params["search{$i}"] = $searchTerm;
+            }
+        }
+
+        if (!empty($filters['start_date'])) {
+            $conditions[] = 'DATE(a.created_at) >= :start_date';
+            $params['start_date'] = $filters['start_date'];
+        }
+
+        if (!empty($filters['end_date'])) {
+            $conditions[] = 'DATE(a.created_at) <= :end_date';
+            $params['end_date'] = $filters['end_date'];
+        }
+
+        $whereClause = !empty($conditions) ? 'WHERE ' . implode(' AND ', $conditions) : '';
+
+        // Count total
+        $countSql = "
+            SELECT COUNT(*) 
+            FROM expense_approvals a
+            JOIN expense_reports r ON r.report_id = a.report_id
+            JOIN users u_app ON u_app.user_id = a.approver_id
+            LEFT JOIN employees emp_app ON emp_app.employee_id = u_app.employee_id
+            JOIN users u_cre ON u_cre.user_id = r.created_by
+            LEFT JOIN employees emp_cre ON emp_cre.employee_id = u_cre.employee_id
+            {$whereClause}
+        ";
+        $stmtCount = $pdo->prepare($countSql);
+        $stmtCount->execute($params);
+        $total = (int) $stmtCount->fetchColumn();
+
+        $offset = max(0, ($page - 1) * $perPage);
+        $sql = "
+            SELECT a.approval_id, a.report_id, a.action, a.comment, a.created_at as decided_at,
+                   r.report_number, r.title as report_title, r.total_amount, r.status as current_report_status,
+                   r.start_date, r.end_date, r.created_at as report_created_at,
+                   u_app.username as approver_username, emp_app.full_name as approver_name,
+                   u_cre.username as creator_username, emp_cre.full_name as creator_name,
+                   (SELECT COUNT(*) FROM expense_report_employees WHERE report_id = r.report_id) as employee_count,
+                   (SELECT COUNT(*) FROM expense_report_items WHERE report_id = r.report_id) as item_count
+            FROM expense_approvals a
+            JOIN expense_reports r ON r.report_id = a.report_id
+            JOIN users u_app ON u_app.user_id = a.approver_id
+            LEFT JOIN employees emp_app ON emp_app.employee_id = u_app.employee_id
+            JOIN users u_cre ON u_cre.user_id = r.created_by
+            LEFT JOIN employees emp_cre ON emp_cre.employee_id = u_cre.employee_id
+            {$whereClause}
+            ORDER BY a.approval_id DESC
+            LIMIT :limit OFFSET :offset
+        ";
+        $stmt = $pdo->prepare($sql);
+        foreach ($params as $k => $v) {
+            $stmt->bindValue($k, $v);
+        }
+        $stmt->bindValue('limit', $perPage, \PDO::PARAM_INT);
+        $stmt->bindValue('offset', $offset, \PDO::PARAM_INT);
+        $stmt->execute();
+        $data = $stmt->fetchAll();
+
+        return [
+            'data' => $data,
+            'total' => $total,
+            'page' => $page,
+            'per_page' => $perPage,
+            'total_pages' => $total > 0 ? (int) ceil($total / $perPage) : 1,
+        ];
     }
 
     public function getComments(int $reportId): array

@@ -43,10 +43,10 @@ class ReimbursementController
         $filters = [];
 
         $statusParam = !empty($_GET['status']) ? strtoupper(trim((string)$_GET['status'])) : '';
-        if ($statusParam === 'PROCESSING' || $statusParam === 'PENDING') {
+        if (in_array($statusParam, ['PENDING', 'PROCESSING', 'FAILED'], true)) {
             $filters['status'] = $statusParam;
         } else {
-            $filters['status_in'] = ['PENDING', 'PROCESSING'];
+            $filters['status_in'] = ['PENDING', 'PROCESSING', 'FAILED'];
         }
 
         if (!empty($_GET['search'])) {
@@ -130,8 +130,8 @@ class ReimbursementController
         }
 
         // Amount must be the approved total amount of the report
-        $approvedAmount = (float) ($reimb['approved_amount'] ?? $reimb['amount'] ?? 0);
-        $payAmount = !empty($_POST['amount']) ? (float) $_POST['amount'] : $approvedAmount;
+        $approvedAmount = (string) ($reimb['approved_amount'] ?? $reimb['amount'] ?? '0.00');
+        $payAmount = !empty($_POST['amount']) ? (string) $_POST['amount'] : $approvedAmount;
 
         $paymentData = [
             'amount' => $payAmount,
@@ -141,7 +141,7 @@ class ReimbursementController
             'account_holder' => trim($_POST['account_holder'] ?? ''),
             'payment_number' => !empty($_POST['payment_number']) ? trim($_POST['payment_number']) : null,
             'payment_method' => $_POST['payment_method'] ?? 'BANK_TRANSFER',
-            'bank_reference' => trim($_POST['bank_reference'] ?? ''),
+            'bank_reference' => trim($_POST['bank_reference'] ?? $_POST['payment_reference'] ?? ''),
             'payment_date' => !empty($_POST['payment_date']) ? $_POST['payment_date'] : date('Y-m-d'),
             'notes' => trim($_POST['notes'] ?? ''),
         ];
@@ -149,7 +149,28 @@ class ReimbursementController
         try {
             $proofFile = isset($_FILES['proof']) ? $_FILES['proof'] : null;
             $this->workflowService->recordReimbursementPayment($reimbId, $paymentData, $user, $proofFile);
-            Flash::success(sprintf('Pembayaran reimbursement satu laporan penuh sebesar Rp %s berhasil diselesaikan (LUNAS)!', number_format($approvedAmount, 0, ',', '.')));
+            Flash::success(sprintf('Pembayaran reimbursement satu laporan penuh sebesar Rp %s berhasil diselesaikan (LUNAS)!', number_format((float) $approvedAmount, 0, ',', '.')));
+        } catch (Throwable $e) {
+            Flash::error($e->getMessage());
+        }
+
+        Url::redirect('/reimbursements');
+    }
+
+    public function retryPayment(string|int $id): void
+    {
+        $reimbId = (int) $id;
+        $user = Auth::user();
+        $role = $user['role_name'] ?? '';
+
+        if ($role !== 'FINANCE' && !Auth::hasPermission('expense.reimburse')) {
+            Flash::error('Akses ditolak.');
+            Url::redirect('/reimbursements');
+        }
+
+        try {
+            $this->workflowService->retryReimbursement($reimbId, $user);
+            Flash::success('Reimbursement yang gagal berhasil dikembalikan ke antrean transfer (PROCESSING) untuk dicairkan ulang.');
         } catch (Throwable $e) {
             Flash::error($e->getMessage());
         }
@@ -174,10 +195,11 @@ class ReimbursementController
         }
 
         $reason = trim($_POST['reason'] ?? 'Pembayaran gagal');
+        $paymentRef = trim($_POST['payment_reference'] ?? $_POST['bank_reference'] ?? '');
 
         try {
-            $this->workflowService->markFailed($reimbId, $reason, $user);
-            Flash::warning('Status reimbursement ditandai GAGAL.');
+            $this->workflowService->markFailed($reimbId, $reason, $user, $paymentRef ?: null);
+            Flash::warning('Status reimbursement telah ditandai GAGAL.');
         } catch (Throwable $e) {
             Flash::error($e->getMessage());
         }

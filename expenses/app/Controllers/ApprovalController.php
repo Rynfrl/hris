@@ -45,32 +45,45 @@ class ApprovalController
 
         $statusFilter = !empty($_GET['status']) ? strtoupper(trim((string)$_GET['status'])) : 'SUBMITTED';
         $userId = (int) ($user['user_id'] ?? 0);
-        $filters = [];
-        if ($statusFilter === 'HISTORY') {
-            $filters['status_in'] = ['APPROVED', 'REFUSED', 'POSTED', 'REIMBURSEMENT_PENDING', 'PAID'];
-        } elseif ($statusFilter !== 'ALL') {
-            $filters['status'] = $statusFilter;
-        }
-
-        // Anti self-approval: Manager cannot approve reports created by themselves
-        if ($statusFilter === 'SUBMITTED') {
-            $filters['exclude_created_by'] = $userId;
-        }
-
         $page = max(1, (int) ($_GET['page'] ?? 1));
         $perPage = max(10, min(100, (int) ($_GET['per_page'] ?? 20)));
 
-        $data = $this->reportRepo->getReports($filters, $page, $perPage);
-        $reports = $data['items'];
+        $filters = [
+            'search' => trim((string) ($_GET['search'] ?? '')),
+            'start_date' => trim((string) ($_GET['start_date'] ?? '')),
+            'end_date' => trim((string) ($_GET['end_date'] ?? '')),
+        ];
+
+        if ($statusFilter === 'HISTORY') {
+            // Event-based approval history from expense_approvals (Perbaikan 7)
+            if (!empty($_GET['action'])) {
+                $filters['action'] = trim((string) $_GET['action']);
+            }
+            $data = $this->reportRepo->getApprovalEventsHistory($filters, $page, $perPage);
+            $reports = $data['data'];
+            $total = $data['total'];
+            $totalPages = $data['total_pages'];
+        } else {
+            // Pending queue: SUBMITTED reports awaiting manager decision
+            $reportFilters = array_merge($filters, [
+                'status' => 'SUBMITTED',
+                'exclude_created_by' => $userId, // Anti self-approval
+            ]);
+            $data = $this->reportRepo->getReports($reportFilters, $page, $perPage);
+            $reports = $data['items'];
+            $total = $data['total'];
+            $totalPages = $data['total_pages'];
+        }
 
         return View::render('approvals/index', [
-            'title' => 'Persetujuan Laporan Pengeluaran (Manager)',
+            'title' => ($statusFilter === 'HISTORY') ? 'Riwayat Keputusan Persetujuan' : 'Antrean Persetujuan Laporan',
             'reports' => $reports,
-            'total' => $data['total'],
-            'page' => $data['page'],
-            'totalPages' => $data['total_pages'],
+            'total' => $total,
+            'page' => $page,
+            'totalPages' => $totalPages,
             'perPage' => $perPage,
             'currentStatus' => $statusFilter,
+            'filters' => $filters,
             'user' => $user,
         ]);
     }
