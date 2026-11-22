@@ -218,31 +218,6 @@ class ReimbursementRepository
             $reimbId = (int) $stmtFind->fetchColumn();
         }
 
-        // Keep expense_reimbursements synchronized with single consolidated record
-        try {
-            $syncStmt = $pdo->prepare('
-                INSERT INTO expense_reimbursements (
-                    reimbursement_id, report_id, report_employee_id, employee_id, approved_amount, paid_amount, status, notes
-                ) VALUES (
-                    :reimb_id, :report_id, 0, COALESCE(:employee_id, 0), :amount, 0.00, :status, :notes
-                )
-                ON DUPLICATE KEY UPDATE
-                    approved_amount = VALUES(approved_amount),
-                    status = VALUES(status),
-                    notes = VALUES(notes)
-            ');
-            $syncStmt->execute([
-                'reimb_id' => $reimbId,
-                'report_id' => $reportId,
-                'employee_id' => $employeeId,
-                'amount' => $amount,
-                'status' => $status,
-                'notes' => $notes,
-            ]);
-        } catch (\Throwable) {
-            // Ignore if expense_reimbursements has extra constraints
-        }
-
         return $reimbId;
     }
 
@@ -253,49 +228,59 @@ class ReimbursementRepository
 
     public function recordPayment(int $reimbursementId, array $data, int $paidBy): int
     {
-        $pdo = Database::pdo();
-        $reimb = $this->findById($reimbursementId, true);
-        if (!$reimb) {
-            throw new RuntimeException('Data reimbursement tidak ditemukan.');
-        }
+        return Database::transaction(function (PDO $pdo) use ($reimbursementId, $data, $paidBy) {
+            // Row lock on reimbursements
+            $stmtFind = $pdo->prepare('
+                SELECT r.*, rep.report_number, rep.total_amount as report_total, rep.status as report_status,
+                       COALESCE(emp.full_name, r.recipient_name, "Kas Operasional") as fallback_recipient
+                FROM reimbursements r
+                JOIN expense_reports rep ON rep.report_id = r.report_id
+                LEFT JOIN employees emp ON emp.employee_id = r.employee_id
+                WHERE r.reimbursement_id = :id
+                FOR UPDATE
+            ');
+            $stmtFind->execute(['id' => $reimbursementId]);
+            $reimb = $stmtFind->fetch();
 
-        if ($reimb['status'] === 'PAID') {
-            throw new RuntimeException('Laporan reimbursement ini sudah dibayar penuh (PAID) dan tidak dapat dibayar ulang.');
-        }
+            if (!$reimb) {
+                throw new RuntimeException('Data reimbursement tidak ditemukan.');
+            }
 
-        $approvedAmount = (float) $reimb['approved_amount'];
-        $payAmount = round((float) ($data['amount'] ?? $approvedAmount), 2);
+            if ($reimb['status'] === 'PAID') {
+                throw new RuntimeException('Laporan reimbursement ini sudah dibayar penuh (PAID) dan tidak dapat dibayar ulang.');
+            }
 
-        if ($payAmount <= 0) {
-            throw new InvalidArgumentException('Nominal pembayaran harus lebih besar dari 0.');
-        }
+            $approvedAmount = (float) $reimb['amount'];
+            $payAmount = round((float) ($data['amount'] ?? $approvedAmount), 2);
 
-        // Business Rule: One Report = One Reimbursement = One FULL Payment. No partial payments allowed.
-        if (abs($payAmount - $approvedAmount) > 0.01) {
-            throw new InvalidArgumentException(sprintf(
-                'Pembayaran harus satu kali penuh sebesar total laporan (Rp %s). Pembayaran parsial tidak didukung.',
-                number_format($approvedAmount, 0, ',', '.')
-            ));
-        }
+            if ($payAmount <= 0) {
+                throw new InvalidArgumentException('Nominal pembayaran harus lebih besar dari 0.');
+            }
 
-        $recipientName = trim((string) ($data['recipient_name'] ?? ''));
-        if ($recipientName === '') {
-            $recipientName = $reimb['employee_name'] ?? 'Kas Operasional';
-        }
+            // Business Rule: One Report = One Reimbursement = One FULL Payment. No partial payments allowed.
+            if (abs($payAmount - $approvedAmount) > 0.001) {
+                throw new InvalidArgumentException(sprintf(
+                    'Pembayaran harus satu kali penuh sebesar total laporan (Rp %s). Pembayaran parsial tidak didukung.',
+                    number_format($approvedAmount, 0, ',', '.')
+                ));
+            }
 
-        $paymentNumber = !empty($data['payment_number']) ? trim($data['payment_number']) : $this->generatePaymentNumber();
-        $paymentDate = !empty($data['payment_date']) ? $data['payment_date'] : date('Y-m-d');
-        $paymentMethod = $data['payment_method'] ?? 'BANK_TRANSFER';
-        $bankName = !empty($data['bank_name']) ? trim($data['bank_name']) : ($reimb['bank_name'] ?? 'Bank Transfer');
-        $bankRef = !empty($data['bank_reference']) ? trim($data['bank_reference']) : (!empty($data['payment_reference']) ? trim($data['payment_reference']) : $paymentNumber);
-        $accountNumber = !empty($data['account_number']) ? trim($data['account_number']) : ($reimb['account_number'] ?? '-');
-        $accountHolder = !empty($data['account_holder']) ? trim($data['account_holder']) : ($reimb['account_holder'] ?? $recipientName);
-        $proofPath = !empty($data['proof_path']) ? $data['proof_path'] : null;
-        $notes = !empty($data['notes']) ? trim($data['notes']) : null;
+            $recipientName = trim((string) ($data['recipient_name'] ?? ''));
+            if ($recipientName === '') {
+                $recipientName = $reimb['fallback_recipient'] ?? 'Kas Operasional';
+            }
 
-        // 1. Insert into expense_reimbursement_payments if parent exists in expense_reimbursements
-        $paymentId = $reimbursementId;
-        try {
+            $paymentNumber = !empty($data['payment_number']) ? trim($data['payment_number']) : $this->generatePaymentNumber();
+            $paymentDate = !empty($data['payment_date']) ? $data['payment_date'] : date('Y-m-d');
+            $paymentMethod = $data['payment_method'] ?? 'BANK_TRANSFER';
+            $bankName = !empty($data['bank_name']) ? trim($data['bank_name']) : ($reimb['bank_name'] ?? 'Bank Transfer');
+            $bankRef = !empty($data['bank_reference']) ? trim($data['bank_reference']) : (!empty($data['payment_reference']) ? trim($data['payment_reference']) : $paymentNumber);
+            $accountNumber = !empty($data['account_number']) ? trim($data['account_number']) : ($reimb['account_number'] ?? '-');
+            $accountHolder = !empty($data['account_holder']) ? trim($data['account_holder']) : ($reimb['account_holder'] ?? $recipientName);
+            $proofPath = !empty($data['proof_path']) ? $data['proof_path'] : null;
+            $notes = !empty($data['notes']) ? trim($data['notes']) : null;
+
+            // 1. Insert into expense_reimbursement_payments history table (enforce integrity, no swallowed errors)
             $stmtPay = $pdo->prepare('
                 INSERT INTO expense_reimbursement_payments (
                     reimbursement_id, payment_number, payment_date, amount, payment_method, bank_name, bank_reference, proof_path, paid_by, notes
@@ -303,7 +288,7 @@ class ReimbursementRepository
                     :reimbursement_id, :payment_number, :payment_date, :amount, :payment_method, :bank_name, :bank_reference, :proof_path, :paid_by, :notes
                 )
             ');
-            $stmtPay->execute([
+            $executed = $stmtPay->execute([
                 'reimbursement_id' => $reimbursementId,
                 'payment_number' => $paymentNumber,
                 'payment_date' => $paymentDate,
@@ -315,65 +300,48 @@ class ReimbursementRepository
                 'paid_by' => $paidBy,
                 'notes' => $notes,
             ]);
-            $paymentId = (int) $pdo->lastInsertId();
-        } catch (\Throwable) {
-            // reimbursements table is the authoritative single-reimbursement store
-        }
 
-        // 2. Update reimbursements table with recipient details and PAID status
-        $stmtUp = $pdo->prepare('
-            UPDATE reimbursements
-            SET amount = :amount,
-                recipient_name = :recipient_name,
-                bank_name = :bank_name,
-                account_number = :account_number,
-                account_holder = :account_holder,
-                payment_method = :payment_method,
-                payment_reference = :payment_reference,
-                payment_date = :payment_date,
-                proof_path = :proof_path,
-                notes = :notes,
-                status = "PAID",
-                processed_by = :processed_by,
-                processed_at = NOW(),
-                updated_at = NOW()
-            WHERE reimbursement_id = :id
-        ');
-        $stmtUp->execute([
-            'amount' => $payAmount,
-            'recipient_name' => $recipientName,
-            'bank_name' => $bankName,
-            'account_number' => $accountNumber,
-            'account_holder' => $accountHolder,
-            'payment_method' => $paymentMethod,
-            'payment_reference' => $bankRef,
-            'payment_date' => $paymentDate,
-            'proof_path' => $proofPath,
-            'notes' => $notes,
-            'processed_by' => $paidBy,
-            'id' => $reimbursementId,
-        ]);
+            if (!$executed) {
+                throw new RuntimeException('Gagal menyimpan riwayat pembayaran reimbursement ke database.');
+            }
+            $paymentHistoryId = (int) $pdo->lastInsertId();
 
-        // 3. Keep expense_reimbursements synced
-        try {
-            $stmtSync = $pdo->prepare('
-                UPDATE expense_reimbursements
-                SET approved_amount = :amount,
-                    paid_amount = :amount,
+            // 2. Update reimbursements table with recipient details and PAID status
+            $stmtUp = $pdo->prepare('
+                UPDATE reimbursements
+                SET amount = :amount,
+                    recipient_name = :recipient_name,
+                    bank_name = :bank_name,
+                    account_number = :account_number,
+                    account_holder = :account_holder,
+                    payment_method = :payment_method,
+                    payment_reference = :payment_reference,
+                    payment_date = :payment_date,
+                    proof_path = :proof_path,
+                    notes = :notes,
                     status = "PAID",
+                    processed_by = :processed_by,
+                    processed_at = NOW(),
                     updated_at = NOW()
-                WHERE reimbursement_id = :id OR report_id = :report_id
+                WHERE reimbursement_id = :id
             ');
-            $stmtSync->execute([
+            $stmtUp->execute([
                 'amount' => $payAmount,
+                'recipient_name' => $recipientName,
+                'bank_name' => $bankName,
+                'account_number' => $accountNumber,
+                'account_holder' => $accountHolder,
+                'payment_method' => $paymentMethod,
+                'payment_reference' => $bankRef,
+                'payment_date' => $paymentDate,
+                'proof_path' => $proofPath,
+                'notes' => $notes,
+                'processed_by' => $paidBy,
                 'id' => $reimbursementId,
-                'report_id' => (int) $reimb['report_id'],
             ]);
-        } catch (\Throwable) {
-            // Ignore
-        }
 
-        return $paymentId;
+            return $paymentHistoryId ?: $reimbursementId;
+        });
     }
 
     public function getPayments(int $reimbursementId): array

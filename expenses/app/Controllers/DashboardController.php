@@ -20,6 +20,14 @@ class DashboardController
     public function index(): string
     {
         $user = Auth::user();
+        $role = $user['role_name'] ?? 'EMPLOYEE';
+
+        // Employee has no access to operational expense menus
+        if ($role === 'EMPLOYEE' || (!in_array($role, ['ADMIN', 'Admin_HR', 'ADMIN_EXPENSE', 'MANAGER', 'FINANCE'], true) && !in_array('expenses.manage', $user['permissions'] ?? []))) {
+            http_response_code(403);
+            return View::render('errors/403', ['title' => 'Akses Ditolak'], 'layouts/error');
+        }
+
         $metrics = $this->dashboardService->getMetrics($user);
 
         return View::render('dashboard/index', [

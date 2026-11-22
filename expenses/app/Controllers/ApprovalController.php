@@ -44,11 +44,17 @@ class ApprovalController
         }
 
         $statusFilter = !empty($_GET['status']) ? strtoupper(trim((string)$_GET['status'])) : 'SUBMITTED';
+        $userId = (int) ($user['user_id'] ?? 0);
         $filters = [];
         if ($statusFilter === 'HISTORY') {
             $filters['status_in'] = ['APPROVED', 'REFUSED', 'POSTED', 'REIMBURSEMENT_PENDING', 'PAID'];
         } elseif ($statusFilter !== 'ALL') {
             $filters['status'] = $statusFilter;
+        }
+
+        // Anti self-approval: Manager cannot approve reports created by themselves
+        if ($statusFilter === 'SUBMITTED') {
+            $filters['exclude_created_by'] = $userId;
         }
 
         $data = $this->reportRepo->getReports($filters, 1, 100);

@@ -41,7 +41,12 @@ class ExpenseController
     {
         $user = Auth::user();
         $role = $user['role_name'] ?? 'EMPLOYEE';
-        $empId = !empty($user['employee_id']) ? (int) $user['employee_id'] : null;
+
+        // Employee has no access to operational expense menus
+        if ($role === 'EMPLOYEE' || (!in_array($role, ['ADMIN', 'Admin_HR', 'ADMIN_EXPENSE', 'MANAGER', 'FINANCE'], true) && !in_array('expenses.manage', $user['permissions'] ?? []))) {
+            http_response_code(403);
+            return View::render('errors/403', ['title' => 'Akses Ditolak'], 'layouts/error');
+        }
 
         $filters = [
             'status' => $_GET['status'] ?? null,
@@ -53,24 +58,12 @@ class ExpenseController
             'order' => $_GET['order'] ?? 'DESC',
         ];
 
-        // Scope filter
-        if ($role === 'EMPLOYEE' || ($role !== 'ADMIN' && $role !== 'FINANCE' && $role !== 'MANAGER')) {
-            $filters['employee_id'] = $empId ?? -1;
-        } elseif ($role === 'MANAGER') {
-            $directReports = $this->employeeRepo->getDirectReports($empId ?? 0);
-            $empIds = array_column($directReports, 'employee_id');
-            if ($empId) {
-                $empIds[] = $empId; // include manager's own expenses
-            }
-            $filters['employee_ids'] = $empIds;
-        }
-
         $page = max(1, (int) ($_GET['page'] ?? 1));
         $data = $this->expenseRepo->getExpenses($filters, $page, 20);
         $categories = $this->categoryRepo->getAll(true);
 
         return View::render('expenses/index', [
-            'title' => 'Pengeluaran Saya',
+            'title' => ($role === 'MANAGER' ? 'Pengeluaran Tim' : 'Pengeluaran'),
             'expenses' => $data['items'],
             'total' => $data['total'],
             'page' => $data['page'],
@@ -83,68 +76,14 @@ class ExpenseController
 
     public function create(): string
     {
-        $user = Auth::user();
-        if (!$this->authService->canCreateExpense($user)) {
-            Flash::error('Peran Manajer tidak memiliki hak akses untuk menambah pengeluaran.');
-            Url::redirect('/expenses');
-        }
-
-        if (empty($user['employee_id'])) {
-            Flash::error('Akun Anda belum terhubung dengan data karyawan. Harap hubungi administrator.');
-            Url::redirect('/dashboard');
-        }
-
-        $categories = $this->categoryRepo->getAll(true);
-        $employee = $this->employeeRepo->findById((int) $user['employee_id']);
-        $defaultBank = $employee['bank_name'] ?? null;
-        $bankAccount = $employee['bank_account'] ?? null;
-
-        $banks = [
-            'BCA' => 'Bank Central Asia (BCA)',
-            'MANDIRI' => 'Bank Mandiri',
-            'BNI' => 'Bank Negara Indonesia (BNI)',
-            'BRI' => 'Bank Rakyat Indonesia (BRI)',
-            'BSI' => 'Bank Syariah Indonesia (BSI)',
-            'CIMB' => 'CIMB Niaga',
-            'PERMATA' => 'Bank Permata',
-            'DANAMON' => 'Bank Danamon',
-            'JAGO' => 'Bank Jago',
-            'BTPN' => 'Bank BTPN / Jenius',
-            'OTHER' => 'Bank Lainnya',
-        ];
-
-        return View::render('expenses/create', [
-            'title' => 'Catat Pengeluaran Baru',
-            'categories' => $categories,
-            'user' => $user,
-            'banks' => $banks,
-            'defaultBank' => $defaultBank,
-            'bankAccount' => $bankAccount,
-        ]);
+        Flash::info('Pencatatan pengeluaran baru dilakukan melalui Laporan Gabungan. Silakan buat laporan baru.');
+        Url::redirect('/reports/create');
     }
 
     public function store(): void
     {
-        $user = Auth::user();
-        if (!$this->authService->canCreateExpense($user)) {
-            Flash::error('Peran Manajer tidak memiliki hak akses untuk menambah pengeluaran.');
-            Url::redirect('/expenses');
-        }
-
-        try {
-            $expenseId = $this->expenseService->createExpense($_POST, $user);
-
-            // Check if receipt file was also submitted
-            if (!empty($_FILES['receipt']['name']) && $_FILES['receipt']['error'] === UPLOAD_ERR_OK) {
-                $this->expenseService->uploadReceipt($expenseId, $_FILES['receipt'], $user);
-            }
-
-            Flash::success('Pengeluaran berhasil disimpan sebagai draft.');
-            Url::redirect('/expenses/' . $expenseId);
-        } catch (Throwable $e) {
-            Flash::error($e->getMessage());
-            Url::redirect('/expenses/create');
-        }
+        Flash::error('Pencatatan pengeluaran individual telah dinonaktifkan. Seluruh pengeluaran baru harus dibuat melalui Laporan Gabungan.');
+        Url::redirect('/reports/create');
     }
 
     public function show(string|int $id): string

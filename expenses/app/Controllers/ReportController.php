@@ -54,7 +54,12 @@ class ReportController
     {
         $user = Auth::user();
         $role = $user['role_name'] ?? 'EMPLOYEE';
-        $empId = !empty($user['employee_id']) ? (int) $user['employee_id'] : null;
+
+        // Employee has no access to operational expense menus
+        if ($role === 'EMPLOYEE' || (!in_array($role, ['ADMIN', 'Admin_HR', 'ADMIN_EXPENSE', 'MANAGER', 'FINANCE'], true) && !in_array('expenses.manage', $user['permissions'] ?? []))) {
+            http_response_code(403);
+            return View::render('errors/403', ['title' => 'Akses Ditolak'], 'layouts/error');
+        }
 
         $filters = [
             'status' => $_GET['status'] ?? null,
@@ -64,18 +69,6 @@ class ReportController
             'sort' => $_GET['sort'] ?? 'created_at',
             'order' => $_GET['order'] ?? 'DESC',
         ];
-
-        // Scope filter
-        if ($role === 'EMPLOYEE' || ($role !== 'ADMIN' && $role !== 'FINANCE' && $role !== 'MANAGER' && $role !== 'Admin_HR' && $role !== 'ADMIN_EXPENSE')) {
-            $filters['employee_id'] = $empId ?? -1;
-        } elseif ($role === 'MANAGER') {
-            $directReports = $this->employeeRepo->getDirectReports($empId ?? 0);
-            $empIds = array_column($directReports, 'employee_id');
-            if ($empId) {
-                $empIds[] = $empId;
-            }
-            $filters['employee_ids'] = $empIds;
-        }
 
         $page = max(1, (int) ($_GET['page'] ?? 1));
         $data = $this->reportRepo->getReports($filters, $page, 20);

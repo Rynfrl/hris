@@ -20,56 +20,7 @@ $suggestedPayNumber = $suggestedPayNumber ?? ('PAY-' . date('Ym') . '-0001');
     </div>
 </div>
 
-<!-- 1. Posted Reports ready to enter reimbursement queue -->
-<?php if (!empty($postedReports)): ?>
-    <div class="card card-gt mb-4 border-warning">
-        <div class="card-header bg-warning bg-opacity-10 border-bottom py-3">
-            <h5 class="card-title h6 fw-bold mb-0 text-dark">Laporan Selesai Dibukukan (Siap Masuk Antrean Reimbursement)</h5>
-        </div>
-        <div class="table-responsive">
-            <table class="table table-hover table-gt mb-0 align-middle">
-                <thead>
-                    <tr>
-                        <th>No. Laporan</th>
-                        <th>Judul Laporan</th>
-                        <th>Karyawan Terlibat</th>
-                        <th>Total Nominal</th>
-                        <th class="text-end">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($postedReports as $rep): ?>
-                        <?php
-                            $empCount = (int) ($rep['employee_count'] ?? 0);
-                            $empSummary = !empty($rep['employees_summary']) ? $rep['employees_summary'] : ($rep['employee_name'] ?? '-');
-                        ?>
-                        <tr>
-                            <td>
-                                <a href="/reports/<?= (int) $rep['report_id'] ?>" class="fw-semibold text-primary text-decoration-none">
-                                    <?= View::e($rep['report_number']) ?>
-                                </a>
-                            </td>
-                            <td><?= View::e($rep['title']) ?></td>
-                            <td>
-                                <span class="badge bg-primary rounded-pill me-1"><?= $empCount ?: 1 ?> Karyawan</span>
-                                <small class="text-muted"><?= View::e($empSummary) ?></small>
-                            </td>
-                            <td><strong><?= View::formatRupiah($rep['total_amount']) ?></strong></td>
-                            <td class="text-end">
-                                <form action="/reports/<?= (int) $rep['report_id'] ?>/reimbursement" method="POST" class="d-inline">
-                                    <?= Csrf::field() ?>
-                                    <button type="submit" class="btn btn-sm btn-primary">Masukkan Antrean Bayar</button>
-                                </form>
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-        </div>
-    </div>
-<?php endif; ?>
-
-<!-- 2. Active Reimbursements Waiting for Full Payment -->
+<!-- Active Reimbursements Waiting for Full Payment -->
 <div class="card card-gt">
     <div class="card-header bg-white border-bottom py-3">
         <h5 class="card-title h6 fw-bold mb-0">Daftar Antrean Pembayaran Reimbursement Satu Laporan Penuh</h5>

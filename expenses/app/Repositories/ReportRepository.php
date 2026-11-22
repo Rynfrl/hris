@@ -59,10 +59,13 @@ class ReportRepository
                        JOIN expenses exp ON exp.expense_id = eri.expense_id
                        WHERE eri.report_employee_id = ere.report_employee_id
                    ) as subtotal_amount,
-                   er.reimbursement_id, er.approved_amount, er.paid_amount, er.status as reimbursement_status
+                   rem.reimbursement_id,
+                   rem.amount as approved_amount,
+                   (CASE WHEN rem.status = "PAID" THEN rem.amount ELSE 0.00 END) as paid_amount,
+                   rem.status as reimbursement_status
             FROM expense_report_employees ere
             LEFT JOIN employees emp ON emp.employee_id = ere.employee_id
-            LEFT JOIN expense_reimbursements er ON er.report_employee_id = ere.report_employee_id
+            LEFT JOIN reimbursements rem ON rem.report_id = ere.report_id
             WHERE ere.report_id = :report_id
             ORDER BY ere.report_employee_id ASC
         ');
@@ -225,9 +228,29 @@ class ReportRepository
             }
         }
 
-        if (!empty($filters['status'])) {
+        if (!empty($filters['status_in']) && is_array($filters['status_in'])) {
+            $stPlaceholders = [];
+            foreach ($filters['status_in'] as $idx => $st) {
+                $key = 'st_in_' . $idx;
+                $stPlaceholders[] = ':' . $key;
+                $params[$key] = strtoupper($st);
+            }
+            if (!empty($stPlaceholders)) {
+                $where[] = 'r.status IN (' . implode(',', $stPlaceholders) . ')';
+            }
+        } elseif (!empty($filters['status'])) {
             $where[] = 'r.status = :status';
             $params['status'] = strtoupper($filters['status']);
+        }
+
+        if (!empty($filters['exclude_created_by'])) {
+            $where[] = '(r.created_by IS NULL OR r.created_by != :exclude_created_by)';
+            $params['exclude_created_by'] = (int) $filters['exclude_created_by'];
+        }
+
+        if (!empty($filters['created_by'])) {
+            $where[] = 'r.created_by = :created_by';
+            $params['created_by'] = (int) $filters['created_by'];
         }
 
         if (!empty($filters['start_date'])) {

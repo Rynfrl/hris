@@ -7,14 +7,14 @@ use App\Core\View;
 
 <div class="d-flex align-items-center justify-content-between mb-4">
     <div>
-        <h2 class="h4 fw-bold mb-1"><?= ($user['role_name'] ?? '') === 'MANAGER' ? 'Pengeluaran Tim' : 'Pengeluaran' ?></h2>
-        <p class="text-secondary small mb-0"><?= ($user['role_name'] ?? '') === 'MANAGER' ? 'Pantau catatan biaya dan bukti transaksi anggota tim Anda' : 'Kelola catatan biaya dan bukti transaksi' ?></p>
+        <h2 class="h4 fw-bold mb-1"><?= ($user['role_name'] ?? '') === 'MANAGER' ? 'Pengeluaran Tim' : 'Daftar Seluruh Pengeluaran' ?></h2>
+        <p class="text-secondary small mb-0"><?= ($user['role_name'] ?? '') === 'MANAGER' ? 'Pantau catatan biaya dan bukti transaksi dalam laporan pengeluaran' : 'Seluruh pengeluaran dicatat terpusat melalui Laporan Gabungan' ?></p>
     </div>
-    <?php if (($user['role_name'] ?? '') !== 'MANAGER'): ?>
+    <?php if (in_array($user['role_name'] ?? '', ['ADMIN', 'Admin_HR', 'ADMIN_EXPENSE'], true) || in_array('expenses.manage', $user['permissions'] ?? [])): ?>
         <div>
-            <a href="/expenses/create" class="btn btn-primary btn-sm d-flex align-items-center gap-1">
+            <a href="/reports/create" class="btn btn-primary btn-sm d-flex align-items-center gap-1">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                <span>Tambah Pengeluaran</span>
+                <span>Buat Laporan Baru</span>
             </a>
         </div>
     <?php endif; ?>

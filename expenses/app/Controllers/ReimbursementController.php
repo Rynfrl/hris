@@ -38,10 +38,8 @@ class ReimbursementController
             return View::render('errors/403', ['title' => 'Akses Ditolak'], 'layouts/error');
         }
 
-        // 1. Posted reports waiting to be queued if any
-        $postedReports = $this->reportRepo->getReports(['status' => 'POSTED'], 1, 50)['items'];
-
-        // 2. Active reimbursements queue (PENDING, PROCESSING)
+        // Active reimbursements queue (PENDING, PROCESSING)
+        $postedReports = [];
         $statusParam = !empty($_GET['status']) ? strtoupper(trim((string)$_GET['status'])) : '';
         if ($statusParam === 'PROCESSING') {
             $activeReimbursements = $this->reimbursementRepo->getReimbursements(['status' => 'PROCESSING'], 1, 50)['items'];

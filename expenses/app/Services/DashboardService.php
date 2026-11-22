@@ -95,27 +95,38 @@ class DashboardService
     private function getManagerMetrics(array $user, ?int $empId): array
     {
         $pdo = Database::pdo();
+        $userId = (int) ($user['user_id'] ?? 0);
 
         // 2.1 Dashboard Manager Expense - Exact metrics required by specification
         $totalIncoming = (int) $pdo->query('SELECT COUNT(*) FROM expense_reports WHERE status != "DRAFT"')->fetchColumn();
-        $pendingApproval = (int) $pdo->query('SELECT COUNT(*) FROM expense_reports WHERE status = "SUBMITTED"')->fetchColumn();
+        
+        // Anti self-approval: Manager cannot approve their own reports
+        $stmtPending = $pdo->prepare('SELECT COUNT(*) FROM expense_reports WHERE status = "SUBMITTED" AND (created_by IS NULL OR created_by != :uid)');
+        $stmtPending->execute(['uid' => $userId]);
+        $pendingApproval = (int) $stmtPending->fetchColumn();
+
         $approvedCount = (int) $pdo->query('SELECT COUNT(*) FROM expense_reports WHERE status IN ("APPROVED", "POSTED", "REIMBURSEMENT_PENDING", "PAID")')->fetchColumn();
         $refusedCount = (int) $pdo->query('SELECT COUNT(*) FROM expense_reports WHERE status = "REFUSED"')->fetchColumn();
-        $pendingApprovalTotal = (float) $pdo->query('SELECT COALESCE(SUM(total_amount), 0.00) FROM expense_reports WHERE status = "SUBMITTED"')->fetchColumn();
+        
+        $stmtPendingTotal = $pdo->prepare('SELECT COALESCE(SUM(total_amount), 0.00) FROM expense_reports WHERE status = "SUBMITTED" AND (created_by IS NULL OR created_by != :uid)');
+        $stmtPendingTotal->execute(['uid' => $userId]);
+        $pendingApprovalTotal = (float) $stmtPendingTotal->fetchColumn();
+
         $approvedTotal = (float) $pdo->query('SELECT COALESCE(SUM(total_amount), 0.00) FROM expense_reports WHERE status IN ("APPROVED", "POSTED", "REIMBURSEMENT_PENDING", "PAID")')->fetchColumn();
 
-        // Reports awaiting manager approval
-        $stmtList = $pdo->query('
+        // Reports awaiting manager approval (excluding self-created)
+        $stmtList = $pdo->prepare('
             SELECT r.report_id, r.report_number, r.title, r.total_amount, r.submitted_at, r.status,
                    COALESCE(u.username, "Admin") as creator_name,
                    (SELECT COUNT(*) FROM expense_report_employees ere WHERE ere.report_id = r.report_id) as employee_count,
                    (SELECT GROUP_CONCAT(ere.employee_name_snapshot SEPARATOR ", ") FROM expense_report_employees ere WHERE ere.report_id = r.report_id) as employees_summary
             FROM expense_reports r
             LEFT JOIN users u ON u.user_id = r.created_by
-            WHERE r.status = "SUBMITTED"
+            WHERE r.status = "SUBMITTED" AND (r.created_by IS NULL OR r.created_by != :uid)
             ORDER BY r.submitted_at ASC
             LIMIT 5
         ');
+        $stmtList->execute(['uid' => $userId]);
         $pendingReports = $stmtList->fetchAll();
 
         return [

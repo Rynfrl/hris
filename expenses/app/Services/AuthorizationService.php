@@ -44,11 +44,6 @@ class AuthorizationService
             }
         }
 
-        // Employee owner check (read-only historical view)
-        if ($empId !== null && (int) ($expense['employee_id'] ?? 0) === $empId) {
-            return true;
-        }
-
         return false;
     }
 
@@ -129,19 +124,6 @@ class AuthorizationService
         // Finance check: can view approved, posted, reimbursement_pending, paid reports
         if ($role === 'FINANCE' || in_array('expense.post', $user['permissions'] ?? []) || in_array('expense.reimburse', $user['permissions'] ?? [])) {
             if (in_array($report['status'], ['APPROVED', 'POSTED', 'REIMBURSEMENT_PENDING', 'PAID'], true)) {
-                return true;
-            }
-        }
-
-        // Employee owner check (participating in report)
-        if ($empId !== null && !empty($report['report_id'])) {
-            $pdo = Database::pdo();
-            $stmt = $pdo->prepare('SELECT COUNT(*) FROM expense_report_employees WHERE report_id = :r_id AND employee_id = :e_id');
-            $stmt->execute(['r_id' => $report['report_id'], 'e_id' => $empId]);
-            if ((int) $stmt->fetchColumn() > 0) {
-                return true;
-            }
-            if (!empty($report['employee_id']) && (int) $report['employee_id'] === $empId) {
                 return true;
             }
         }

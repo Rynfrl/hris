@@ -159,7 +159,7 @@ $isPosted = in_array($report['status'], ['POSTED', 'REIMBURSEMENT_PENDING', 'PAI
     <div class="card-header bg-white border-bottom py-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
         <div>
             <h5 class="card-title h6 fw-bold mb-0">Daftar Karyawan dalam Laporan Gabungan</h5>
-            <small class="text-muted">Setiap karyawan memiliki rincian transaksi dan kewajiban reimbursement masing-masing</small>
+            <small class="text-muted">Setiap karyawan memiliki rincian transaksi pengeluaran. Reimbursement dicairkan satu kali penuh untuk satu laporan gabungan.</small>
         </div>
         <?php if ($canEdit): ?>
             <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#addEmployeeCollapse">
@@ -635,7 +635,7 @@ $isPosted = in_array($report['status'], ['POSTED', 'REIMBURSEMENT_PENDING', 'PAI
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body p-4">
-                    <p>Pembukuan akan mencatat laporan ke buku besar akuntansi dan secara otomatis membuat kewajiban reimbursement untuk masing-masing karyawan yang terdaftar.</p>
+                    <p>Pembukuan akan mencatat laporan ke buku besar akuntansi dan secara otomatis membuat satu antrean reimbursement untuk seluruh total pengeluaran laporan.</p>
                     
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Nomor Referensi Jurnal <span class="text-danger">*</span></label>

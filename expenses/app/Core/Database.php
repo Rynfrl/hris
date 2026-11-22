@@ -68,13 +68,18 @@ class Database
     public static function transaction(callable $callback): mixed
     {
         $pdo = self::pdo();
-        $pdo->beginTransaction();
+        $isRoot = !$pdo->inTransaction();
+        if ($isRoot) {
+            $pdo->beginTransaction();
+        }
         try {
             $result = $callback($pdo);
-            $pdo->commit();
+            if ($isRoot && $pdo->inTransaction()) {
+                $pdo->commit();
+            }
             return $result;
         } catch (Throwable $e) {
-            if ($pdo->inTransaction()) {
+            if ($isRoot && $pdo->inTransaction()) {
                 $pdo->rollBack();
             }
             throw $e;

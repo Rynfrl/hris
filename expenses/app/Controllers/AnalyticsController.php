@@ -32,7 +32,12 @@ class AnalyticsController
     {
         $user = Auth::user();
         $role = $user['role_name'] ?? 'EMPLOYEE';
-        $empId = !empty($user['employee_id']) ? (int) $user['employee_id'] : null;
+
+        // Employee has no access to operational expense menus
+        if ($role === 'EMPLOYEE' || (!in_array($role, ['ADMIN', 'Admin_HR', 'ADMIN_EXPENSE', 'MANAGER', 'FINANCE'], true) && !in_array('expenses.manage', $user['permissions'] ?? []))) {
+            http_response_code(403);
+            return View::render('errors/403', ['title' => 'Akses Ditolak'], 'layouts/error');
+        }
 
         $startDate = $_GET['start_date'] ?? date('Y-01-01');
         $endDate = $_GET['end_date'] ?? date('Y-12-31');
@@ -41,27 +46,6 @@ class AnalyticsController
         $pdo = Database::pdo();
         $where = ['e.expense_date >= :start_date', 'e.expense_date <= :end_date'];
         $params = ['start_date' => $startDate, 'end_date' => $endDate];
-
-        // Scope filter
-        if ($role === 'EMPLOYEE' || ($role !== 'ADMIN' && $role !== 'FINANCE' && $role !== 'MANAGER')) {
-            $where[] = 'e.employee_id = :emp_id';
-            $params['emp_id'] = $empId ?? -1;
-        } elseif ($role === 'MANAGER') {
-            $directReports = $this->employeeRepo->getDirectReports($empId ?? 0);
-            $empIds = array_column($directReports, 'employee_id');
-            if ($empId) {
-                $empIds[] = $empId;
-            }
-            if (!empty($empIds)) {
-                $inPl = implode(',', array_map(fn($k) => ':e_' . $k, array_keys($empIds)));
-                foreach ($empIds as $k => $id) {
-                    $params['e_' . $k] = $id;
-                }
-                $where[] = "e.employee_id IN ({$inPl})";
-            } else {
-                $where[] = '1=0';
-            }
-        }
 
         if (!empty($status)) {
             $where[] = 'e.status = :status';
@@ -118,7 +102,12 @@ class AnalyticsController
     {
         $user = Auth::user();
         $role = $user['role_name'] ?? 'EMPLOYEE';
-        $empId = !empty($user['employee_id']) ? (int) $user['employee_id'] : null;
+
+        if ($role === 'EMPLOYEE' || (!in_array($role, ['ADMIN', 'Admin_HR', 'ADMIN_EXPENSE', 'MANAGER', 'FINANCE'], true) && !in_array('expenses.manage', $user['permissions'] ?? []))) {
+            http_response_code(403);
+            echo 'Akses ditolak.';
+            exit;
+        }
 
         $startDate = $_GET['start_date'] ?? null;
         $endDate = $_GET['end_date'] ?? null;
@@ -127,26 +116,6 @@ class AnalyticsController
         $pdo = Database::pdo();
         $where = ['1=1'];
         $params = [];
-
-        if ($role === 'EMPLOYEE' || ($role !== 'ADMIN' && $role !== 'FINANCE' && $role !== 'MANAGER')) {
-            $where[] = 'e.employee_id = :emp_id';
-            $params['emp_id'] = $empId ?? -1;
-        } elseif ($role === 'MANAGER') {
-            $directReports = $this->employeeRepo->getDirectReports($empId ?? 0);
-            $empIds = array_column($directReports, 'employee_id');
-            if ($empId) {
-                $empIds[] = $empId;
-            }
-            if (!empty($empIds)) {
-                $inPl = implode(',', array_map(fn($k) => ':e_' . $k, array_keys($empIds)));
-                foreach ($empIds as $k => $id) {
-                    $params['e_' . $k] = $id;
-                }
-                $where[] = "e.employee_id IN ({$inPl})";
-            } else {
-                $where[] = '1=0';
-            }
-        }
 
         if (!empty($startDate)) {
             $where[] = 'e.expense_date >= :start_date';
@@ -198,7 +167,12 @@ class AnalyticsController
     {
         $user = Auth::user();
         $role = $user['role_name'] ?? 'EMPLOYEE';
-        $empId = !empty($user['employee_id']) ? (int) $user['employee_id'] : null;
+
+        if ($role === 'EMPLOYEE' || (!in_array($role, ['ADMIN', 'Admin_HR', 'ADMIN_EXPENSE', 'MANAGER', 'FINANCE'], true) && !in_array('expenses.manage', $user['permissions'] ?? []))) {
+            http_response_code(403);
+            echo 'Akses ditolak.';
+            exit;
+        }
 
         $startDate = $_GET['start_date'] ?? null;
         $endDate = $_GET['end_date'] ?? null;
@@ -207,26 +181,6 @@ class AnalyticsController
         $pdo = Database::pdo();
         $where = ['1=1'];
         $params = [];
-
-        if ($role === 'EMPLOYEE' || ($role !== 'ADMIN' && $role !== 'FINANCE' && $role !== 'MANAGER')) {
-            $where[] = 'r.employee_id = :emp_id';
-            $params['emp_id'] = $empId ?? -1;
-        } elseif ($role === 'MANAGER') {
-            $directReports = $this->employeeRepo->getDirectReports($empId ?? 0);
-            $empIds = array_column($directReports, 'employee_id');
-            if ($empId) {
-                $empIds[] = $empId;
-            }
-            if (!empty($empIds)) {
-                $inPl = implode(',', array_map(fn($k) => ':r_' . $k, array_keys($empIds)));
-                foreach ($empIds as $k => $id) {
-                    $params['r_' . $k] = $id;
-                }
-                $where[] = "r.employee_id IN ({$inPl})";
-            } else {
-                $where[] = '1=0';
-            }
-        }
 
         if (!empty($startDate)) {
             $where[] = 'r.created_at >= :start_date';

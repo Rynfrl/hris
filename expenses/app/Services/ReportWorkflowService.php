@@ -380,6 +380,12 @@ class ReportWorkflowService
                 throw new RuntimeException('Laporan hanya dapat disetujui jika berstatus SUBMITTED.');
             }
 
+            // Anti self-approval & manager role authorization check (Segregation of Duties)
+            $authService = new AuthorizationService();
+            if (!$authService->canDecideReport($user, $report)) {
+                throw new RuntimeException('Anda tidak memiliki wewenang untuk menyetujui laporan ini (Segregation of Duties).');
+            }
+
             $userId = (int) ($user['user_id'] ?? 0);
 
             // Update report to APPROVED
@@ -434,6 +440,12 @@ class ReportWorkflowService
             $report = $this->reportRepo->findById($reportId, true);
             if (!$report || $report['status'] !== 'SUBMITTED') {
                 throw new RuntimeException('Laporan hanya dapat ditolak jika berstatus SUBMITTED.');
+            }
+
+            // Anti self-approval & manager role authorization check (Segregation of Duties)
+            $authService = new AuthorizationService();
+            if (!$authService->canDecideReport($user, $report)) {
+                throw new RuntimeException('Anda tidak memiliki wewenang untuk menolak laporan ini (Segregation of Duties).');
             }
 
             $userId = (int) ($user['user_id'] ?? 0);
@@ -544,41 +556,41 @@ class ReportWorkflowService
             // 1. Create posting record
             $this->reportRepo->createPosting($reportId, $finalJournalRef, $finalPostingDate, $userId, $notes);
 
-            // 2. Update report to POSTED
+            // 2. Update report to REIMBURSEMENT_PENDING (seamless queue entry upon posting)
             $stmt = $pdo->prepare('
                 UPDATE expense_reports
-                SET status = "POSTED",
+                SET status = "REIMBURSEMENT_PENDING",
                     posted_at = NOW()
                 WHERE report_id = :id
             ');
             $stmt->execute(['id' => $reportId]);
 
-            // 3. Update linked expenses to POSTED
+            // 3. Update linked expenses to REIMBURSEMENT_PENDING
             $stmtExp = $pdo->prepare('
                 UPDATE expenses
-                SET status = "POSTED"
+                SET status = "REIMBURSEMENT_PENDING"
                 WHERE expense_id IN (
                     SELECT expense_id FROM expense_report_items WHERE report_id = :report_id
                 )
             ');
             $stmtExp->execute(['report_id' => $reportId]);
 
-            // 4. Create EXACTLY ONE consolidated reimbursement record for the entire report
-            $this->reimbursementRepo->createConsolidated([
+            // 4. Create EXACTLY ONE consolidated reimbursement record for the entire report (status PENDING)
+            $reimbId = $this->reimbursementRepo->createConsolidated([
                 'report_id' => $reportId,
                 'amount' => (float) $report['total_amount'],
                 'status' => 'PENDING',
                 'notes' => 'Antrean reimbursement gabungan laporan ' . $report['report_number'],
             ]);
 
-            $this->reportRepo->addApproval($reportId, $userId, 'POSTED', sprintf('Laporan telah dibukukan oleh tim Keuangan (Ref: %s).', $finalJournalRef));
+            $this->reportRepo->addApproval($reportId, $userId, 'POSTED', sprintf('Laporan telah dibukukan oleh tim Keuangan (Ref: %s) dan otomatis masuk antrean pembayaran reimbursement.', $finalJournalRef));
 
             $this->auditRepo->logActivity(
                 $userId,
                 'REPORT_POSTED',
                 'expense_reports',
                 $reportId,
-                sprintf('Membukukan laporan %s dengan referensi jurnal %s', $report['report_number'], $finalJournalRef)
+                sprintf('Membukukan laporan %s dengan jurnal %s dan memasukkan ke antrean pembayaran reimbursement #%d', $report['report_number'], $finalJournalRef, $reimbId)
             );
 
             return true;
@@ -589,7 +601,20 @@ class ReportWorkflowService
     {
         return Database::transaction(function (PDO $pdo) use ($reportId, $user) {
             $report = $this->reportRepo->findById($reportId, true);
-            if (!$report || !in_array($report['status'], ['POSTED', 'APPROVED'], true)) {
+            if (!$report) {
+                throw new RuntimeException('Laporan tidak ditemukan.');
+            }
+
+            // Idempotent: If already REIMBURSEMENT_PENDING or PAID, return existing reimbursement
+            $stmtFind = $pdo->prepare('SELECT reimbursement_id FROM reimbursements WHERE report_id = :r');
+            $stmtFind->execute(['r' => $reportId]);
+            $existingReimbId = $stmtFind->fetchColumn();
+
+            if ($report['status'] === 'REIMBURSEMENT_PENDING' && $existingReimbId) {
+                return (int) $existingReimbId;
+            }
+
+            if (!in_array($report['status'], ['POSTED', 'APPROVED'], true)) {
                 throw new RuntimeException('Laporan harus berstatus POSTED atau APPROVED sebelum dimasukkan ke antrean reimbursement.');
             }
 
