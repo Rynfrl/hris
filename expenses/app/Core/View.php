@@ -70,19 +70,22 @@ class View
                 $quote = $matches[2];
                 $path = $matches[3];
 
-                // If path is already prefixed with basePath, don't double prefix
-                if ($baseTrimmed === 'expenses') {
-                    // For basePath == '/expenses', an already-prefixed path starts with 'expenses/' followed by a known section or 'expenses/'
-                    if (preg_match('#^expenses/(dashboard|reports|approvals|finance|reimbursements|analytics|settings|assets|login|logout|expenses)(/.*)?$#i', $path)) {
-                        return $matches[0];
-                    }
-                } else {
-                    if (str_starts_with($path, $baseTrimmed . '/') || $path === $baseTrimmed) {
-                        return $matches[0];
-                    }
+                // 1. External ERP modules & root scripts
+                if (preg_match('~^(dashboard\.php|purchasing|sales|Inventory|api|koneksi\.php|session\.php|index\.php|logout\.php|verif_login\.php)~i', $path)) {
+                    return $matches[0];
                 }
 
-                return sprintf('%s=%s%s/%s', $attr, $quote, $basePath, $path);
+                // 2. Already prefixed with $baseTrimmed
+                if (str_starts_with($path, $baseTrimmed . '/') || str_starts_with($path, $baseTrimmed . '?') || str_starts_with($path, $baseTrimmed . '#') || $path === $baseTrimmed) {
+                    return $matches[0];
+                }
+
+                // 3. Already prefixed with 'expenses' specifically
+                if (preg_match('~^expenses([/?#].*)?$~i', $path)) {
+                    return $matches[0];
+                }
+
+                return sprintf('%s=%s%s/%s', $attr, $quote, $basePath, ltrim($path, '/'));
             },
             $html
         );

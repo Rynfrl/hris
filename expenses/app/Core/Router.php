@@ -60,17 +60,21 @@ class Router
             $path = '/';
         }
 
-        Url::setCurrentPath($path);
-
-        $candidates = [$path];
-        if ($path !== $parsedUrl && $parsedUrl !== '/' && !in_array($parsedUrl, $candidates, true)) {
-            $candidates[] = $parsedUrl;
+        // Clean any repeated /expenses prefix (e.g. /expenses/expenses/reports -> /reports)
+        $normalizedPath = $path;
+        while (str_starts_with($normalizedPath, '/expenses')) {
+            $normalizedPath = substr($normalizedPath, strlen('/expenses'));
+            $normalizedPath = '/' . trim($normalizedPath, '/');
         }
-        if ($path !== '/' && !str_starts_with($path, '/expenses')) {
-            $candidateWithExpenses = '/expenses' . $path;
-            if (!in_array($candidateWithExpenses, $candidates, true)) {
-                $candidates[] = $candidateWithExpenses;
-            }
+        if ($normalizedPath === '') {
+            $normalizedPath = '/';
+        }
+
+        Url::setCurrentPath($normalizedPath);
+
+        $candidates = array_unique(array_filter([$normalizedPath, $path, $parsedUrl]));
+        if ($normalizedPath !== '/' && !str_starts_with($normalizedPath, '/expenses')) {
+            $candidates[] = '/expenses' . $normalizedPath;
         }
 
         $method = strtoupper($method);

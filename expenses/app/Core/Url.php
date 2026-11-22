@@ -110,6 +110,16 @@ class Url
     {
         $base = self::basePath();
         $clean = '/' . ltrim($path, '/');
+
+        // Prevent double prefix if path already starts with base
+        if ($base !== '') {
+            $baseTrimmed = trim($base, '/');
+            $test = ltrim($path, '/');
+            if (str_starts_with($test, $baseTrimmed . '/') || str_starts_with($test, $baseTrimmed . '?') || str_starts_with($test, $baseTrimmed . '#') || $test === $baseTrimmed) {
+                return '/' . $test;
+            }
+        }
+
         if ($clean === '/' && $base !== '') {
             return $base . '/';
         }
