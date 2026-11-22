@@ -33,30 +33,37 @@ class ReimbursementController
     {
         $user = Auth::user();
         $role = $user['role_name'] ?? '';
-        if ($role !== 'FINANCE' && $role !== 'ADMIN' && !Auth::hasPermission('expense.reimburse')) {
+        if ($role !== 'FINANCE' && !Auth::hasPermission('expense.reimburse')) {
             http_response_code(403);
             return View::render('errors/403', ['title' => 'Akses Ditolak'], 'layouts/error');
         }
 
-        // Active reimbursements queue (PENDING, PROCESSING)
-        $postedReports = [];
+        $page = max(1, (int) ($_GET['page'] ?? 1));
+        $perPage = max(10, min(100, (int) ($_GET['per_page'] ?? 20)));
+        $filters = [];
+
         $statusParam = !empty($_GET['status']) ? strtoupper(trim((string)$_GET['status'])) : '';
-        if ($statusParam === 'PROCESSING') {
-            $activeReimbursements = $this->reimbursementRepo->getReimbursements(['status' => 'PROCESSING'], 1, 50)['items'];
-        } elseif ($statusParam === 'PENDING') {
-            $activeReimbursements = $this->reimbursementRepo->getReimbursements(['status' => 'PENDING'], 1, 50)['items'];
+        if ($statusParam === 'PROCESSING' || $statusParam === 'PENDING') {
+            $filters['status'] = $statusParam;
         } else {
-            $pending = $this->reimbursementRepo->getReimbursements(['status' => 'PENDING'], 1, 50)['items'];
-            $processing = $this->reimbursementRepo->getReimbursements(['status' => 'PROCESSING'], 1, 50)['items'];
-            $activeReimbursements = array_merge($pending, $processing);
+            $filters['status_in'] = ['PENDING', 'PROCESSING'];
         }
 
+        if (!empty($_GET['search'])) {
+            $filters['search'] = trim((string) $_GET['search']);
+        }
+
+        $data = $this->reimbursementRepo->getReimbursements($filters, $page, $perPage);
         $suggestedPayNumber = $this->reimbursementRepo->generatePaymentNumber();
 
         return View::render('reimbursements/index', [
             'title' => 'Antrean & Pembayaran Reimbursement (Finance)',
-            'postedReports' => $postedReports,
-            'activeReimbursements' => $activeReimbursements,
+            'activeReimbursements' => $data['items'],
+            'total' => $data['total'],
+            'page' => $data['page'],
+            'totalPages' => $data['total_pages'],
+            'perPage' => $perPage,
+            'filters' => $filters,
             'suggestedPayNumber' => $suggestedPayNumber,
             'currentStatus' => $statusParam,
             'user' => $user,
@@ -69,7 +76,7 @@ class ReimbursementController
         $user = Auth::user();
         $role = $user['role_name'] ?? '';
 
-        if ($role !== 'FINANCE' && $role !== 'ADMIN' && !Auth::hasPermission('expense.reimburse')) {
+        if ($role !== 'FINANCE' && !Auth::hasPermission('expense.reimburse')) {
             Flash::error('Akses ditolak.');
             Url::redirect('/reimbursements');
         }
@@ -88,6 +95,12 @@ class ReimbursementController
     {
         $reimbId = (int) $id;
         $user = Auth::user();
+        $role = $user['role_name'] ?? '';
+
+        if ($role !== 'FINANCE' && !Auth::hasPermission('expense.reimburse')) {
+            Flash::error('Akses ditolak.');
+            Url::redirect('/reimbursements');
+        }
 
         try {
             $this->workflowService->setProcessing($reimbId, $user);
@@ -105,7 +118,7 @@ class ReimbursementController
         $user = Auth::user();
         $role = $user['role_name'] ?? '';
 
-        if ($role !== 'FINANCE' && $role !== 'ADMIN' && !Auth::hasPermission('expense.reimburse')) {
+        if ($role !== 'FINANCE' && !Auth::hasPermission('expense.reimburse')) {
             Flash::error('Akses ditolak.');
             Url::redirect('/reimbursements');
         }
@@ -153,6 +166,13 @@ class ReimbursementController
     {
         $reimbId = (int) $id;
         $user = Auth::user();
+        $role = $user['role_name'] ?? '';
+
+        if ($role !== 'FINANCE' && !Auth::hasPermission('expense.reimburse')) {
+            Flash::error('Akses ditolak.');
+            Url::redirect('/reimbursements');
+        }
+
         $reason = trim($_POST['reason'] ?? 'Pembayaran gagal');
 
         try {
@@ -169,13 +189,19 @@ class ReimbursementController
     {
         $user = Auth::user();
         $role = $user['role_name'] ?? '';
-        if ($role !== 'FINANCE' && $role !== 'ADMIN' && !Auth::hasPermission('expense.reimburse')) {
+        if ($role !== 'FINANCE' && !Auth::hasPermission('expense.reimburse')) {
             http_response_code(403);
             return View::render('errors/403', ['title' => 'Akses Ditolak'], 'layouts/error');
         }
 
         $page = max(1, (int) ($_GET['page'] ?? 1));
-        $data = $this->reimbursementRepo->getReimbursements(['status' => 'PAID'], $page, 25);
+        $perPage = max(10, min(100, (int) ($_GET['per_page'] ?? 20)));
+        $filters = ['status' => 'PAID'];
+        if (!empty($_GET['search'])) {
+            $filters['search'] = trim((string) $_GET['search']);
+        }
+
+        $data = $this->reimbursementRepo->getReimbursements($filters, $page, $perPage);
 
         return View::render('reimbursements/history', [
             'title' => 'Riwayat Pembayaran Reimbursement (Lunas)',
@@ -183,6 +209,8 @@ class ReimbursementController
             'total' => $data['total'],
             'page' => $data['page'],
             'totalPages' => $data['total_pages'],
+            'perPage' => $perPage,
+            'filters' => $filters,
             'user' => $user,
         ]);
     }

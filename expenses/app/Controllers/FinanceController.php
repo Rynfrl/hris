@@ -33,18 +33,63 @@ class FinanceController
     {
         $user = Auth::user();
         $role = $user['role_name'] ?? '';
-        if ($role !== 'FINANCE' && $role !== 'ADMIN' && !Auth::hasPermission('expense.post')) {
+        if ($role !== 'FINANCE' && !Auth::hasPermission('expense.post')) {
             http_response_code(403);
             return View::render('errors/403', ['title' => 'Akses Ditolak'], 'layouts/error');
         }
 
-        $data = $this->reportRepo->getReports(['status' => 'APPROVED'], 1, 100);
+        $page = max(1, (int) ($_GET['page'] ?? 1));
+        $perPage = max(10, min(100, (int) ($_GET['per_page'] ?? 20)));
+        $filters = [
+            'status' => 'APPROVED',
+            'search' => $_GET['search'] ?? null,
+            'start_date' => $_GET['start_date'] ?? null,
+            'end_date' => $_GET['end_date'] ?? null,
+        ];
+
+        $data = $this->reportRepo->getReports($filters, $page, $perPage);
         $suggestedRef = $this->reportRepo->generateJournalReference();
 
         return View::render('finance/posting', [
             'title' => 'Pembukuan Laporan (Posting Finance)',
             'reports' => $data['items'],
+            'total' => $data['total'],
+            'page' => $data['page'],
+            'totalPages' => $data['total_pages'],
+            'perPage' => $perPage,
+            'filters' => $filters,
             'suggestedRef' => $suggestedRef,
+            'user' => $user,
+        ]);
+    }
+
+    public function history(): string
+    {
+        $user = Auth::user();
+        $role = $user['role_name'] ?? '';
+        if ($role !== 'FINANCE' && !Auth::hasPermission('expense.post')) {
+            http_response_code(403);
+            return View::render('errors/403', ['title' => 'Akses Ditolak'], 'layouts/error');
+        }
+
+        $page = max(1, (int) ($_GET['page'] ?? 1));
+        $perPage = max(10, min(100, (int) ($_GET['per_page'] ?? 20)));
+        $filters = [
+            'search' => $_GET['search'] ?? null,
+            'start_date' => $_GET['start_date'] ?? null,
+            'end_date' => $_GET['end_date'] ?? null,
+        ];
+
+        $data = $this->reportRepo->getPostings($filters, $page, $perPage);
+
+        return View::render('finance/history', [
+            'title' => 'Riwayat Pembukuan Laporan (Posting)',
+            'postings' => $data['items'],
+            'total' => $data['total'],
+            'page' => $data['page'],
+            'totalPages' => $data['total_pages'],
+            'perPage' => $perPage,
+            'filters' => $filters,
             'user' => $user,
         ]);
     }

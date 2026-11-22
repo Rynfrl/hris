@@ -79,7 +79,17 @@ class ExpenseRepository
             }
         }
 
-        if (!empty($filters['status'])) {
+        if (!empty($filters['status_in']) && is_array($filters['status_in'])) {
+            $inPlaceholders = [];
+            foreach ($filters['status_in'] as $idx => $st) {
+                $ph = ':st_in_' . $idx;
+                $inPlaceholders[] = $ph;
+                $params['st_in_' . $idx] = strtoupper((string) $st);
+            }
+            if (!empty($inPlaceholders)) {
+                $where[] = 'e.status IN (' . implode(',', $inPlaceholders) . ')';
+            }
+        } elseif (!empty($filters['status'])) {
             $where[] = 'e.status = :status';
             $params['status'] = strtoupper($filters['status']);
         }

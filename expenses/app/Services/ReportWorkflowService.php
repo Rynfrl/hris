@@ -44,8 +44,12 @@ class ReportWorkflowService
         }
 
         $userRole = $user['role_name'] ?? '';
-        if ($userRole === 'MANAGER' || $userRole === 'EMPLOYEE') {
-            throw new RuntimeException('Peran Anda tidak diizinkan untuk membuat laporan pengeluaran. Laporan dibuat terpusat oleh Admin Expense.');
+        $userPerms = $user['permissions'] ?? [];
+        $allowedRoles = ['ADMIN', 'ADMIN_EXPENSE', 'Admin_HR'];
+        $hasManagePerm = in_array('expenses.manage', $userPerms, true) || in_array('expense.manage', $userPerms, true);
+
+        if (!in_array($userRole, $allowedRoles, true) && !$hasManagePerm) {
+            throw new RuntimeException('Peran Anda tidak diizinkan untuk membuat laporan pengeluaran. Pembuatan laporan hanya diizinkan untuk Admin Expense.');
         }
 
         $userId = (int) ($user['user_id'] ?? 0);
@@ -365,7 +369,7 @@ class ReportWorkflowService
                 'REPORT_SUBMITTED',
                 'expense_reports',
                 $reportId,
-                sprintf('Mengajukan laporan %s sebesar Rp %s (%d karyawan, %d item)', $report['report_number'], number_format($totalAmount, 0, ',', '.'), count($reportEmployees), count($items))
+                sprintf('Mengajukan laporan %s sebesar Rp %s (%d karyawan, %d item)', $report['report_number'], number_format((float) $totalAmount, 0, ',', '.'), count($reportEmployees), count($items))
             );
 
             return true;
@@ -614,8 +618,12 @@ class ReportWorkflowService
                 return (int) $existingReimbId;
             }
 
-            if (!in_array($report['status'], ['POSTED', 'APPROVED'], true)) {
-                throw new RuntimeException('Laporan harus berstatus POSTED atau APPROVED sebelum dimasukkan ke antrean reimbursement.');
+            if ($report['status'] === 'APPROVED') {
+                throw new RuntimeException('Laporan belum dibukukan. Pembukuan (posting) wajib dilakukan terlebih dahulu sebelum reimbursement.');
+            }
+
+            if (!in_array($report['status'], ['POSTED', 'REIMBURSEMENT_PENDING'], true)) {
+                throw new RuntimeException('Laporan harus berstatus POSTED sebelum dimasukkan ke antrean reimbursement.');
             }
 
             $userId = (int) ($user['user_id'] ?? 0);

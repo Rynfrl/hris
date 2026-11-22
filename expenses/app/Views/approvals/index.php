@@ -78,4 +78,42 @@ use App\Core\View;
             </tbody>
         </table>
     </div>
+
+    <!-- Pagination -->
+    <?php if (($totalPages ?? 1) > 1): ?>
+        <div class="card-footer bg-white border-top py-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <div class="text-muted small">
+                Menampilkan halaman <strong><?= (int) ($page ?? 1) ?></strong> dari <strong><?= (int) ($totalPages ?? 1) ?></strong> (Total <?= number_format((int) ($total ?? 0), 0, ',', '.') ?> laporan)
+            </div>
+            <nav aria-label="Page navigation">
+                <ul class="pagination pagination-sm mb-0">
+                    <?php
+                    $queryParams = $_GET;
+                    $curPage = (int) ($page ?? 1);
+                    $totPages = (int) ($totalPages ?? 1);
+                    $queryParams['page'] = max(1, $curPage - 1);
+                    $prevUrl = '?' . http_build_query($queryParams);
+
+                    $queryParams['page'] = min($totPages, $curPage + 1);
+                    $nextUrl = '?' . http_build_query($queryParams);
+                    ?>
+                    <li class="page-item <?= $curPage <= 1 ? 'disabled' : '' ?>">
+                        <a class="page-link" href="<?= $prevUrl ?>">&laquo; Sebelumnya</a>
+                    </li>
+                    <?php for ($i = max(1, $curPage - 2); $i <= min($totPages, $curPage + 2); $i++): ?>
+                        <?php
+                        $queryParams['page'] = $i;
+                        $pageUrl = '?' . http_build_query($queryParams);
+                        ?>
+                        <li class="page-item <?= $i === $curPage ? 'active' : '' ?>">
+                            <a class="page-link" href="<?= $pageUrl ?>"><?= $i ?></a>
+                        </li>
+                    <?php endfor; ?>
+                    <li class="page-item <?= $curPage >= $totPages ? 'disabled' : '' ?>">
+                        <a class="page-link" href="<?= $nextUrl ?>">Berikutnya &raquo;</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    <?php endif; ?>
 </div>

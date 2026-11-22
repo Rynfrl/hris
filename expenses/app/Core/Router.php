@@ -24,6 +24,11 @@ class Router
         return $this->addRoute('POST', $path, $handler, $middleware);
     }
 
+    public function getRoutes(): array
+    {
+        return $this->routes;
+    }
+
     private function addRoute(string $method, string $path, callable|array $handler, array $middleware = []): self
     {
         // Extract parameter names from {param}

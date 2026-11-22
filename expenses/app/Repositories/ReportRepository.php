@@ -442,7 +442,7 @@ class ReportRepository
         return $ok;
     }
 
-    public function recalculateTotal(int $reportId): float
+    public function recalculateTotal(int $reportId): string
     {
         $pdo = Database::pdo();
         $stmt = $pdo->prepare('
@@ -452,7 +452,8 @@ class ReportRepository
             WHERE eri.report_id = :report_id
         ');
         $stmt->execute(['report_id' => $reportId]);
-        $total = (float) $stmt->fetchColumn();
+        $raw = $stmt->fetchColumn();
+        $total = number_format((float) ($raw ?: 0), 2, '.', '');
 
         $updateStmt = $pdo->prepare('
             UPDATE expense_reports
@@ -611,5 +612,80 @@ class ReportRepository
             $seq = (int) $m[1] + 1;
         }
         return sprintf('JRN-EXP-%s-%04d', $yearMonth, $seq);
+    }
+
+    public function getPostings(array $filters = [], int $page = 1, int $perPage = 20): array
+    {
+        $pdo = Database::pdo();
+        $where = ['1=1'];
+        $params = [];
+
+        if (!empty($filters['search'])) {
+            $where[] = '(p.journal_reference LIKE :q1 OR r.report_number LIKE :q2 OR r.title LIKE :q3 OR u_fin.username LIKE :q4)';
+            $qVal = '%' . trim((string) $filters['search']) . '%';
+            $params['q1'] = $qVal;
+            $params['q2'] = $qVal;
+            $params['q3'] = $qVal;
+            $params['q4'] = $qVal;
+        }
+
+        if (!empty($filters['start_date'])) {
+            $where[] = 'p.posting_date >= :start_date';
+            $params['start_date'] = $filters['start_date'];
+        }
+
+        if (!empty($filters['end_date'])) {
+            $where[] = 'p.posting_date <= :end_date';
+            $params['end_date'] = $filters['end_date'];
+        }
+
+        $whereClause = implode(' AND ', $where);
+
+        $countStmt = $pdo->prepare("
+            SELECT COUNT(*)
+            FROM expense_postings p
+            JOIN expense_reports r ON r.report_id = p.report_id
+            LEFT JOIN users u_fin ON u_fin.user_id = p.posted_by
+            WHERE {$whereClause}
+        ");
+        $countStmt->execute($params);
+        $total = (int) $countStmt->fetchColumn();
+
+        $offset = max(0, ($page - 1) * $perPage);
+        $sql = "
+            SELECT p.*,
+                   r.report_number, r.title as report_title, r.total_amount, r.status as report_status,
+                   u_admin.username as creator_username, emp_admin.full_name as creator_name,
+                   u_mgr.username as manager_username, emp_mgr.full_name as manager_name,
+                   u_fin.username as posted_by_username, emp_fin.full_name as posted_by_name
+            FROM expense_postings p
+            JOIN expense_reports r ON r.report_id = p.report_id
+            LEFT JOIN users u_admin ON u_admin.user_id = r.created_by
+            LEFT JOIN employees emp_admin ON emp_admin.employee_id = u_admin.employee_id
+            LEFT JOIN (
+                SELECT report_id, MAX(approver_id) as approver_id
+                FROM expense_approvals
+                WHERE action = 'APPROVED'
+                GROUP BY report_id
+            ) mgr_app ON mgr_app.report_id = r.report_id
+            LEFT JOIN users u_mgr ON u_mgr.user_id = mgr_app.approver_id
+            LEFT JOIN employees emp_mgr ON emp_mgr.employee_id = u_mgr.employee_id
+            LEFT JOIN users u_fin ON u_fin.user_id = p.posted_by
+            LEFT JOIN employees emp_fin ON emp_fin.employee_id = u_fin.employee_id
+            WHERE {$whereClause}
+            ORDER BY p.posting_id DESC
+            LIMIT {$perPage} OFFSET {$offset}
+        ";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
+        $items = $stmt->fetchAll();
+
+        return [
+            'items' => $items,
+            'total' => $total,
+            'page' => $page,
+            'per_page' => $perPage,
+            'total_pages' => ceil($total / $perPage),
+        ];
     }
 }

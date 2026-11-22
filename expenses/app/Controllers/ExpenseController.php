@@ -48,6 +48,9 @@ class ExpenseController
             return View::render('errors/403', ['title' => 'Akses Ditolak'], 'layouts/error');
         }
 
+        $page = max(1, (int) ($_GET['page'] ?? 1));
+        $perPage = max(10, min(100, (int) ($_GET['per_page'] ?? 20)));
+
         $filters = [
             'status' => $_GET['status'] ?? null,
             'category_id' => !empty($_GET['category_id']) ? (int) $_GET['category_id'] : null,
@@ -58,8 +61,28 @@ class ExpenseController
             'order' => $_GET['order'] ?? 'DESC',
         ];
 
-        $page = max(1, (int) ($_GET['page'] ?? 1));
-        $data = $this->expenseRepo->getExpenses($filters, $page, 20);
+        // Strict role filtering on transactions (Perbaikan 3)
+        if ($role === 'FINANCE') {
+            // Finance only ever sees approved, posted, or paid transactions (never DRAFT or SUBMITTED)
+            $allowedStatuses = ['APPROVED', 'POSTED', 'REIMBURSEMENT_PENDING', 'PAID'];
+            if (!empty($filters['status']) && in_array(strtoupper($filters['status']), $allowedStatuses, true)) {
+                $filters['status'] = strtoupper($filters['status']);
+            } else {
+                $filters['status_in'] = $allowedStatuses;
+                unset($filters['status']);
+            }
+        } elseif ($role === 'MANAGER') {
+            // Manager never sees raw draft transactions
+            $allowedStatuses = ['SUBMITTED', 'APPROVED', 'POSTED', 'REIMBURSEMENT_PENDING', 'PAID', 'REFUSED'];
+            if (!empty($filters['status']) && in_array(strtoupper($filters['status']), $allowedStatuses, true)) {
+                $filters['status'] = strtoupper($filters['status']);
+            } else {
+                $filters['status_in'] = $allowedStatuses;
+                unset($filters['status']);
+            }
+        }
+
+        $data = $this->expenseRepo->getExpenses($filters, $page, $perPage);
         $categories = $this->categoryRepo->getAll(true);
 
         return View::render('expenses/index', [
@@ -68,6 +91,7 @@ class ExpenseController
             'total' => $data['total'],
             'page' => $data['page'],
             'totalPages' => $data['total_pages'],
+            'perPage' => $perPage,
             'filters' => $filters,
             'categories' => $categories,
             'user' => $user,

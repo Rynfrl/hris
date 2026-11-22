@@ -57,12 +57,19 @@ class ApprovalController
             $filters['exclude_created_by'] = $userId;
         }
 
-        $data = $this->reportRepo->getReports($filters, 1, 100);
+        $page = max(1, (int) ($_GET['page'] ?? 1));
+        $perPage = max(10, min(100, (int) ($_GET['per_page'] ?? 20)));
+
+        $data = $this->reportRepo->getReports($filters, $page, $perPage);
         $reports = $data['items'];
 
         return View::render('approvals/index', [
             'title' => 'Persetujuan Laporan Pengeluaran (Manager)',
             'reports' => $reports,
+            'total' => $data['total'],
+            'page' => $data['page'],
+            'totalPages' => $data['total_pages'],
+            'perPage' => $perPage,
             'currentStatus' => $statusFilter,
             'user' => $user,
         ]);

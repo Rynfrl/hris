@@ -17,6 +17,7 @@ $RECYCLE.BIN/
 # Runtime storage
 purchasing/api/storage/rate_limit/
 expenses/storage/receipts/
+scratch/
 
 # Editor / IDE configuration
 .vscode/

@@ -39,8 +39,11 @@ class ExpenseService
     {
         $this->validateExpenseData($data);
 
-        if (($user['role_name'] ?? '') === 'MANAGER') {
-            throw new RuntimeException('Peran Manajer tidak diizinkan untuk membuat pengeluaran.');
+        $role = $user['role_name'] ?? '';
+        $allowedRoles = ['ADMIN', 'ADMIN_EXPENSE', 'Admin_HR'];
+        $userPerms = $user['permissions'] ?? [];
+        if (!in_array($role, $allowedRoles, true) && !in_array('expenses.manage', $userPerms, true) && !in_array('expense.manage', $userPerms, true)) {
+            throw new RuntimeException('Peran Anda tidak diizinkan untuk membuat pengeluaran.');
         }
 
         $role = $user['role_name'] ?? '';
@@ -95,6 +98,12 @@ class ExpenseService
         $expense = $this->expenseRepo->findById($id);
         if (!$expense || $expense['status'] !== 'DRAFT') {
             throw new RuntimeException('Pengeluaran tidak dapat diubah karena status bukan DRAFT.');
+        }
+
+        if (!empty($expense['report_id'])) {
+            if (!empty($expense['report_status']) && $expense['report_status'] !== 'DRAFT') {
+                throw new RuntimeException('Pengeluaran tidak dapat diubah karena laporan pengeluaran sudah diajukan atau diproses.');
+            }
         }
 
         $userId = (int) ($user['user_id'] ?? 0);

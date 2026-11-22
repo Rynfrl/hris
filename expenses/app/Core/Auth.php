@@ -119,7 +119,18 @@ class Auth
 
     public static function hasPermission(string $permissionKey): bool
     {
-        return in_array($permissionKey, self::permissions(), true);
+        $perms = self::permissions();
+        if (in_array($permissionKey, $perms, true)) {
+            return true;
+        }
+        // Normalize between expense.manage and expenses.manage
+        if ($permissionKey === 'expense.manage' && in_array('expenses.manage', $perms, true)) {
+            return true;
+        }
+        if ($permissionKey === 'expenses.manage' && in_array('expense.manage', $perms, true)) {
+            return true;
+        }
+        return false;
     }
 
     public static function login(array $user): void

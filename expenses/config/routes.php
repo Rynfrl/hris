@@ -80,6 +80,7 @@ return function (Router $router): void {
 
     // Finance / Posting
     $router->get('/finance/posting', [FinanceController::class, 'postingQueue'], [AuthMiddleware::class]);
+    $router->get('/finance/history', [FinanceController::class, 'history'], [AuthMiddleware::class]);
     $router->post('/reports/{id}/post', [FinanceController::class, 'postReport'], [AuthMiddleware::class, CsrfMiddleware::class]);
     $router->get('/reports/{id}/post', function (string|int $id) {
         \App\Core\Url::redirect('/reports/' . (int) $id);

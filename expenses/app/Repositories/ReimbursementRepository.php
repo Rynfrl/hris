@@ -102,7 +102,17 @@ class ReimbursementRepository
         $where = ['1=1'];
         $params = [];
 
-        if (!empty($filters['status'])) {
+        if (!empty($filters['status_in']) && is_array($filters['status_in'])) {
+            $inPlaceholders = [];
+            foreach ($filters['status_in'] as $idx => $st) {
+                $ph = ':st_in_' . $idx;
+                $inPlaceholders[] = $ph;
+                $params['st_in_' . $idx] = strtoupper((string) $st);
+            }
+            if (!empty($inPlaceholders)) {
+                $where[] = 'rem.status IN (' . implode(',', $inPlaceholders) . ')';
+            }
+        } elseif (!empty($filters['status'])) {
             $where[] = 'rem.status = :status';
             $params['status'] = strtoupper($filters['status']);
         }
@@ -186,22 +196,39 @@ class ReimbursementRepository
     {
         $pdo = Database::pdo();
         $reportId = (int) $data['report_id'];
-        $amount = (float) $data['amount'];
+        $amount = number_format((float) $data['amount'], 2, '.', '');
         $status = $data['status'] ?? 'PENDING';
         $notes = $data['notes'] ?? ('Reimbursement gabungan laporan #' . $reportId);
         $employeeId = !empty($data['employee_id']) ? (int) $data['employee_id'] : null;
 
+        $stmtFind = $pdo->prepare('SELECT reimbursement_id, status FROM reimbursements WHERE report_id = :r FOR UPDATE');
+        $stmtFind->execute(['r' => $reportId]);
+        $existing = $stmtFind->fetch();
+
+        if ($existing) {
+            $existingId = (int) $existing['reimbursement_id'];
+            $existingStatus = strtoupper((string) $existing['status']);
+            // Idempotency: Never overwrite or reset status if already PROCESSING, FAILED, or PAID
+            if (in_array($existingStatus, ['PROCESSING', 'FAILED', 'PAID'], true)) {
+                return $existingId;
+            }
+            // If PENDING, update amount and notes safely
+            $stmtUp = $pdo->prepare('UPDATE reimbursements SET amount = :amount, notes = :notes, updated_at = NOW() WHERE reimbursement_id = :id');
+            $stmtUp->execute([
+                'amount' => $amount,
+                'notes' => $notes,
+                'id' => $existingId,
+            ]);
+            return $existingId;
+        }
+
+        // Insert new record
         $stmt = $pdo->prepare('
             INSERT INTO reimbursements (
                 report_id, employee_id, amount, status, notes
             ) VALUES (
                 :report_id, :employee_id, :amount, :status, :notes
             )
-            ON DUPLICATE KEY UPDATE
-                amount = VALUES(amount),
-                status = VALUES(status),
-                notes = VALUES(notes),
-                updated_at = NOW()
         ');
         $stmt->execute([
             'report_id' => $reportId,
@@ -211,14 +238,7 @@ class ReimbursementRepository
             'notes' => $notes,
         ]);
 
-        $reimbId = (int) $pdo->lastInsertId();
-        if ($reimbId === 0) {
-            $stmtFind = $pdo->prepare('SELECT reimbursement_id FROM reimbursements WHERE report_id = :r');
-            $stmtFind->execute(['r' => $reportId]);
-            $reimbId = (int) $stmtFind->fetchColumn();
-        }
-
-        return $reimbId;
+        return (int) $pdo->lastInsertId();
     }
 
     public function create(array $data): int
@@ -250,20 +270,32 @@ class ReimbursementRepository
                 throw new RuntimeException('Laporan reimbursement ini sudah dibayar penuh (PAID) dan tidak dapat dibayar ulang.');
             }
 
-            $approvedAmount = (float) $reimb['amount'];
-            $payAmount = round((float) ($data['amount'] ?? $approvedAmount), 2);
+            $approvedAmountStr = number_format((float) $reimb['amount'], 2, '.', '');
+            $payAmountStr = number_format((float) ($data['amount'] ?? $reimb['amount']), 2, '.', '');
 
-            if ($payAmount <= 0) {
-                throw new InvalidArgumentException('Nominal pembayaran harus lebih besar dari 0.');
+            if (function_exists('bccomp')) {
+                if (bccomp($payAmountStr, '0.00', 2) <= 0) {
+                    throw new InvalidArgumentException('Nominal pembayaran harus lebih besar dari 0.');
+                }
+                // Business Rule: One Report = One Reimbursement = One FULL Payment. No partial payments allowed.
+                if (bccomp($payAmountStr, $approvedAmountStr, 2) !== 0) {
+                    throw new InvalidArgumentException(sprintf(
+                        'Pembayaran harus satu kali penuh sebesar total laporan (Rp %s). Pembayaran parsial tidak didukung.',
+                        number_format((float) $approvedAmountStr, 0, ',', '.')
+                    ));
+                }
+            } else {
+                if ((float) $payAmountStr <= 0) {
+                    throw new InvalidArgumentException('Nominal pembayaran harus lebih besar dari 0.');
+                }
+                if ($payAmountStr !== $approvedAmountStr) {
+                    throw new InvalidArgumentException(sprintf(
+                        'Pembayaran harus satu kali penuh sebesar total laporan (Rp %s). Pembayaran parsial tidak didukung.',
+                        number_format((float) $approvedAmountStr, 0, ',', '.')
+                    ));
+                }
             }
-
-            // Business Rule: One Report = One Reimbursement = One FULL Payment. No partial payments allowed.
-            if (abs($payAmount - $approvedAmount) > 0.001) {
-                throw new InvalidArgumentException(sprintf(
-                    'Pembayaran harus satu kali penuh sebesar total laporan (Rp %s). Pembayaran parsial tidak didukung.',
-                    number_format($approvedAmount, 0, ',', '.')
-                ));
-            }
+            $payAmount = $payAmountStr;
 
             $recipientName = trim((string) ($data['recipient_name'] ?? ''));
             if ($recipientName === '') {

@@ -50,35 +50,48 @@ class AuthorizationService
     public function canCreateExpense(array $user): bool
     {
         $role = $user['role_name'] ?? '';
-        // Only Admin Expense can create transactions
-        if (in_array($role, ['EMPLOYEE', 'MANAGER', 'FINANCE'], true) && !in_array($role, ['ADMIN', 'Admin_HR', 'ADMIN_EXPENSE'], true)) {
-            return false;
-        }
-        return in_array($role, ['ADMIN', 'Admin_HR', 'ADMIN_EXPENSE'], true) || in_array('expenses.manage', $user['permissions'] ?? []);
+        $userPerms = $user['permissions'] ?? [];
+        return in_array($role, ['ADMIN', 'Admin_HR', 'ADMIN_EXPENSE'], true)
+            || in_array('expenses.manage', $userPerms, true)
+            || in_array('expense.manage', $userPerms, true);
     }
 
     public function canCreateReport(array $user): bool
     {
         $role = $user['role_name'] ?? '';
-        // Only Admin Expense can create reports
-        if (in_array($role, ['EMPLOYEE', 'MANAGER', 'FINANCE'], true) && !in_array($role, ['ADMIN', 'Admin_HR', 'ADMIN_EXPENSE'], true)) {
-            return false;
-        }
-        return in_array($role, ['ADMIN', 'Admin_HR', 'ADMIN_EXPENSE'], true) || in_array('expenses.manage', $user['permissions'] ?? []);
+        $userPerms = $user['permissions'] ?? [];
+        return in_array($role, ['ADMIN', 'Admin_HR', 'ADMIN_EXPENSE'], true)
+            || in_array('expenses.manage', $userPerms, true)
+            || in_array('expense.manage', $userPerms, true);
     }
 
     public function canEditExpense(array $user, array $expense): bool
     {
-        // Must be status DRAFT
+        // Expense item must be status DRAFT
         if (($expense['status'] ?? '') !== 'DRAFT') {
             return false;
         }
 
+        // Parent report check: if linked to a report, report must also be DRAFT
+        if (!empty($expense['report_id'])) {
+            $reportStatus = $expense['report_status'] ?? null;
+            if ($reportStatus === null) {
+                $pdo = Database::pdo();
+                $stmt = $pdo->prepare('SELECT status FROM expense_reports WHERE report_id = :id');
+                $stmt->execute(['id' => (int) $expense['report_id']]);
+                $reportStatus = $stmt->fetchColumn() ?: null;
+            }
+            if ($reportStatus !== null && $reportStatus !== 'DRAFT') {
+                return false;
+            }
+        }
+
         $role = $user['role_name'] ?? '';
         $userId = (int) ($user['user_id'] ?? 0);
+        $userPerms = $user['permissions'] ?? [];
 
         // Only Admin Expense (or creator) can edit transactions
-        if (in_array($role, ['ADMIN', 'Admin_HR', 'ADMIN_EXPENSE'], true) || in_array('expenses.manage', $user['permissions'] ?? [])) {
+        if (in_array($role, ['ADMIN', 'Admin_HR', 'ADMIN_EXPENSE'], true) || in_array('expenses.manage', $userPerms, true) || in_array('expense.manage', $userPerms, true)) {
             return true;
         }
 
@@ -87,12 +100,7 @@ class AuthorizationService
 
     public function canDeleteExpense(array $user, array $expense): bool
     {
-        if (!$this->canEditExpense($user, $expense)) {
-            return false;
-        }
-
-        // Cannot delete if already submitted or approved
-        return empty($expense['report_id']) || ($expense['status'] ?? '') === 'DRAFT';
+        return $this->canEditExpense($user, $expense);
     }
 
     public function canViewReceipt(array $user, array $expense): bool
