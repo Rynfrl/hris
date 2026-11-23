@@ -35,8 +35,14 @@ class Router
         preg_match_all('/\{([a-zA-Z0-9_]+)\}/', $path, $matches);
         $paramNames = $matches[1] ?? [];
 
-        // Build regex pattern
-        $pattern = preg_replace('/\{([a-zA-Z0-9_]+)\}/', '([^/]+)', $path);
+        // Build regex pattern: strictly match digits \d+ for ID parameters, ([^/]+) for others
+        $pattern = preg_replace_callback('/\{([a-zA-Z0-9_]+)\}/', function ($matches) {
+            $name = $matches[1];
+            if ($name === 'id' || str_ends_with($name, 'Id')) {
+                return '(\d+)';
+            }
+            return '([^/]+)';
+        }, $path);
         $pattern = '#^' . $pattern . '$#';
 
         $this->routes[$method][] = [
@@ -79,8 +85,10 @@ class Router
         if (str_starts_with($parsedUrl, '/expenses/expenses')) {
             $rawQuery = parse_url($uri, PHP_URL_QUERY);
             $cleanTarget = ($basePath !== '' ? $basePath : '/expenses') . ($normalizedPath === '/' ? '' : $normalizedPath) . ($rawQuery ? '?' . $rawQuery : '');
-            header('Location: ' . $cleanTarget, true, 301);
-            exit;
+            if (!headers_sent()) {
+                header('Location: ' . $cleanTarget, true, 301);
+                exit;
+            }
         }
 
         Url::setCurrentPath($normalizedPath);

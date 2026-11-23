@@ -33,6 +33,7 @@ class AuthorizationService
     /**
      * Checks if user is an authorized Manager Approver for a specific report.
      * Enforces Anti Self-Approval (creator !== approver) and Record-Level Assignment.
+     * DENY BY DEFAULT: Rejects invalid report ID (<=0) or unassigned managers.
      */
     public function isReportApprover(array $user, array $report): bool
     {
@@ -57,29 +58,32 @@ class AuthorizationService
 
         $reportId = (int) ($report['report_id'] ?? 0);
         if ($reportId <= 0) {
-            return true;
+            return false;
         }
 
-        // 1. Direct record-level assignment check from array
-        if (isset($report['approver_id'])) {
+        return $this->isAssignedApprover($reportId, $userId, $report) || $this->isPastApprover($reportId, $userId);
+    }
+
+    /**
+     * Checks active record-level manager assignment.
+     * Strict Deny by Default: returns false if unassigned.
+     */
+    public function isAssignedApprover(int $reportId, int $userId, ?array $report = null): bool
+    {
+        if ($reportId <= 0 || $userId <= 0) {
+            return false;
+        }
+
+        // 1. Check array payload if provided
+        if ($report !== null && isset($report['approver_id'])) {
             if ((int) $report['approver_id'] === $userId) {
                 return true;
             }
-            if ($report['approver_id'] !== null && (int) $report['approver_id'] !== 0) {
-                // Explicitly assigned to someone else; check multi-approver or past approvals
-                return $this->isAssignedOrPastApprover($reportId, $userId);
-            }
         }
 
-        // 2. Database verification for multi-approver or historical decider
-        return $this->isAssignedOrPastApprover($reportId, $userId);
-    }
-
-    private function isAssignedOrPastApprover(int $reportId, int $userId): bool
-    {
         try {
             $pdo = Database::pdo();
-            // Check expense_reports.approver_id
+            // Check expense_reports.approver_id in DB
             $stmt = $pdo->prepare('SELECT approver_id FROM expense_reports WHERE report_id = :rep_id');
             $stmt->execute(['rep_id' => $reportId]);
             $assignedApprover = $stmt->fetchColumn();
@@ -90,30 +94,33 @@ class AuthorizationService
                 }
             }
 
-            // Check expense_report_approvers
+            // Check multi-approver assignment table
             $stmt2 = $pdo->prepare('SELECT 1 FROM expense_report_approvers WHERE report_id = :rep_id AND approver_id = :user_id LIMIT 1');
             $stmt2->execute(['rep_id' => $reportId, 'user_id' => $userId]);
             if ($stmt2->fetchColumn()) {
                 return true;
             }
 
-            // Check past approvals (if manager already acted on this report)
-            $stmt3 = $pdo->prepare('SELECT 1 FROM expense_approvals WHERE report_id = :rep_id AND approver_id = :user_id LIMIT 1');
-            $stmt3->execute(['rep_id' => $reportId, 'user_id' => $userId]);
-            if ($stmt3->fetchColumn()) {
-                return true;
-            }
-
-            // If completely unassigned, allow any qualified manager (fallback)
-            if ($assignedApprover === null || $assignedApprover === false || (int) $assignedApprover === 0) {
-                $stmtCount = $pdo->prepare('SELECT COUNT(*) FROM expense_report_approvers WHERE report_id = :rep_id');
-                $stmtCount->execute(['rep_id' => $reportId]);
-                if ((int) $stmtCount->fetchColumn() === 0) {
-                    return true;
-                }
-            }
-
             return false;
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+
+    /**
+     * Checks whether user was a historical decider on this report.
+     */
+    public function isPastApprover(int $reportId, int $userId): bool
+    {
+        if ($reportId <= 0 || $userId <= 0) {
+            return false;
+        }
+
+        try {
+            $pdo = Database::pdo();
+            $stmt = $pdo->prepare('SELECT 1 FROM expense_approvals WHERE report_id = :rep_id AND approver_id = :user_id LIMIT 1');
+            $stmt->execute(['rep_id' => $reportId, 'user_id' => $userId]);
+            return (bool) $stmt->fetchColumn();
         } catch (\Throwable) {
             return false;
         }
@@ -253,14 +260,29 @@ class AuthorizationService
         }
 
         $userId = (int) ($user['user_id'] ?? 0);
+        if ($userId <= 0) {
+            return false;
+        }
 
         // Anti Self-Approval: creator cannot approve their own submitted report
         if (!empty($report['created_by']) && (int) $report['created_by'] === $userId) {
             return false;
         }
 
-        // Must be assigned approver
-        return $this->isReportApprover($user, $report);
+        $role = $user['role_name'] ?? '';
+        $perms = $user['permissions'] ?? [];
+        $isManager = ($role === 'MANAGER' || $role === 'MANAGER_EXPENSE' || in_array('expense.approve', $perms, true));
+        if (!$isManager) {
+            return false;
+        }
+
+        $reportId = (int) ($report['report_id'] ?? 0);
+        if ($reportId <= 0) {
+            return false;
+        }
+
+        // Must be currently assigned approver (active decision authority, deny by default)
+        return $this->isAssignedApprover($reportId, $userId, $report);
     }
 
     public function canReviseReport(array $user, array $report): bool

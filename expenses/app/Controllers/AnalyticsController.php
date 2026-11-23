@@ -49,13 +49,36 @@ class AnalyticsController
         }
 
         if ($isManager) {
-            // Manager sees assigned reports, decided reports, and own created drafts (Prioritas 1)
+            // Manager sees assigned reports and historically decided reports
+            if ($alias === 'e') {
+                return [
+                    "EXISTS (
+                        SELECT 1 FROM expense_report_items eri_sc
+                        JOIN expense_reports r_sc ON r_sc.report_id = eri_sc.report_id
+                        WHERE eri_sc.expense_id = {$alias}.expense_id
+                          AND (
+                              r_sc.approver_id = :scope_mgr_appr
+                              OR EXISTS (SELECT 1 FROM expense_report_approvers era_sc WHERE era_sc.report_id = r_sc.report_id AND era_sc.approver_id = :scope_mgr_era)
+                              OR EXISTS (SELECT 1 FROM expense_approvals ea_sc WHERE ea_sc.report_id = r_sc.report_id AND ea_sc.approver_id = :scope_mgr_ea)
+                          )
+                    )",
+                    [
+                        'scope_mgr_appr' => $userId,
+                        'scope_mgr_era' => $userId,
+                        'scope_mgr_ea' => $userId,
+                    ]
+                ];
+            }
+
             return [
-                "({$alias}.approver_id = :scope_approver_id OR EXISTS (SELECT 1 FROM expense_report_approvers era WHERE era.report_id = {$alias}.report_id AND era.approver_id = :scope_approver_id_era) OR {$alias}.created_by = :scope_user_id)",
+                "({$alias}.approver_id = :scope_mgr_appr
+                  OR EXISTS (SELECT 1 FROM expense_report_approvers era_sc WHERE era_sc.report_id = {$alias}.report_id AND era_sc.approver_id = :scope_mgr_era)
+                  OR EXISTS (SELECT 1 FROM expense_approvals ea_sc WHERE ea_sc.report_id = {$alias}.report_id AND ea_sc.approver_id = :scope_mgr_ea)
+                )",
                 [
-                    'scope_approver_id' => $userId,
-                    'scope_approver_id_era' => $userId,
-                    'scope_user_id' => $userId,
+                    'scope_mgr_appr' => $userId,
+                    'scope_mgr_era' => $userId,
+                    'scope_mgr_ea' => $userId,
                 ]
             ];
         }

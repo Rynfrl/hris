@@ -138,11 +138,11 @@ class Auth
         Session::start();
         Session::regenerate(true);
         Session::set(self::SESSION_KEY, [
-            'user_id' => $user['user_id'],
-            'username' => $user['username'],
-            'email' => $user['email'],
+            'user_id' => $user['user_id'] ?? 0,
+            'username' => $user['username'] ?? '',
+            'email' => $user['email'] ?? null,
             'employee_id' => $user['employee_id'] ?? null,
-            'role_id' => $user['role_id'],
+            'role_id' => $user['role_id'] ?? null,
             'role_name' => $user['role_name'] ?? null,
         ]);
         self::$cachedUser = null;
