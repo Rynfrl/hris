@@ -31,7 +31,7 @@ class AnalyticsController
     private function getScopeConditions(array $user, string $alias = 'e'): array
     {
         $role = $user['role_name'] ?? 'EMPLOYEE';
-        $isAdmin = in_array($role, ['ADMIN', 'Admin_HR', 'ADMIN_EXPENSE'], true) || Auth::hasPermission('expenses.manage');
+        $isAdmin = in_array($role, ['ADMIN', 'ADMIN_EXPENSE'], true) || Auth::hasPermission('expenses.manage');
         $isManager = ($role === 'MANAGER') || Auth::hasPermission('expense.approve');
         $isFinance = ($role === 'FINANCE') || Auth::hasPermission('expense.post') || Auth::hasPermission('expense.reimburse');
         $userId = (int) ($user['user_id'] ?? 0);
@@ -49,10 +49,14 @@ class AnalyticsController
         }
 
         if ($isManager) {
-            // Manager sees submitted, decided reports, and own created drafts
+            // Manager sees assigned reports, decided reports, and own created drafts (Prioritas 1)
             return [
-                "({$alias}.status IN ('SUBMITTED', 'APPROVED', 'POSTED', 'REIMBURSEMENT_PENDING', 'PAID', 'REFUSED') OR {$alias}.created_by = :scope_user_id)",
-                ['scope_user_id' => $userId]
+                "({$alias}.approver_id = :scope_approver_id OR EXISTS (SELECT 1 FROM expense_report_approvers era WHERE era.report_id = {$alias}.report_id AND era.approver_id = :scope_approver_id_era) OR {$alias}.created_by = :scope_user_id)",
+                [
+                    'scope_approver_id' => $userId,
+                    'scope_approver_id_era' => $userId,
+                    'scope_user_id' => $userId,
+                ]
             ];
         }
 

@@ -35,9 +35,9 @@ class ReimbursementRepository
                        (SELECT COUNT(*) FROM expense_report_employees ere WHERE ere.report_id = rem.report_id),
                        1
                    ) as employee_count,
-                   COALESCE(rem.bank_name, emp.bank_name) as bank_name,
-                   COALESCE(rem.account_number, emp.bank_account) as bank_account,
-                   COALESCE(rem.account_holder, emp.full_name) as account_holder,
+                   rem.bank_name,
+                   rem.account_number,
+                   rem.account_holder,
                    u.username as processor_username
             FROM reimbursements rem
             JOIN expense_reports r ON r.report_id = rem.report_id
@@ -84,8 +84,8 @@ class ReimbursementRepository
                        (SELECT COUNT(*) FROM expense_report_employees ere WHERE ere.report_id = rem.report_id),
                        1
                    ) as employee_count,
-                   COALESCE(rem.bank_name, emp.bank_name) as bank_name,
-                   COALESCE(rem.account_number, emp.bank_account) as bank_account
+                   rem.bank_name,
+                   rem.account_number
             FROM reimbursements rem
             JOIN expense_reports r ON r.report_id = rem.report_id
             LEFT JOIN employees emp ON emp.employee_id = rem.employee_id
@@ -168,9 +168,9 @@ class ReimbursementRepository
                        (SELECT COUNT(*) FROM expense_report_employees ere WHERE ere.report_id = rem.report_id),
                        1
                    ) as employee_count,
-                   COALESCE(rem.bank_name, emp.bank_name, 'Bank Transfer') as bank_name,
-                   COALESCE(rem.account_number, emp.bank_account, '-') as bank_account,
-                   COALESCE(rem.account_holder, rem.recipient_name, emp.full_name) as account_holder,
+                   COALESCE(rem.bank_name, 'Bank Transfer') as bank_name,
+                   COALESCE(rem.account_number, '-') as bank_account,
+                   COALESCE(rem.account_holder, rem.recipient_name, 'Kas Operasional') as account_holder,
                    (SELECT COUNT(*) FROM expense_reimbursement_payments WHERE reimbursement_id = rem.reimbursement_id) as payments_count,
                    (SELECT failure_reason FROM expense_reimbursement_failures WHERE reimbursement_id = rem.reimbursement_id ORDER BY failure_id DESC LIMIT 1) as latest_failure_reason,
                    (SELECT f.created_at FROM expense_reimbursement_failures f WHERE f.reimbursement_id = rem.reimbursement_id ORDER BY f.failure_id DESC LIMIT 1) as latest_failure_date,
@@ -195,11 +195,27 @@ class ReimbursementRepository
         ];
     }
 
+    public static function formatDecimal(mixed $val): string
+    {
+        $str = trim((string) $val);
+        $str = preg_replace('/[^\d\.\-]/', '', $str);
+        if ($str === '' || !is_numeric($str)) {
+            return '0.00';
+        }
+        if (function_exists('bcadd')) {
+            return bcadd($str, '0', 2);
+        }
+        $parts = explode('.', $str);
+        $intPart = $parts[0] !== '' ? $parts[0] : '0';
+        $decPart = isset($parts[1]) ? substr(str_pad($parts[1], 2, '0'), 0, 2) : '00';
+        return $intPart . '.' . $decPart;
+    }
+
     public function createConsolidated(array $data): int
     {
         $pdo = Database::pdo();
         $reportId = (int) $data['report_id'];
-        $amount = number_format((float) $data['amount'], 2, '.', '');
+        $amount = self::formatDecimal($data['amount']);
         $status = $data['status'] ?? 'PENDING';
         $notes = $data['notes'] ?? ('Reimbursement gabungan laporan #' . $reportId);
         $employeeId = !empty($data['employee_id']) ? (int) $data['employee_id'] : null;
@@ -273,8 +289,17 @@ class ReimbursementRepository
                 throw new RuntimeException('Laporan reimbursement ini sudah dibayar penuh (PAID) dan tidak dapat dibayar ulang.');
             }
 
-            $approvedAmountStr = number_format((float) $reimb['amount'], 2, '.', '');
-            $payAmountStr = number_format((float) ($data['amount'] ?? $reimb['amount']), 2, '.', '');
+            // Prioritas 4: Direct payment on FAILED status is strictly forbidden
+            if ($reimb['status'] === 'FAILED') {
+                throw new RuntimeException('Reimbursement dengan status FAILED tidak dapat langsung dicairkan. Lakukan retry pembayaran terlebih dahulu.');
+            }
+
+            if (!in_array($reimb['status'], ['PENDING', 'PROCESSING'], true)) {
+                throw new RuntimeException('Status reimbursement tidak valid untuk pembayaran: ' . $reimb['status']);
+            }
+
+            $approvedAmountStr = self::formatDecimal($reimb['amount']);
+            $payAmountStr = self::formatDecimal($data['amount'] ?? $reimb['amount']);
 
             if (function_exists('bccomp')) {
                 if (bccomp($payAmountStr, '0.00', 2) <= 0) {
@@ -288,7 +313,7 @@ class ReimbursementRepository
                     ));
                 }
             } else {
-                if ((float) $payAmountStr <= 0) {
+                if ($payAmountStr === '0.00' || str_starts_with($payAmountStr, '-')) {
                     throw new InvalidArgumentException('Nominal pembayaran harus lebih besar dari 0.');
                 }
                 if ($payAmountStr !== $approvedAmountStr) {
@@ -405,82 +430,98 @@ class ReimbursementRepository
 
     public function updateStatus(int $id, string $status, ?int $processedBy = null, ?array $paymentDetails = null): bool
     {
-        $pdo = Database::pdo();
         $statusUpper = strtoupper($status);
 
-        $reimb = $this->findById($id);
-        if ($reimb && $statusUpper === 'PAID') {
-            $amount = (string) ($reimb['approved_amount'] ?? $reimb['amount'] ?? '0.00');
-            $payData = [
-                'amount' => $amount,
-                'payment_method' => $paymentDetails['payment_method'] ?? 'BANK_TRANSFER',
-                'bank_reference' => $paymentDetails['payment_reference'] ?? null,
-                'payment_date' => $paymentDetails['payment_date'] ?? date('Y-m-d'),
-                'notes' => $paymentDetails['notes'] ?? null,
-            ];
-            $this->recordPayment($id, $payData, $processedBy ?? 1);
-            return true;
+        if ($statusUpper === 'PAID') {
+            $reimb = $this->findById($id);
+            if ($reimb) {
+                $amount = self::formatDecimal($reimb['approved_amount'] ?? $reimb['amount'] ?? '0.00');
+                $payData = [
+                    'amount' => $amount,
+                    'payment_method' => $paymentDetails['payment_method'] ?? 'BANK_TRANSFER',
+                    'bank_reference' => $paymentDetails['payment_reference'] ?? null,
+                    'payment_date' => $paymentDetails['payment_date'] ?? date('Y-m-d'),
+                    'notes' => $paymentDetails['notes'] ?? null,
+                    'proof_path' => $paymentDetails['proof_path'] ?? null,
+                ];
+                $this->recordPayment($id, $payData, $processedBy ?? 1);
+                return true;
+            }
         }
 
-        if ($reimb && $statusUpper === 'FAILED') {
-            $reason = trim((string) ($paymentDetails['notes'] ?? $paymentDetails['error_reason'] ?? 'Pembayaran gagal'));
-            $failedBy = $processedBy ?? 1;
-            $prevStatus = $reimb['status'] ?? 'PROCESSING';
-            $reportId = (int) $reimb['report_id'];
+        // Prioritas 5: Atomic status update and failure recording with row locking
+        return Database::transaction(function (PDO $pdo) use ($id, $statusUpper, $processedBy, $paymentDetails) {
+            $stmtLock = $pdo->prepare('SELECT * FROM reimbursements WHERE reimbursement_id = :id FOR UPDATE');
+            $stmtLock->execute(['id' => $id]);
+            $reimb = $stmtLock->fetch();
 
-            // 1. Calculate attempt number
-            $stmtAtt = $pdo->prepare('SELECT COUNT(*) FROM expense_reimbursement_failures WHERE reimbursement_id = :id');
-            $stmtAtt->execute(['id' => $id]);
-            $attemptNo = (int) $stmtAtt->fetchColumn() + 1;
+            if (!$reimb) {
+                throw new RuntimeException('Data reimbursement tidak ditemukan.');
+            }
 
-            // 2. Insert into expense_reimbursement_failures history
-            $stmtFail = $pdo->prepare('
-                INSERT INTO expense_reimbursement_failures (
-                    reimbursement_id, report_id, previous_status, new_status, failure_reason, failed_by, payment_reference, attempt_number
-                ) VALUES (
-                    :reimbursement_id, :report_id, :prev_status, "FAILED", :reason, :failed_by, :pay_ref, :attempt_no
-                )
-            ');
-            $stmtFail->execute([
-                'reimbursement_id' => $id,
-                'report_id' => $reportId,
-                'prev_status' => $prevStatus,
-                'reason' => $reason,
-                'failed_by' => $failedBy,
-                'pay_ref' => $paymentDetails['payment_reference'] ?? null,
-                'attempt_no' => $attemptNo,
-            ]);
+            if ($statusUpper === 'FAILED') {
+                $reason = trim((string) ($paymentDetails['notes'] ?? $paymentDetails['error_reason'] ?? ''));
+                if ($reason === '' || mb_strlen($reason) < 5 || strcasecmp($reason, 'Pembayaran gagal') === 0) {
+                    throw new InvalidArgumentException('Alasan kegagalan pembayaran wajib diisi secara jelas (minimal 5 karakter).');
+                }
+                $failedBy = $processedBy ?? 1;
+                $prevStatus = $reimb['status'] ?? 'PROCESSING';
+                $reportId = (int) $reimb['report_id'];
 
-            // 3. Update reimbursements table with FAILED status and failure notes
+                // 1. Calculate attempt number safely with row lock
+                $stmtAtt = $pdo->prepare('SELECT COALESCE(MAX(attempt_number), 0) + 1 FROM expense_reimbursement_failures WHERE reimbursement_id = :id FOR UPDATE');
+                $stmtAtt->execute(['id' => $id]);
+                $attemptNo = (int) $stmtAtt->fetchColumn();
+
+                // 2. Insert into expense_reimbursement_failures history
+                $stmtFail = $pdo->prepare('
+                    INSERT INTO expense_reimbursement_failures (
+                        reimbursement_id, report_id, previous_status, new_status, failure_reason, failed_by, payment_reference, attempt_number
+                    ) VALUES (
+                        :reimbursement_id, :report_id, :prev_status, "FAILED", :reason, :failed_by, :pay_ref, :attempt_no
+                    )
+                ');
+                $stmtFail->execute([
+                    'reimbursement_id' => $id,
+                    'report_id' => $reportId,
+                    'prev_status' => $prevStatus,
+                    'reason' => $reason,
+                    'failed_by' => $failedBy,
+                    'pay_ref' => $paymentDetails['payment_reference'] ?? null,
+                    'attempt_no' => $attemptNo,
+                ]);
+
+                // 3. Update reimbursements table with FAILED status and failure notes
+                $stmt = $pdo->prepare('
+                    UPDATE reimbursements
+                    SET status = "FAILED",
+                        notes = :reason,
+                        processed_by = :processed_by,
+                        processed_at = NOW(),
+                        updated_at = NOW()
+                    WHERE reimbursement_id = :id
+                ');
+                return $stmt->execute([
+                    'reason' => $reason,
+                    'processed_by' => $failedBy,
+                    'id' => $id,
+                ]);
+            }
+
             $stmt = $pdo->prepare('
                 UPDATE reimbursements
-                SET status = "FAILED",
-                    notes = :reason,
+                SET status = :status,
                     processed_by = :processed_by,
                     processed_at = NOW(),
                     updated_at = NOW()
                 WHERE reimbursement_id = :id
             ');
             return $stmt->execute([
-                'reason' => $reason,
-                'processed_by' => $failedBy,
+                'status' => $statusUpper,
+                'processed_by' => $processedBy,
                 'id' => $id,
             ]);
-        }
-
-        $stmt = $pdo->prepare('
-            UPDATE reimbursements
-            SET status = :status,
-                processed_by = :processed_by,
-                processed_at = NOW(),
-                updated_at = NOW()
-            WHERE reimbursement_id = :id
-        ');
-        return $stmt->execute([
-            'status' => $statusUpper,
-            'processed_by' => $processedBy,
-            'id' => $id,
-        ]);
+        });
     }
 
     public function getFailures(int $reimbursementId): array

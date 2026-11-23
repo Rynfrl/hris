@@ -56,13 +56,13 @@ class ReportController
         $role = $user['role_name'] ?? 'EMPLOYEE';
 
         // Employee has no access to operational expense menus
-        if ($role === 'EMPLOYEE' || (!in_array($role, ['ADMIN', 'Admin_HR', 'ADMIN_EXPENSE', 'MANAGER', 'FINANCE'], true) && !in_array('expenses.manage', $user['permissions'] ?? []))) {
+        if ($role === 'EMPLOYEE' || (!in_array($role, ['ADMIN', 'ADMIN_EXPENSE', 'MANAGER', 'FINANCE'], true) && !in_array('expenses.manage', $user['permissions'] ?? []))) {
             http_response_code(403);
             return View::render('errors/403', ['title' => 'Akses Ditolak'], 'layouts/error');
         }
 
         $role = $user['role_name'] ?? '';
-        $isAdmin = in_array($role, ['ADMIN', 'Admin_HR', 'ADMIN_EXPENSE'], true) || Auth::hasPermission('expenses.manage');
+        $isAdmin = in_array($role, ['ADMIN', 'ADMIN_EXPENSE'], true) || Auth::hasPermission('expenses.manage');
         $isManager = ($role === 'MANAGER') || Auth::hasPermission('expense.approve');
         $isFinance = ($role === 'FINANCE') || Auth::hasPermission('expense.post') || Auth::hasPermission('expense.reimburse');
 
@@ -85,13 +85,14 @@ class ReportController
                 $filters['status_in'] = $financeAllowed;
             }
         } elseif ($isManager && !$isAdmin) {
-            // Manager role scoping: SUBMITTED, APPROVED, POSTED, REIMBURSEMENT_PENDING, PAID, REFUSED
+            // Manager role scoping: SUBMITTED, APPROVED, POSTED, REIMBURSEMENT_PENDING, PAID, REFUSED (Prioritas 1)
             $managerAllowed = ['SUBMITTED', 'APPROVED', 'POSTED', 'REIMBURSEMENT_PENDING', 'PAID', 'REFUSED'];
             if ($reqStatus && in_array($reqStatus, $managerAllowed, true)) {
                 $filters['status'] = $reqStatus;
             } else {
                 $filters['status_in'] = $managerAllowed;
             }
+            $filters['approver_id'] = (int) ($user['user_id'] ?? 0);
         } else {
             // Admin role: can filter by any status
             if ($reqStatus) {
@@ -122,10 +123,21 @@ class ReportController
         }
 
         $activeEmployees = $this->employeeRepo->getAll(true);
+        $approvers = \App\Core\Database::pdo()->query("
+            SELECT u.user_id, u.username, r.role_name, emp.full_name
+            FROM users u
+            JOIN roles r ON (r.role_id = u.role_id OR r.id_role = u.role_id)
+            LEFT JOIN employees emp ON (emp.employee_id = u.employee_id OR emp.id_employee = u.employee_id)
+            WHERE (r.role_name IN ('MANAGER', 'MANAGER_EXPENSE') OR u.username = 'rina_manager'
+                   OR EXISTS (SELECT 1 FROM role_permissions rp JOIN permissions p ON p.permission_id = rp.permission_id WHERE rp.role_id = u.role_id AND p.permission_key = 'expense.approve'))
+              AND u.deleted_at IS NULL
+            ORDER BY u.user_id ASC
+        ")->fetchAll(\PDO::FETCH_ASSOC);
 
         return View::render('reports/create', [
             'title' => 'Buat Laporan Pengeluaran Baru',
             'activeEmployees' => $activeEmployees,
+            'approvers' => $approvers,
             'user' => $user,
         ]);
     }

@@ -193,8 +193,8 @@ $html = View::render('dashboard/index', [
 ], 'layouts/main');
 
 assertCondition("Rendered HTML has active class on /expenses/dashboard link", str_contains($html, 'href="/expenses/dashboard" class="sidebar-link active"'));
-assertCondition("Rendered HTML does NOT have active class on /expenses/expenses link", !str_contains($html, 'href="/expenses/expenses" class="sidebar-link active"'));
-assertCondition("Rendered HTML has regular sidebar-link on /expenses/expenses", str_contains($html, 'href="/expenses/expenses" class="sidebar-link "'));
+assertCondition("Rendered HTML does NOT have active class on /expenses link", !str_contains($html, 'href="/expenses" class="sidebar-link active"'));
+assertCondition("Rendered HTML has regular sidebar-link on /expenses", str_contains($html, 'href="/expenses" class="sidebar-link "'));
 
 // Test when on expenses page
 $_SERVER['REQUEST_URI'] = '/expenses/expenses';
@@ -210,7 +210,7 @@ $htmlExpenses = View::render('expenses/index', [
     'user' => Auth::user(),
 ], 'layouts/main');
 
-assertCondition("Rendered HTML has active class on /expenses/expenses link when on /expenses/expenses", str_contains($htmlExpenses, 'href="/expenses/expenses" class="sidebar-link active"'));
+assertCondition("Rendered HTML has active class on /expenses link when on /expenses/expenses", str_contains($htmlExpenses, 'href="/expenses" class="sidebar-link active"'));
 assertCondition("Rendered HTML does NOT have active class on /expenses/dashboard link when on /expenses/expenses", !str_contains($htmlExpenses, 'href="/expenses/dashboard" class="sidebar-link active"'));
 
 echo "\nSummary: $passed passed, $failed failed.\n";

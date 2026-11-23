@@ -17,6 +17,8 @@ class ReportRepository
             SELECT r.*,
                    COALESCE(u.username, "admin") as creator_username,
                    u.name as creator_name,
+                   app_u.username as approver_username,
+                   app_u.name as approver_name,
                    emp.full_name as employee_name, emp.employee_number, emp.manager_id,
                    d.department_name, d.department_code,
                    reimb.reimbursement_id, reimb.status as reimbursement_status, reimb.payment_method, reimb.payment_date, reimb.payment_reference,
@@ -25,6 +27,7 @@ class ReportRepository
                    (SELECT COUNT(*) FROM expense_report_items WHERE report_id = r.report_id) as item_count
             FROM expense_reports r
             LEFT JOIN users u ON u.user_id = r.created_by
+            LEFT JOIN users app_u ON app_u.user_id = r.approver_id
             LEFT JOIN employees emp ON emp.employee_id = r.employee_id
             LEFT JOIN departments d ON d.department_id = emp.department_id
             LEFT JOIN reimbursements reimb ON reimb.report_id = r.report_id
@@ -243,6 +246,12 @@ class ReportRepository
             $params['exclude_created_by'] = (int) $filters['exclude_created_by'];
         }
 
+        if (!empty($filters['approver_id'])) {
+            $where[] = '(r.approver_id = :filter_approver_id OR EXISTS (SELECT 1 FROM expense_report_approvers era WHERE era.report_id = r.report_id AND era.approver_id = :filter_approver_id_era))';
+            $params['filter_approver_id'] = (int) $filters['approver_id'];
+            $params['filter_approver_id_era'] = (int) $filters['approver_id'];
+        }
+
         if (!empty($filters['created_by'])) {
             $where[] = 'r.created_by = :created_by';
             $params['created_by'] = (int) $filters['created_by'];
@@ -326,23 +335,32 @@ class ReportRepository
     public function create(array $data): int
     {
         $pdo = Database::pdo();
+        $approverId = !empty($data['approver_id']) ? (int) $data['approver_id'] : null;
+
         $stmt = $pdo->prepare('
             INSERT INTO expense_reports (
-                report_number, employee_id, created_by, title, description, start_date, end_date, total_amount, status
+                report_number, employee_id, created_by, approver_id, title, description, start_date, end_date, total_amount, status
             ) VALUES (
-                :report_number, :employee_id, :created_by, :title, :description, :start_date, :end_date, 0.00, "DRAFT"
+                :report_number, :employee_id, :created_by, :approver_id, :title, :description, :start_date, :end_date, 0.00, "DRAFT"
             )
         ');
         $stmt->execute([
             'report_number' => $data['report_number'] ?? $this->generateReportNumber(),
             'employee_id' => !empty($data['employee_id']) ? (int) $data['employee_id'] : null,
             'created_by' => !empty($data['created_by']) ? (int) $data['created_by'] : null,
+            'approver_id' => $approverId,
             'title' => trim($data['title']),
             'description' => !empty($data['description']) ? trim($data['description']) : null,
             'start_date' => !empty($data['start_date']) ? $data['start_date'] : null,
             'end_date' => !empty($data['end_date']) ? $data['end_date'] : null,
         ]);
         $reportId = (int) $pdo->lastInsertId();
+
+        // Sync into expense_report_approvers if approver is set
+        if ($approverId) {
+            $stmtApp = $pdo->prepare('INSERT IGNORE INTO expense_report_approvers (report_id, approver_id) VALUES (:r, :a)');
+            $stmtApp->execute(['r' => $reportId, 'a' => $approverId]);
+        }
 
         // Attach employees if provided
         if (!empty($data['employee_ids']) && is_array($data['employee_ids'])) {
@@ -495,6 +513,11 @@ class ReportRepository
             $params['action'] = strtoupper((string) $filters['action']);
         } else {
             $conditions[] = 'a.action IN ("APPROVED", "REFUSED", "REVISED", "SUBMITTED", "FAILED", "RETRY", "PAID")';
+        }
+
+        if (!empty($filters['approver_id'])) {
+            $conditions[] = 'a.approver_id = :filter_approver_id';
+            $params['filter_approver_id'] = (int) $filters['approver_id'];
         }
 
         if (!empty($filters['search'])) {

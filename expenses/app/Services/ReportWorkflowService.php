@@ -45,7 +45,7 @@ class ReportWorkflowService
 
         $userRole = $user['role_name'] ?? '';
         $userPerms = $user['permissions'] ?? [];
-        $allowedRoles = ['ADMIN', 'ADMIN_EXPENSE', 'Admin_HR'];
+        $allowedRoles = ['ADMIN', 'ADMIN_EXPENSE'];
         $hasManagePerm = in_array('expenses.manage', $userPerms, true) || in_array('expense.manage', $userPerms, true);
 
         if (!in_array($userRole, $allowedRoles, true) && !$hasManagePerm) {
@@ -59,6 +59,22 @@ class ReportWorkflowService
         $endDate = !empty($data['end_date']) ? $data['end_date'] : null;
         if ($startDate && $endDate && $startDate > $endDate) {
             throw new InvalidArgumentException('Tanggal awal laporan tidak boleh melewati tanggal akhir.');
+        }
+
+        // Resolve approver_id: specific manager selection or default manager
+        $approverId = !empty($data['approver_id']) ? (int) $data['approver_id'] : null;
+        if (!$approverId) {
+            $defaultApproverStmt = Database::pdo()->query("
+                SELECT u.user_id 
+                FROM users u 
+                JOIN roles r ON (r.role_id = u.role_id OR r.id_role = u.role_id)
+                WHERE (r.role_name IN ('MANAGER', 'MANAGER_EXPENSE') OR u.username = 'rina_manager'
+                       OR EXISTS (SELECT 1 FROM role_permissions rp JOIN permissions p ON p.permission_id = rp.permission_id WHERE rp.role_id = u.role_id AND p.permission_key = 'expense.approve'))
+                  AND u.deleted_at IS NULL
+                ORDER BY u.user_id ASC
+                LIMIT 1
+            ");
+            $approverId = (int) ($defaultApproverStmt->fetchColumn() ?: 2);
         }
 
         // Support employee_ids array (multi-employee) or single employee_id
@@ -75,11 +91,12 @@ class ReportWorkflowService
 
         $primaryEmployeeId = !empty($employeeIds) ? $employeeIds[0] : null;
 
-        return Database::transaction(function () use ($data, $primaryEmployeeId, $employeeIds, $title, $startDate, $endDate, $userId) {
+        return Database::transaction(function () use ($data, $primaryEmployeeId, $employeeIds, $title, $startDate, $endDate, $userId, $approverId) {
             $reportId = $this->reportRepo->create([
                 'report_number' => !empty($data['report_number']) ? trim($data['report_number']) : null,
                 'employee_id' => $primaryEmployeeId,
                 'created_by' => $userId,
+                'approver_id' => $approverId,
                 'title' => $title,
                 'description' => !empty($data['description']) ? trim($data['description']) : null,
                 'start_date' => $startDate,
@@ -712,8 +729,17 @@ class ReportWorkflowService
         try {
             return Database::transaction(function (PDO $pdo) use ($reimbursementId, $paymentData, $user, $proofFile, &$uploadedFilePath) {
                 $reimbursement = $this->reimbursementRepo->findById($reimbursementId, true);
-                if (!$reimbursement || !in_array($reimbursement['status'], ['PENDING', 'PROCESSING', 'FAILED'], true)) {
-                    throw new RuntimeException('Reimbursement hanya dapat dibayarkan jika berstatus PENDING, PROCESSING, atau FAILED.');
+                if (!$reimbursement) {
+                    throw new RuntimeException('Data reimbursement tidak ditemukan.');
+                }
+
+                // Prioritas 4: Direct payment on FAILED status is strictly forbidden
+                if ($reimbursement['status'] === 'FAILED') {
+                    throw new RuntimeException('Reimbursement yang gagal harus melalui proses retry terlebih dahulu sebelum dapat dicairkan kembali.');
+                }
+
+                if (!in_array($reimbursement['status'], ['PENDING', 'PROCESSING'], true)) {
+                    throw new RuntimeException('Reimbursement hanya dapat dibayarkan jika berstatus PENDING atau PROCESSING.');
                 }
 
                 $reportId = (int) $reimbursement['report_id'];
@@ -724,8 +750,8 @@ class ReportWorkflowService
 
                 $userId = (int) ($user['user_id'] ?? 0);
 
-                // Handle and strictly validate proof file if provided (Perbaikan 8)
-                $proofPath = null;
+                // Prioritas 3: Mandatory payment proof validation
+                $proofPath = !empty($paymentData['proof_path']) ? $paymentData['proof_path'] : null;
                 if ($proofFile && !empty($proofFile['name'])) {
                     if ($proofFile['error'] !== UPLOAD_ERR_OK) {
                         throw new RuntimeException('Gagal mengunggah bukti pembayaran. Kode error: ' . $proofFile['error']);
@@ -764,7 +790,11 @@ class ReportWorkflowService
                     $proofPath = 'receipts/' . $storedName;
                 }
 
-                $paymentData['proof_path'] = $proofPath ?? ($paymentData['proof_path'] ?? null);
+                if (empty($proofPath)) {
+                    throw new RuntimeException('Bukti transfer / pembayaran penuh wajib diunggah.');
+                }
+
+                $paymentData['proof_path'] = $proofPath;
 
                 // Record payment in reimbursement repository (enforces full payment)
                 $paymentId = $this->reimbursementRepo->recordPayment($reimbursementId, $paymentData, $userId);
@@ -835,6 +865,7 @@ class ReportWorkflowService
             'bank_reference' => $paymentDetails['payment_reference'] ?? ($paymentDetails['bank_reference'] ?? null),
             'payment_date' => $paymentDetails['payment_date'] ?? date('Y-m-d'),
             'notes' => $paymentDetails['notes'] ?? null,
+            'proof_path' => $paymentDetails['proof_path'] ?? null,
         ];
 
         $this->recordReimbursementPayment($reimbursementId, $paymentData, $user);
@@ -854,74 +885,92 @@ class ReportWorkflowService
 
     public function retryReimbursement(int $reimbursementId, array $user): bool
     {
-        $reimbursement = $this->reimbursementRepo->findById($reimbursementId);
-        if (!$reimbursement) {
-            throw new RuntimeException('Data reimbursement tidak ditemukan.');
-        }
-        if ($reimbursement['status'] !== 'FAILED') {
-            throw new RuntimeException('Hanya reimbursement dengan status FAILED (gagal) yang dapat diulang (retry).');
-        }
+        return Database::transaction(function (PDO $pdo) use ($reimbursementId, $user) {
+            $stmt = $pdo->prepare('SELECT * FROM reimbursements WHERE reimbursement_id = :id FOR UPDATE');
+            $stmt->execute(['id' => $reimbursementId]);
+            $reimbursement = $stmt->fetch();
 
-        $userId = (int) ($user['user_id'] ?? 0);
-        $ok = $this->reimbursementRepo->updateStatus($reimbursementId, 'PROCESSING', $userId, [
-            'notes' => 'Pembayaran diulang (retry) oleh Finance',
-        ]);
+            if (!$reimbursement) {
+                throw new RuntimeException('Data reimbursement tidak ditemukan.');
+            }
+            if ($reimbursement['status'] !== 'FAILED') {
+                throw new RuntimeException('Hanya reimbursement dengan status FAILED (gagal) yang dapat diulang (retry).');
+            }
 
-        if ($ok) {
-            $this->reportRepo->addApproval(
-                (int) $reimbursement['report_id'],
-                $userId,
-                'RETRY',
-                'Percobaan ulang proses pencairan dana reimbursement oleh Finance.'
-            );
-            $this->auditRepo->logActivity(
-                $userId,
-                'REIMBURSEMENT_RETRY',
-                'reimbursements',
-                $reimbursementId,
-                sprintf('Mengulang proses reimbursement #%d setelah gagal sebelumnya', $reimbursementId)
-            );
-        }
+            $userId = (int) ($user['user_id'] ?? 0);
+            $stmtUp = $pdo->prepare('
+                UPDATE reimbursements
+                SET status = "PROCESSING",
+                    notes = "Pembayaran diulang (retry) oleh Finance",
+                    processed_by = :uid,
+                    processed_at = NOW(),
+                    updated_at = NOW()
+                WHERE reimbursement_id = :id
+            ');
+            $ok = $stmtUp->execute(['uid' => $userId, 'id' => $reimbursementId]);
 
-        return $ok;
+            if ($ok) {
+                $this->reportRepo->addApproval(
+                    (int) $reimbursement['report_id'],
+                    $userId,
+                    'RETRY',
+                    'Percobaan ulang proses pencairan dana reimbursement oleh Finance.'
+                );
+                $this->auditRepo->logActivity(
+                    $userId,
+                    'REIMBURSEMENT_RETRY',
+                    'reimbursements',
+                    $reimbursementId,
+                    sprintf('Mengulang proses reimbursement #%d setelah gagal sebelumnya', $reimbursementId)
+                );
+            }
+
+            return $ok;
+        });
     }
 
     public function markFailed(int $reimbursementId, string $reason, array $user, ?string $paymentRef = null): bool
     {
-        $reimbursement = $this->reimbursementRepo->findById($reimbursementId);
-        if (!$reimbursement || !in_array($reimbursement['status'], ['PENDING', 'PROCESSING'], true)) {
-            throw new RuntimeException('Reimbursement gagal hanya dapat dicatat jika belum berstatus PAID/CANCELLED.');
-        }
-
         $cleanReason = trim($reason);
-        if ($cleanReason === '') {
-            throw new RuntimeException('Alasan kegagalan pembayaran wajib diisi.');
+        if ($cleanReason === '' || mb_strlen($cleanReason) < 5 || strcasecmp($cleanReason, 'Pembayaran gagal') === 0) {
+            throw new InvalidArgumentException('Alasan kegagalan pembayaran wajib diisi secara jelas (minimal 5 karakter).');
         }
 
         $userId = (int) ($user['user_id'] ?? 0);
-        $reportId = (int) $reimbursement['report_id'];
 
-        $ok = $this->reimbursementRepo->updateStatus($reimbursementId, 'FAILED', $userId, [
-            'notes' => $cleanReason,
-            'payment_reference' => $paymentRef,
-        ]);
+        return Database::transaction(function (PDO $pdo) use ($reimbursementId, $cleanReason, $userId, $paymentRef) {
+            $stmt = $pdo->prepare('SELECT * FROM reimbursements WHERE reimbursement_id = :id FOR UPDATE');
+            $stmt->execute(['id' => $reimbursementId]);
+            $reimbursement = $stmt->fetch();
 
-        if ($ok) {
-            $this->reportRepo->addApproval(
-                $reportId,
-                $userId,
-                'FAILED',
-                sprintf('Pembayaran reimbursement ditandai gagal: %s', $cleanReason)
-            );
-            $this->auditRepo->logActivity(
-                $userId,
-                'REIMBURSEMENT_FAILED',
-                'reimbursements',
-                $reimbursementId,
-                sprintf('Menandai kegagalan pembayaran reimbursement #%d dengan alasan: %s', $reimbursementId, $cleanReason)
-            );
-        }
+            if (!$reimbursement || !in_array($reimbursement['status'], ['PENDING', 'PROCESSING'], true)) {
+                throw new RuntimeException('Reimbursement gagal hanya dapat dicatat jika belum berstatus PAID/CANCELLED.');
+            }
 
-        return $ok;
+            $reportId = (int) $reimbursement['report_id'];
+
+            $ok = $this->reimbursementRepo->updateStatus($reimbursementId, 'FAILED', $userId, [
+                'notes' => $cleanReason,
+                'payment_reference' => $paymentRef,
+            ]);
+
+            if ($ok) {
+                $this->reportRepo->addApproval(
+                    $reportId,
+                    $userId,
+                    'FAILED',
+                    sprintf('Pembayaran reimbursement ditandai gagal: %s', $cleanReason)
+                );
+                $this->auditRepo->logActivity(
+                    $userId,
+                    'REIMBURSEMENT_FAILED',
+                    'reimbursements',
+                    $reimbursementId,
+                    sprintf('Menandai kegagalan pembayaran reimbursement #%d dengan alasan: %s', $reimbursementId, $cleanReason)
+                );
+            }
+
+            return $ok;
+        });
     }
 }

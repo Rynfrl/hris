@@ -18,7 +18,8 @@ class ExpenseRepository
                    emp.full_name as employee_name, emp.employee_number,
                    d.department_name, d.department_code,
                    u.username as creator_username,
-                   er.report_id, er.report_number, er.title as report_title, er.status as report_status
+                   er.report_id, er.report_number, er.title as report_title, er.status as report_status,
+                   er.created_by as report_created_by, er.approver_id as report_approver_id
             FROM expenses e
             JOIN expense_categories c ON c.category_id = e.category_id
             LEFT JOIN employees emp ON emp.employee_id = e.employee_id

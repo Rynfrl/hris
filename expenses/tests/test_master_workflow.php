@@ -284,6 +284,7 @@ $test('1.10 Finance executes 1 full payment (Rp4.500.000) -> Status transitions 
         'bank_reference' => 'TRF-FULL-PAY-20261121',
         'payment_date' => date('Y-m-d'),
         'notes' => 'Pencairan penuh seluruh pengeluaran operasional November 2026',
+        'proof_path' => 'receipts/proof_dummy.pdf',
     ], $financeUser);
 
     $reimb = $reimbRepo->findById($reimbId);

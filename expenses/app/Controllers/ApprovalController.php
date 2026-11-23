@@ -59,15 +59,17 @@ class ApprovalController
             if (!empty($_GET['action'])) {
                 $filters['action'] = trim((string) $_GET['action']);
             }
+            $filters['approver_id'] = $userId;
             $data = $this->reportRepo->getApprovalEventsHistory($filters, $page, $perPage);
             $reports = $data['data'];
             $total = $data['total'];
             $totalPages = $data['total_pages'];
         } else {
-            // Pending queue: SUBMITTED reports awaiting manager decision
+            // Pending queue: SUBMITTED reports awaiting manager decision (Prioritas 1)
             $reportFilters = array_merge($filters, [
                 'status' => 'SUBMITTED',
                 'exclude_created_by' => $userId, // Anti self-approval
+                'approver_id' => $userId,
             ]);
             $data = $this->reportRepo->getReports($reportFilters, $page, $perPage);
             $reports = $data['items'];

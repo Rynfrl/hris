@@ -194,8 +194,14 @@ class ReimbursementController
             Url::redirect('/reimbursements');
         }
 
-        $reason = trim($_POST['reason'] ?? 'Pembayaran gagal');
-        $paymentRef = trim($_POST['payment_reference'] ?? $_POST['bank_reference'] ?? '');
+        $reason = trim((string) ($_POST['reason'] ?? ''));
+        if ($reason === '' || mb_strlen($reason) < 5 || strcasecmp($reason, 'Pembayaran gagal') === 0) {
+            Flash::error('Alasan kegagalan pembayaran wajib diisi secara jelas (minimal 5 karakter).');
+            Url::redirect('/reimbursements');
+            return;
+        }
+
+        $paymentRef = trim((string) ($_POST['payment_reference'] ?? $_POST['bank_reference'] ?? ''));
 
         try {
             $this->workflowService->markFailed($reimbId, $reason, $user, $paymentRef ?: null);

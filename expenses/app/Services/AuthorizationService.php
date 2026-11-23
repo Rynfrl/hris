@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Repositories\EmployeeRepository;
 use App\Core\Database;
+use PDO;
 
 class AuthorizationService
 {
@@ -16,53 +17,144 @@ class AuthorizationService
         $this->employeeRepo = $employeeRepo ?? new EmployeeRepository();
     }
 
-    public function canViewExpense(array $user, array $expense): bool
+    /**
+     * Checks if user has Admin Expense role or explicit permission to manage expenses.
+     * Admin_HR is a general HRIS role and does NOT automatically grant Admin Expense rights.
+     */
+    public function isAdminExpense(array $user): bool
     {
         $role = $user['role_name'] ?? '';
-        $userId = (int) ($user['user_id'] ?? 0);
-        $empId = !empty($user['employee_id']) ? (int) $user['employee_id'] : null;
+        $perms = $user['permissions'] ?? [];
+        return in_array($role, ['ADMIN', 'ADMIN_EXPENSE'], true)
+            || in_array('expenses.manage', $perms, true)
+            || in_array('expense.manage', $perms, true);
+    }
 
-        // Admin Expense check
-        if (in_array($role, ['ADMIN', 'Admin_HR', 'ADMIN_EXPENSE'], true) || in_array('expenses.manage', $user['permissions'] ?? [])) {
+    /**
+     * Checks if user is an authorized Manager Approver for a specific report.
+     * Enforces Anti Self-Approval (creator !== approver) and Record-Level Assignment.
+     */
+    public function isReportApprover(array $user, array $report): bool
+    {
+        $role = $user['role_name'] ?? '';
+        $perms = $user['permissions'] ?? [];
+        $userId = (int) ($user['user_id'] ?? 0);
+
+        if ($userId <= 0) {
+            return false;
+        }
+
+        // Anti Self-Approval: creator cannot approve their own report
+        if (!empty($report['created_by']) && (int) $report['created_by'] === $userId) {
+            return false;
+        }
+
+        // Must have Manager role or explicit expense.approve permission
+        $isManager = ($role === 'MANAGER' || $role === 'MANAGER_EXPENSE' || in_array('expense.approve', $perms, true));
+        if (!$isManager) {
+            return false;
+        }
+
+        $reportId = (int) ($report['report_id'] ?? 0);
+        if ($reportId <= 0) {
             return true;
         }
+
+        // 1. Direct record-level assignment check from array
+        if (isset($report['approver_id'])) {
+            if ((int) $report['approver_id'] === $userId) {
+                return true;
+            }
+            if ($report['approver_id'] !== null && (int) $report['approver_id'] !== 0) {
+                // Explicitly assigned to someone else; check multi-approver or past approvals
+                return $this->isAssignedOrPastApprover($reportId, $userId);
+            }
+        }
+
+        // 2. Database verification for multi-approver or historical decider
+        return $this->isAssignedOrPastApprover($reportId, $userId);
+    }
+
+    private function isAssignedOrPastApprover(int $reportId, int $userId): bool
+    {
+        try {
+            $pdo = Database::pdo();
+            // Check expense_reports.approver_id
+            $stmt = $pdo->prepare('SELECT approver_id FROM expense_reports WHERE report_id = :rep_id');
+            $stmt->execute(['rep_id' => $reportId]);
+            $assignedApprover = $stmt->fetchColumn();
+
+            if ($assignedApprover !== false && $assignedApprover !== null && (int) $assignedApprover > 0) {
+                if ((int) $assignedApprover === $userId) {
+                    return true;
+                }
+            }
+
+            // Check expense_report_approvers
+            $stmt2 = $pdo->prepare('SELECT 1 FROM expense_report_approvers WHERE report_id = :rep_id AND approver_id = :user_id LIMIT 1');
+            $stmt2->execute(['rep_id' => $reportId, 'user_id' => $userId]);
+            if ($stmt2->fetchColumn()) {
+                return true;
+            }
+
+            // Check past approvals (if manager already acted on this report)
+            $stmt3 = $pdo->prepare('SELECT 1 FROM expense_approvals WHERE report_id = :rep_id AND approver_id = :user_id LIMIT 1');
+            $stmt3->execute(['rep_id' => $reportId, 'user_id' => $userId]);
+            if ($stmt3->fetchColumn()) {
+                return true;
+            }
+
+            // If completely unassigned, allow any qualified manager (fallback)
+            if ($assignedApprover === null || $assignedApprover === false || (int) $assignedApprover === 0) {
+                $stmtCount = $pdo->prepare('SELECT COUNT(*) FROM expense_report_approvers WHERE report_id = :rep_id');
+                $stmtCount->execute(['rep_id' => $reportId]);
+                if ((int) $stmtCount->fetchColumn() === 0) {
+                    return true;
+                }
+            }
+
+            return false;
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+
+    public function canViewExpense(array $user, array $expense): bool
+    {
+        if ($this->isAdminExpense($user)) {
+            return true;
+        }
+
+        $userId = (int) ($user['user_id'] ?? 0);
 
         // Creator check
         if ((int) ($expense['created_by'] ?? 0) === $userId) {
             return true;
         }
 
-        // Manager check
-        if ($role === 'MANAGER' || in_array('expense.approve', $user['permissions'] ?? [])) {
-            return true;
+        // If linked to a report, strictly verify report viewing rights
+        if (!empty($expense['report_id'])) {
+            $report = [
+                'report_id' => (int) $expense['report_id'],
+                'created_by' => $expense['report_created_by'] ?? null,
+                'approver_id' => $expense['report_approver_id'] ?? ($expense['approver_id'] ?? null),
+                'status' => $expense['report_status'] ?? ($expense['status'] ?? null),
+            ];
+            return $this->canViewReport($user, $report);
         }
 
-        // Finance check: report is approved or later
-        if ($role === 'FINANCE' || in_array('expense.post', $user['permissions'] ?? []) || in_array('expense.reimburse', $user['permissions'] ?? [])) {
-            if (in_array($expense['status'] ?? '', ['APPROVED', 'POSTED', 'REIMBURSEMENT_PENDING', 'PAID'], true)) {
-                return true;
-            }
-        }
-
+        // Unassigned draft item belonging to someone else cannot be viewed
         return false;
     }
 
     public function canCreateExpense(array $user): bool
     {
-        $role = $user['role_name'] ?? '';
-        $userPerms = $user['permissions'] ?? [];
-        return in_array($role, ['ADMIN', 'Admin_HR', 'ADMIN_EXPENSE'], true)
-            || in_array('expenses.manage', $userPerms, true)
-            || in_array('expense.manage', $userPerms, true);
+        return $this->isAdminExpense($user);
     }
 
     public function canCreateReport(array $user): bool
     {
-        $role = $user['role_name'] ?? '';
-        $userPerms = $user['permissions'] ?? [];
-        return in_array($role, ['ADMIN', 'Admin_HR', 'ADMIN_EXPENSE'], true)
-            || in_array('expenses.manage', $userPerms, true)
-            || in_array('expense.manage', $userPerms, true);
+        return $this->isAdminExpense($user);
     }
 
     public function canEditExpense(array $user, array $expense): bool
@@ -86,15 +178,11 @@ class AuthorizationService
             }
         }
 
-        $role = $user['role_name'] ?? '';
-        $userId = (int) ($user['user_id'] ?? 0);
-        $userPerms = $user['permissions'] ?? [];
-
-        // Only Admin Expense (or creator) can edit transactions
-        if (in_array($role, ['ADMIN', 'Admin_HR', 'ADMIN_EXPENSE'], true) || in_array('expenses.manage', $userPerms, true) || in_array('expense.manage', $userPerms, true)) {
+        if ($this->isAdminExpense($user)) {
             return true;
         }
 
+        $userId = (int) ($user['user_id'] ?? 0);
         return (int) ($expense['created_by'] ?? 0) === $userId;
     }
 
@@ -110,28 +198,28 @@ class AuthorizationService
 
     public function canViewReport(array $user, array $report): bool
     {
-        $role = $user['role_name'] ?? '';
-        $userId = (int) ($user['user_id'] ?? 0);
-        $empId = !empty($user['employee_id']) ? (int) $user['employee_id'] : null;
-
-        // Admin check
-        if (in_array($role, ['ADMIN', 'Admin_HR', 'ADMIN_EXPENSE'], true) || in_array('expenses.manage', $user['permissions'] ?? [])) {
+        // 1. Admin Expense
+        if ($this->isAdminExpense($user)) {
             return true;
         }
 
-        // Creator check
+        $userId = (int) ($user['user_id'] ?? 0);
+        $role = $user['role_name'] ?? '';
+        $userPerms = $user['permissions'] ?? [];
+
+        // 2. Creator
         if (!empty($report['created_by']) && (int) $report['created_by'] === $userId) {
             return true;
         }
 
-        // Manager check: can view any submitted, approved, posted, paid report
-        if ($role === 'MANAGER' || in_array('expense.approve', $user['permissions'] ?? [])) {
-            return true;
+        // 3. Manager: scoped to assigned reports or decided reports
+        if ($role === 'MANAGER' || $role === 'MANAGER_EXPENSE' || in_array('expense.approve', $userPerms, true)) {
+            return $this->isReportApprover($user, $report);
         }
 
-        // Finance check: can view approved, posted, reimbursement_pending, paid reports
-        if ($role === 'FINANCE' || in_array('expense.post', $user['permissions'] ?? []) || in_array('expense.reimburse', $user['permissions'] ?? [])) {
-            if (in_array($report['status'], ['APPROVED', 'POSTED', 'REIMBURSEMENT_PENDING', 'PAID'], true)) {
+        // 4. Finance: can view approved, posted, reimbursement_pending, paid reports
+        if ($role === 'FINANCE' || in_array('expense.post', $userPerms, true) || in_array('expense.reimburse', $userPerms, true)) {
+            if (in_array($report['status'] ?? '', ['APPROVED', 'POSTED', 'REIMBURSEMENT_PENDING', 'PAID'], true)) {
                 return true;
             }
         }
@@ -145,13 +233,11 @@ class AuthorizationService
             return false;
         }
 
-        $role = $user['role_name'] ?? '';
-        $userId = (int) ($user['user_id'] ?? 0);
-
-        if (in_array($role, ['ADMIN', 'Admin_HR', 'ADMIN_EXPENSE'], true) || in_array('expenses.manage', $user['permissions'] ?? [])) {
+        if ($this->isAdminExpense($user)) {
             return true;
         }
 
+        $userId = (int) ($user['user_id'] ?? 0);
         return !empty($report['created_by']) && (int) $report['created_by'] === $userId;
     }
 
@@ -162,34 +248,19 @@ class AuthorizationService
 
     public function canDecideReport(array $user, array $report): bool
     {
-        $role = $user['role_name'] ?? '';
-        $userId = (int) ($user['user_id'] ?? 0);
-
-        if ($report['status'] !== 'SUBMITTED') {
+        if (($report['status'] ?? '') !== 'SUBMITTED') {
             return false;
         }
 
-        // Creator cannot approve their own submitted report (Segregation of Duties)
+        $userId = (int) ($user['user_id'] ?? 0);
+
+        // Anti Self-Approval: creator cannot approve their own submitted report
         if (!empty($report['created_by']) && (int) $report['created_by'] === $userId) {
             return false;
         }
 
-        // Admin Expense cannot approve reports (Approval is strictly reserved for Manager Expense)
-        if (in_array($role, ['ADMIN', 'ADMIN_EXPENSE', 'Admin_HR'], true) && !in_array('expense.approve', $user['permissions'] ?? [])) {
-            return false;
-        }
-
-        // Finance cannot decide approval
-        if ($role === 'FINANCE' && !in_array('expense.approve', $user['permissions'] ?? [])) {
-            return false;
-        }
-
-        // Manager Expense with authority
-        if ($role === 'MANAGER' || in_array('expense.approve', $user['permissions'] ?? [])) {
-            return true;
-        }
-
-        return false;
+        // Must be assigned approver
+        return $this->isReportApprover($user, $report);
     }
 
     public function canReviseReport(array $user, array $report): bool
@@ -198,34 +269,34 @@ class AuthorizationService
             return false;
         }
 
-        $role = $user['role_name'] ?? '';
-        $userId = (int) ($user['user_id'] ?? 0);
-
-        if (in_array($role, ['ADMIN', 'Admin_HR', 'ADMIN_EXPENSE'], true) || in_array('expenses.manage', $user['permissions'] ?? [])) {
+        if ($this->isAdminExpense($user)) {
             return true;
         }
 
+        $userId = (int) ($user['user_id'] ?? 0);
         return !empty($report['created_by']) && (int) $report['created_by'] === $userId;
     }
 
     public function canPostReport(array $user, array $report): bool
     {
         $role = $user['role_name'] ?? '';
-        $hasPostPerm = $role === 'FINANCE' || in_array('expense.post', $user['permissions'] ?? []);
-        return $hasPostPerm && $report['status'] === 'APPROVED';
+        $hasPostPerm = $role === 'FINANCE' || in_array('expense.post', $user['permissions'] ?? [], true);
+        return $hasPostPerm && ($report['status'] ?? '') === 'APPROVED';
     }
 
     public function canReimburseReport(array $user, array $report): bool
     {
         $role = $user['role_name'] ?? '';
-        $hasReimbursePerm = $role === 'FINANCE' || in_array('expense.reimburse', $user['permissions'] ?? []);
-        return $hasReimbursePerm && in_array($report['status'], ['POSTED', 'REIMBURSEMENT_PENDING'], true);
+        $hasReimbursePerm = $role === 'FINANCE' || in_array('expense.reimburse', $user['permissions'] ?? [], true);
+        return $hasReimbursePerm && in_array($report['status'] ?? '', ['POSTED', 'REIMBURSEMENT_PENDING'], true);
     }
 
     public function canRecordPayment(array $user, array $reimbursement): bool
     {
         $role = $user['role_name'] ?? '';
-        $hasReimbursePerm = $role === 'FINANCE' || in_array('expense.reimburse', $user['permissions'] ?? []);
-        return $hasReimbursePerm && in_array($reimbursement['status'], ['PENDING', 'PROCESSING'], true);
+        $hasReimbursePerm = $role === 'FINANCE' || in_array('expense.reimburse', $user['permissions'] ?? [], true);
+        // Payment can only be recorded when status is PROCESSING (or initial PENDING)
+        // Never allowed on FAILED without prior retry
+        return $hasReimbursePerm && in_array($reimbursement['status'] ?? '', ['PROCESSING', 'PENDING'], true);
     }
 }

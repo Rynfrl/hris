@@ -132,8 +132,11 @@ $isPosted = in_array($report['status'], ['POSTED', 'REIMBURSEMENT_PENDING', 'PAI
                 <div class="small text-muted">
                     No. Antrean: <strong>#<?= (int) $mainReimb['reimbursement_id'] ?></strong> &bull;
                     Metode: <strong><?= View::e($mainReimb['payment_method'] ?? 'Bank Transfer') ?></strong>
-                    <?php if (in_array(Auth::role(), ['FINANCE', 'ADMIN'], true) || Auth::hasPermission('expense.reimburse')): ?>
-                        &bull; Tujuan: <strong><?= View::e($mainReimb['recipient_name'] ?? '-') ?> (<?= View::e($mainReimb['bank_name'] ?? '-') ?>)</strong>
+                    <?php if (Auth::role() === 'FINANCE' || Auth::hasPermission('expense.reimburse')): ?>
+                        &bull; Tujuan: <strong><?= View::e($mainReimb['recipient_name'] ?? 'Kas Operasional') ?></strong>
+                        <?php if (!empty($mainReimb['bank_name'])): ?>
+                            (<?= View::e($mainReimb['bank_name']) ?><?php if (!empty($mainReimb['account_number']) && $mainReimb['account_number'] !== '-'): ?> &bull; <?= View::e(strlen($mainReimb['account_number']) > 4 ? str_repeat('*', max(0, strlen($mainReimb['account_number']) - 4)) . substr($mainReimb['account_number'], -4) : $mainReimb['account_number']) ?><?php endif; ?>)
+                        <?php endif; ?>
                     <?php endif; ?>
                     <?php if (!empty($mainReimb['paid_at'])): ?>
                         &bull; Lunas pada: <?= View::formatDate($mainReimb['paid_at'], 'd M Y H:i') ?>
@@ -145,7 +148,7 @@ $isPosted = in_array($report['status'], ['POSTED', 'REIMBURSEMENT_PENDING', 'PAI
                     </div>
                 <?php endif; ?>
             </div>
-            <?php if (in_array(Auth::role(), ['FINANCE', 'ADMIN'], true) || Auth::hasPermission('expense.reimburse')): ?>
+            <?php if (Auth::role() === 'FINANCE' || Auth::hasPermission('expense.reimburse')): ?>
                 <div>
                     <a href="<?= Url::to('/reimbursements') ?>" class="btn btn-sm btn-outline-primary">
                         Kelola di Antrean Reimbursement
@@ -174,6 +177,9 @@ $isPosted = in_array($report['status'], ['POSTED', 'REIMBURSEMENT_PENDING', 'PAI
                         <?php if (!empty($report['submitted_at'])): ?>
                             (Diajukan <?= View::formatDate($report['submitted_at'], 'd M Y H:i') ?>)
                         <?php endif; ?>
+                    </div>
+                    <div class="col-sm-6">
+                        Manajer Penyetuju: <strong><?= View::e($report['approver_name'] ?? $report['approver_username'] ?? 'Manajer Operasional') ?></strong>
                     </div>
                 </div>
             </div>

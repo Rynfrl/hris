@@ -202,7 +202,7 @@ try {
 }
 assertTest("6.1 Partial payment is strictly rejected (requires full Rp2.000.000)", $partialBlocked);
 
-// 6.2 Full payment executes atomically with row locking
+// 6.2 Full payment executes atomically with row locking and proof
 $payHistoryId = $workflowService->recordReimbursementPayment($reimbId, [
     'amount' => 2000000.00,
     'payment_method' => 'BANK_TRANSFER',
@@ -210,6 +210,7 @@ $payHistoryId = $workflowService->recordReimbursementPayment($reimbId, [
     'bank_reference' => 'TRF-TEST-' . uniqid(),
     'payment_date' => date('Y-m-d'),
     'notes' => 'Pencairan penuh uji temuan 6',
+    'proof_path' => 'receipts/proof_dummy.pdf',
 ], $financeUser);
 
 assertTest("6.2 Full payment recorded successfully (#{$payHistoryId})", $payHistoryId > 0);

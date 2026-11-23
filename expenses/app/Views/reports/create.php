@@ -40,6 +40,23 @@ $userEmpId = !empty($user['employee_id']) ? (int) $user['employee_id'] : 0;
                             <input type="date" name="end_date" id="end_date" class="form-control">
                         </div>
 
+                        <!-- Approver Manager Selector (Prioritas 1) -->
+                        <div class="col-12">
+                            <label for="approver_id" class="form-label fw-semibold">Pilih Manajer Penyetuju (Manager Expense) <span class="text-danger">*</span></label>
+                            <select name="approver_id" id="approver_id" class="form-select" required>
+                                <?php if (!empty($approvers)): ?>
+                                    <?php foreach ($approvers as $appr): ?>
+                                        <option value="<?= (int) $appr['user_id'] ?>">
+                                            <?= View::e($appr['full_name'] ?? $appr['username']) ?> (<?= View::e($appr['role_name'] ?? 'MANAGER') ?>)
+                                        </option>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    <option value="2">Rina Manajer (Manajer Operasional)</option>
+                                <?php endif; ?>
+                            </select>
+                            <div class="form-text small text-muted">Hanya manajer yang dipilih yang memiliki wewenang untuk meninjau, menyetujui, dan melihat rincian laporan ini.</div>
+                        </div>
+
                         <!-- Multi-Employee Selector -->
                         <div class="col-12">
                             <div class="d-flex justify-content-between align-items-center mb-2">
