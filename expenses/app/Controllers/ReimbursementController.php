@@ -6,6 +6,7 @@ namespace App\Controllers;
 
 use App\Core\Auth;
 use App\Core\Flash;
+use App\Core\Logger;
 use App\Core\View;
 use App\Core\Url;
 use App\Repositories\ReimbursementRepository;
@@ -229,10 +230,32 @@ class ReimbursementController
             $filters['search'] = trim((string) $_GET['search']);
         }
 
-        $data = $this->reimbursementRepo->getReimbursements($filters, $page, $perPage);
+        $errorMessage = null;
+        try {
+            $data = $this->reimbursementRepo->getReimbursements($filters, $page, $perPage);
+            // Handle if requested page exceeds total_pages and total_pages > 0
+            if ($page > $data['total_pages'] && $data['total_pages'] > 0) {
+                $page = (int) $data['total_pages'];
+                $data = $this->reimbursementRepo->getReimbursements($filters, $page, $perPage);
+            }
+        } catch (Throwable $e) {
+            Logger::error('Error loading reimbursement history: ' . $e->getMessage(), [
+                'exception' => $e,
+                'filters' => $filters,
+            ]);
+            $errorMessage = 'Terjadi kesalahan sistem saat memuat data riwayat pembayaran reimbursement.';
+            $data = [
+                'items' => [],
+                'total' => 0,
+                'page' => $page,
+                'per_page' => $perPage,
+                'total_pages' => 0,
+            ];
+        }
 
         return View::render('reimbursements/history', [
             'title' => 'Riwayat Pembayaran Reimbursement (Lunas)',
+            'reimbursements' => $data['items'],
             'items' => $data['items'],
             'total' => $data['total'],
             'page' => $data['page'],
@@ -240,6 +263,7 @@ class ReimbursementController
             'perPage' => $perPage,
             'filters' => $filters,
             'user' => $user,
+            'errorMessage' => $errorMessage,
         ]);
     }
 }

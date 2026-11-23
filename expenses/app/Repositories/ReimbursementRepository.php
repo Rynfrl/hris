@@ -168,9 +168,12 @@ class ReimbursementRepository
                        (SELECT COUNT(*) FROM expense_report_employees ere WHERE ere.report_id = rem.report_id),
                        1
                    ) as employee_count,
-                   COALESCE(rem.bank_name, 'Bank Transfer') as bank_name,
+                   COALESCE(rem.bank_name, (SELECT p.bank_name FROM expense_reimbursement_payments p WHERE p.reimbursement_id = rem.reimbursement_id ORDER BY p.payment_id DESC LIMIT 1), 'Bank Transfer') as bank_name,
                    COALESCE(rem.account_number, '-') as bank_account,
                    COALESCE(rem.account_holder, rem.recipient_name, 'Kas Operasional') as account_holder,
+                   COALESCE(rem.payment_date, (SELECT p.payment_date FROM expense_reimbursement_payments p WHERE p.reimbursement_id = rem.reimbursement_id ORDER BY p.payment_id DESC LIMIT 1), DATE(rem.processed_at), DATE(rem.updated_at)) as payment_date,
+                   COALESCE(rem.payment_reference, (SELECT p.bank_reference FROM expense_reimbursement_payments p WHERE p.reimbursement_id = rem.reimbursement_id ORDER BY p.payment_id DESC LIMIT 1), (SELECT p.payment_number FROM expense_reimbursement_payments p WHERE p.reimbursement_id = rem.reimbursement_id ORDER BY p.payment_id DESC LIMIT 1), '-') as payment_reference,
+                   COALESCE(rem.payment_method, (SELECT p.payment_method FROM expense_reimbursement_payments p WHERE p.reimbursement_id = rem.reimbursement_id ORDER BY p.payment_id DESC LIMIT 1), 'BANK_TRANSFER') as payment_method,
                    (SELECT COUNT(*) FROM expense_reimbursement_payments WHERE reimbursement_id = rem.reimbursement_id) as payments_count,
                    (SELECT failure_reason FROM expense_reimbursement_failures WHERE reimbursement_id = rem.reimbursement_id ORDER BY failure_id DESC LIMIT 1) as latest_failure_reason,
                    (SELECT f.created_at FROM expense_reimbursement_failures f WHERE f.reimbursement_id = rem.reimbursement_id ORDER BY f.failure_id DESC LIMIT 1) as latest_failure_date,
@@ -179,7 +182,7 @@ class ReimbursementRepository
             JOIN expense_reports r ON r.report_id = rem.report_id
             LEFT JOIN employees emp ON emp.employee_id = rem.employee_id
             WHERE {$whereClause}
-            ORDER BY rem.reimbursement_id DESC
+            ORDER BY COALESCE(rem.payment_date, DATE(rem.processed_at), DATE(rem.created_at)) DESC, rem.reimbursement_id DESC
             LIMIT {$perPage} OFFSET {$offset}
         ";
         $stmt = $pdo->prepare($sql);
@@ -191,7 +194,7 @@ class ReimbursementRepository
             'total' => $total,
             'page' => $page,
             'per_page' => $perPage,
-            'total_pages' => ceil($total / $perPage),
+            'total_pages' => (int) ceil($total / $perPage),
         ];
     }
 
