@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Core\Csrf;
+use App\Core\Url;
 use App\Core\View;
 ?>
 
@@ -15,12 +16,12 @@ use App\Core\View;
         <p class="text-secondary small mb-0">Dibuat oleh <?= View::e($expense['creator_username'] ?? 'User') ?> pada <?= View::formatDate($expense['created_at'], 'd M Y H:i') ?></p>
     </div>
     <div class="d-flex gap-2">
-        <a href="/expenses" class="btn btn-outline-secondary btn-sm">Kembali</a>
+        <a href="<?= Url::to('/expenses') ?>" class="btn btn-outline-secondary btn-sm">Kembali</a>
         <?php if ($canEdit): ?>
-            <a href="/expenses/<?= (int) $expense['expense_id'] ?>/edit" class="btn btn-primary btn-sm">Edit Draft</a>
+            <a href="<?= Url::to('/expenses/' . (int) $expense['expense_id'] . '/edit') ?>" class="btn btn-primary btn-sm">Edit Draft</a>
         <?php endif; ?>
         <?php if ($canDelete): ?>
-            <form action="/expenses/<?= (int) $expense['expense_id'] ?>/delete" method="POST" class="d-inline" data-confirm="Yakin ingin menghapus pengeluaran ini secara permanen?">
+            <form action="<?= Url::to('/expenses/' . (int) $expense['expense_id'] . '/delete') ?>" method="POST" class="d-inline" data-confirm="Yakin ingin menghapus pengeluaran ini secara permanen?">
                 <?= Csrf::field() ?>
                 <button type="submit" class="btn btn-outline-danger btn-sm">Hapus</button>
             </form>
@@ -107,7 +108,7 @@ use App\Core\View;
                             <div class="fw-semibold"><?= View::e($expense['report_number']) ?></div>
                             <div class="text-muted small"><?= View::e($expense['report_title']) ?></div>
                         </div>
-                        <a href="/reports/<?= (int) $expense['report_id'] ?>" class="btn btn-sm btn-outline-primary">Lihat Laporan</a>
+                        <a href="<?= Url::to('/reports/' . (int) $expense['report_id']) ?>" class="btn btn-sm btn-outline-primary">Lihat Laporan</a>
                     </div>
                 <?php else: ?>
                     <div class="text-muted small">
@@ -135,11 +136,11 @@ use App\Core\View;
                             </div>
                         </div>
                         <div class="d-flex gap-2">
-                            <a href="/expenses/<?= (int) $expense['expense_id'] ?>/receipt" target="_blank" class="btn btn-sm btn-primary flex-fill">
+                            <a href="<?= Url::to('/expenses/' . (int) $expense['expense_id'] . '/receipt') ?>" target="_blank" class="btn btn-sm btn-primary flex-fill">
                                 Buka / Unduh Bukti
                             </a>
                             <?php if ($canEdit): ?>
-                                <form action="/expenses/<?= (int) $expense['expense_id'] ?>/receipt/remove" method="POST" data-confirm="Hapus bukti kuitansi ini?">
+                                <form action="<?= Url::to('/expenses/' . (int) $expense['expense_id'] . '/receipt/remove') ?>" method="POST" data-confirm="Hapus bukti kuitansi ini?">
                                     <?= Csrf::field() ?>
                                     <button type="submit" class="btn btn-sm btn-outline-danger">Hapus</button>
                                 </form>

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use App\Core\Csrf;
 ?>
-<form action="/login" method="POST">
+<form action="<?= \App\Core\Url::to('/login') ?>" method="POST">
     <?= Csrf::field() ?>
 
     <div class="mb-3">

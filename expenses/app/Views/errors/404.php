@@ -7,4 +7,4 @@
 </div>
 <h1 class="h3 fw-bold mb-2">404 — Halaman Tidak Ditemukan</h1>
 <p class="text-muted mb-4"><?= \App\Core\View::e($message ?? 'Halaman yang Anda tuju tidak ditemukan atau telah dipindahkan.') ?></p>
-<a href="/dashboard" class="btn btn-primary px-4">Kembali ke Dashboard</a>
+<a href="<?= \App\Core\Url::to('/dashboard') ?>" class="btn btn-primary px-4">Kembali ke Dashboard</a>

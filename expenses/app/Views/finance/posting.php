@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Core\Csrf;
+use App\Core\Url;
 use App\Core\View;
 
 $suggestedRef = $suggestedRef ?? ('JRN-EXP-' . date('Ym') . '-0001');
@@ -46,7 +47,7 @@ $suggestedRef = $suggestedRef ?? ('JRN-EXP-' . date('Ym') . '-0001');
                         ?>
                         <tr>
                             <td>
-                                <a href="/reports/<?= (int) $item['report_id'] ?>" class="fw-semibold text-primary text-decoration-none">
+                                <a href="<?= Url::to('/reports/' . (int) $item['report_id']) ?>" class="fw-semibold text-primary text-decoration-none">
                                     <?= View::e($item['report_number']) ?>
                                 </a>
                             </td>
@@ -68,7 +69,7 @@ $suggestedRef = $suggestedRef ?? ('JRN-EXP-' . date('Ym') . '-0001');
                             <td><strong class="text-primary"><?= View::formatRupiah($item['total_amount']) ?></strong></td>
                             <td><?= View::statusBadge($item['status']) ?></td>
                             <td class="text-end">
-                                <a href="/reports/<?= (int) $item['report_id'] ?>" class="btn btn-sm btn-outline-secondary me-1">Rincian</a>
+                                <a href="<?= Url::to('/reports/' . (int) $item['report_id']) ?>" class="btn btn-sm btn-outline-secondary me-1">Rincian</a>
                                 <button type="button" class="btn btn-sm btn-primary btn-post-modal"
                                         data-bs-toggle="modal"
                                         data-bs-target="#quickPostModal"

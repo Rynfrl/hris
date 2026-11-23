@@ -113,7 +113,7 @@ $isPosted = in_array($report['status'], ['POSTED', 'REIMBURSEMENT_PENDING', 'PAI
             </div>
         </div>
         <div class="mt-2 mt-md-0">
-            <a href="/reimbursements" class="btn btn-sm btn-outline-success">Buka Modul Reimbursement</a>
+            <a href="<?= Url::to('/reimbursements') ?>" class="btn btn-sm btn-outline-success">Buka Modul Reimbursement</a>
         </div>
     </div>
 <?php endif; ?>

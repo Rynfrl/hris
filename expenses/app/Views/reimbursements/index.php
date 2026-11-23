@@ -83,7 +83,7 @@ $currentStatus = $currentStatus ?? '';
                         ?>
                         <tr class="<?= $isFailed ? 'table-danger' : '' ?>">
                             <td>
-                                <a href="/reports/<?= (int) $rem['report_id'] ?>" class="fw-semibold text-primary text-decoration-none">
+                                <a href="<?= Url::to('/reports/' . (int) $rem['report_id']) ?>" class="fw-semibold text-primary text-decoration-none">
                                     <?= View::e($rem['report_number']) ?>
                                 </a>
                             </td>

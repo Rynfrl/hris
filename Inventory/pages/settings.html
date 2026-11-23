@@ -6,10 +6,58 @@
   <meta name="description" content="Konfigurasi Pengaturan Sistem Inventory - Inventoria">
   <title>Pengaturan Sistem - Inventoria</title>
   <link rel="stylesheet" href="../assets/css/base.css">
-  <link rel="stylesheet" href="../assets/css/layout.css">
-  <link rel="stylesheet" href="../assets/css/components.css">
-  <link rel="stylesheet" href="../assets/css/pages.css">
+  <link rel="stylesheet" href="../assets/css/layout.css?v=2">
+  <link rel="stylesheet" href="../assets/css/components.css?v=3">
+  <link rel="stylesheet" href="../assets/css/pages.css?v=3">
   <link rel="stylesheet" href="../assets/css/responsive.css">
+
+  <style>
+    .settings-help-card {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: var(--radius-sm);
+      padding: 12px 16px;
+      margin-bottom: var(--spacing-lg);
+      font-size: 13px;
+      color: #1e40af;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    html[data-theme="dark"] .settings-help-card {
+      background: #0f172a;
+      border-color: #334155;
+      color: #93c5fd;
+    }
+
+    .theme-preview-box {
+      display: flex;
+      gap: 12px;
+      margin-top: 8px;
+    }
+
+    .theme-preview-option {
+      flex: 1;
+      padding: 12px;
+      border: 2px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s ease;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .theme-preview-option:hover {
+      border-color: var(--color-primary);
+    }
+
+    .theme-preview-option.active {
+      border-color: var(--color-primary);
+      background-color: rgba(37, 99, 235, 0.05);
+    }
+  </style>
 </head>
 <body>
 
@@ -109,102 +157,77 @@
       <div class="page-header">
         <div class="page-title-group">
           <h1>Pengaturan Sistem</h1>
-          <p>Konfigurasi profil instansi, preferensi mata uang, format tanggal, dan batas notifikasi stok.</p>
+          <p>Konfigurasi identitas resmi perusahaan untuk kop surat laporan dan preferensi tema antarmuka.</p>
+        </div>
+      </div>
+
+      <!-- Banner Bantuan Pengaturan -->
+      <div class="settings-help-card">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink: 0; margin-top: 1px;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+        <div>
+          <strong>Integrasi Kop Surat:</strong> Data identitas perusahaan yang Anda simpan di bawah ini akan otomatis tampil pada <strong>kop surat resmi dokumen cetak & laporan PDF</strong>. Anda juga dapat mengatur preferensi tema antarmuka (Dark Mode).
         </div>
       </div>
 
       <!-- Form Pengaturan -->
       <div class="form-card">
-        <form action="#" method="post" onsubmit="alert('Pengaturan sistem berhasil disimpan secara lokal.'); return false;">
-          <!-- Seksi 1: Profil Perusahaan -->
+        <form id="settings-form" novalidate>
+          <!-- Seksi 1: Profil & Identitas Perusahaan -->
           <div class="settings-section">
-            <h2 class="settings-section-title">1. Informasi Perusahaan / Gudang</h2>
+            <h2 class="settings-section-title">1. Informasi & Identitas Perusahaan / Fasilitas Gudang</h2>
             <div class="form-grid-2">
               <div class="form-group">
-                <label for="company_name" class="form-label">Nama Perusahaan / Organisasi</label>
-                <input type="text" id="company_name" name="company_name" class="form-input" value="PT Inventoria Solusi Nusantara">
+                <label for="company_name" class="form-label">Nama Perusahaan / Organisasi <span class="form-required">*</span></label>
+                <input type="text" id="company_name" name="company_name" class="form-input" placeholder="Contoh: PT Inventoria Solusi Nusantara" required>
+                <span class="form-hint">Ditampilkan sebagai nama instansi utama pada kop surat laporan resmi.</span>
               </div>
 
               <div class="form-group">
                 <label for="company_npwp" class="form-label">Nomor Pokok Wajib Pajak (NPWP)</label>
-                <input type="text" id="company_npwp" name="company_npwp" class="form-input" value="01.234.567.8-901.000">
+                <input type="text" id="company_npwp" name="company_npwp" class="form-input" placeholder="Contoh: 01.234.567.8-901.000">
+                <span class="form-hint">Nomor registrasi perpajakan instansi untuk kelengkapan administrasi laporan.</span>
               </div>
 
               <div class="form-group">
                 <label for="company_email" class="form-label">Email Operasional</label>
-                <input type="email" id="company_email" name="company_email" class="form-input" value="inventory@inventoria.id">
+                <input type="email" id="company_email" name="company_email" class="form-input" placeholder="Contoh: inventory@inventoria.id">
+                <span class="form-hint">Alamat surat elektronik resmi unit logistik/inventory.</span>
               </div>
 
               <div class="form-group">
-                <label for="company_phone" class="form-label">Nomor Telepon Hotline</label>
-                <input type="tel" id="company_phone" name="company_phone" class="form-input" value="(021) 555-0192">
+                <label for="company_phone" class="form-label">Nomor Telepon Hotline / Kontak</label>
+                <input type="tel" id="company_phone" name="company_phone" class="form-input" placeholder="Contoh: (021) 555-0192">
+                <span class="form-hint">Nomor sambungan telepon atau kontak operasional gudang.</span>
               </div>
 
               <div class="form-group form-grid-full">
                 <label for="company_address" class="form-label">Alamat Fasilitas Gudang Utama</label>
-                <textarea id="company_address" name="company_address" class="form-textarea" style="min-height: 70px;">Kawasan Industri Surya Cipta Kav. 18, Karawang Timur, Jawa Barat 41361</textarea>
+                <textarea id="company_address" name="company_address" class="form-textarea" style="min-height: 75px;" placeholder="Contoh: Kawasan Industri Surya Cipta Kav. 18, Karawang Timur, Jawa Barat 41361"></textarea>
+                <span class="form-hint">Alamat lengkap fasilitas gudang yang dicantumkan pada kop surat dokumen cetak & laporan PDF.</span>
               </div>
             </div>
           </div>
 
-          <!-- Seksi 2: Format & Lokalisasi -->
+          <!-- Seksi 2: Tampilan & Preferensi Antarmuka -->
           <div class="settings-section">
-            <h2 class="settings-section-title">2. Format Mata Uang & Tanggal</h2>
+            <h2 class="settings-section-title">2. Tampilan & Preferensi Antarmuka</h2>
             <div class="form-grid-2">
               <div class="form-group">
-                <label for="currency" class="form-label">Mata Uang Acuan</label>
-                <select id="currency" name="currency" class="form-select">
-                  <option value="idr" selected>IDR (Rp) - Indonesian Rupiah</option>
-                  <option value="usd">USD ($) - US Dollar</option>
-                  <option value="sgd">SGD (S$) - Singapore Dollar</option>
-                </select>
-                <span class="form-hint">Digunakan pada seluruh rekap harga beli, jual, dan valuasi aset.</span>
-              </div>
-
-              <div class="form-group">
-                <label for="date_format" class="form-label">Format Tampilan Tanggal</label>
-                <select id="date_format" name="date_format" class="form-select">
-                  <option value="d-m-y" selected>DD MMMM YYYY (Contoh: 16 September 2026)</option>
-                  <option value="d/m/y">DD/MM/YYYY (Contoh: 16/09/2026)</option>
-                  <option value="y-m-d">YYYY-MM-DD (Standar ISO: 2026-09-16)</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          <!-- Seksi 3: Kebijakan Stok & Notifikasi -->
-          <div class="settings-section">
-            <h2 class="settings-section-title">3. Ambang Batas Stok & Notifikasi</h2>
-            <div class="form-grid-2">
-              <div class="form-group">
-                <label for="default_threshold" class="form-label">Batas Default Produk Hampir Habis</label>
-                <input type="number" id="default_threshold" name="default_threshold" class="form-input" value="5" min="1">
-                <span class="form-hint">Nilai minimum stok default saat menambahkan produk baru tanpa konfigurasi manual.</span>
-              </div>
-
-              <div class="form-group">
-                <label for="theme_pref" class="form-label">Preferensi Tema Antarmuka</label>
+                <label for="theme_pref" class="form-label">Tema Tampilan (Dark Mode)</label>
                 <select id="theme_pref" name="theme_pref" class="form-select">
-                  <option value="light" selected>Light Mode (Standar Profesional)</option>
-                  <option value="dark">Dark Mode (Tersedia di versi berikutnya)</option>
-                  <option value="system">Mengikuti Pengaturan OS</option>
+                  <option value="light">Light Mode (Mode Terang)</option>
+                  <option value="dark">Dark Mode (Mode Gelap)</option>
+                  <option value="system">Mengikuti Pengaturan OS / Sistem</option>
                 </select>
-              </div>
-
-              <div class="form-group form-grid-full">
-                <label class="checkbox-group" for="notify_low">
-                  <input type="checkbox" id="notify_low" name="notify_low" checked>
-                  <span class="text-bold">Tampilkan peringatan visual di header jika ada stok yang menipis/habis</span>
-                </label>
+                <span class="form-hint">Dapat diubah kapan saja sesuai kenyamanan mata saat bekerja. Berlaku di seluruh modul sistem.</span>
               </div>
             </div>
           </div>
 
           <!-- Actions -->
-          <div class="form-actions">
-            <button type="reset" class="btn btn-secondary">Reset Pengaturan</button>
-            <button type="submit" class="btn btn-primary">
-              <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+          <div class="form-actions" style="margin-top: var(--spacing-xl); display: flex; justify-content: flex-end; gap: 10px;">
+            <button type="submit" class="btn btn-primary" id="btn-submit-settings">
+              <svg viewBox="0 0 24 24" width="16" height="16"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
               <span>Simpan Pengaturan</span>
             </button>
           </div>
@@ -213,11 +236,12 @@
     </main>
 
     <footer class="app-footer">
-      <div>&copy; 2026 <strong>Inventoria</strong> - Prototype Sistem Manajemen Inventory</div>
+      <div>&copy; 2026 <strong>Inventoria</strong> - Sistem Manajemen Inventory</div>
       <div>Modul: Pengaturan Sistem</div>
     </footer>
   </div>
 </div>
 
+<script src="../assets/js/settings.js?v=20261123"></script>
 </body>
 </html>

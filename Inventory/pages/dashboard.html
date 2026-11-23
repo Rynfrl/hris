@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="UTF-8">
@@ -6,9 +6,9 @@
   <meta name="description" content="Dashboard Manajemen Inventory Inventoria">
   <title>Dashboard - Inventoria</title>
   <link rel="stylesheet" href="../assets/css/base.css">
-  <link rel="stylesheet" href="../assets/css/layout.css">
-  <link rel="stylesheet" href="../assets/css/components.css">
-  <link rel="stylesheet" href="../assets/css/pages.css">
+  <link rel="stylesheet" href="../assets/css/layout.css?v=2">
+  <link rel="stylesheet" href="../assets/css/components.css?v=2">
+  <link rel="stylesheet" href="../assets/css/pages.css?v=3">
   <link rel="stylesheet" href="../assets/css/responsive.css">
 </head>
 <body>
@@ -177,17 +177,19 @@
       </section>
 
       <!-- Dashboard Main Section: 2 Kolom -->
-      <div class="grid grid-dashboard-main" style="margin-top: var(--spacing-xl);">
+      <!-- Dashboard Main Section: 2 Kolom -->
+      <div class="grid grid-dashboard-main" style="margin-top: var(--spacing-xl); align-items: start;">
+
         <!-- Kolom Kiri: Tabel Stok Kritis -->
-        <section class="card">
-          <div class="card-header">
+        <section class="card" id="lowStockCard" style="display:flex; flex-direction:column; justify-content:space-between; overflow:hidden;">
+          <div class="card-header" style="flex-shrink:0;">
             <div>
-              <h2 class="card-title">Perhatian Stok Kritis & Rendah</h2>
+              <h2 class="card-title">Perhatian Stok Kritis &amp; Rendah</h2>
               <p class="card-subtitle">Daftar produk yang telah menyentuh batas minimum stok gudang</p>
             </div>
             <a href="products.html" class="btn btn-secondary btn-sm">Lihat Semua</a>
           </div>
-          <div class="table-container" style="border: none; border-radius: 0;">
+          <div class="table-container" style="border:none; border-radius:0; flex:1; overflow-x:auto;">
             <table class="table">
               <thead>
                 <tr>
@@ -202,151 +204,47 @@
               </thead>
               <tbody>
                 <tr>
-                  <td><span class="table-sku">AT-002</span></td>
-                  <td><strong>Kursi Kantor Ergonomis</strong></td>
-                  <td>Perabot</td>
-                  <td style="text-align: right; color: var(--color-danger); font-weight: bold;">0</td>
-                  <td style="text-align: right;">2</td>
-                  <td><span class="badge badge-out"><span class="badge-dot"></span>Habis</span></td>
-                  <td><a href="stock-in.html" class="btn btn-primary btn-sm">Restock</a></td>
-                </tr>
-                <tr>
-                  <td><span class="table-sku">EL-004</span></td>
-                  <td><strong>Keyboard Mechanical</strong></td>
-                  <td>Elektronik</td>
-                  <td style="text-align: right; color: var(--color-warning); font-weight: bold;">3</td>
-                  <td style="text-align: right;">4</td>
-                  <td><span class="badge badge-low"><span class="badge-dot"></span>Hampir habis</span></td>
-                  <td><a href="stock-in.html" class="btn btn-secondary btn-sm">Restock</a></td>
-                </tr>
-                <tr>
-                  <td><span class="table-sku">EL-002</span></td>
-                  <td><strong>Mouse Wireless M1</strong></td>
-                  <td>Elektronik</td>
-                  <td style="text-align: right; color: var(--color-warning); font-weight: bold;">4</td>
-                  <td style="text-align: right;">5</td>
-                  <td><span class="badge badge-low"><span class="badge-dot"></span>Hampir habis</span></td>
-                  <td><a href="stock-in.html" class="btn btn-secondary btn-sm">Restock</a></td>
-                </tr>
-                <tr>
-                  <td><span class="table-sku">AK-002</span></td>
-                  <td><strong>Tinta Printer Hitam</strong></td>
-                  <td>Alat Kantor</td>
-                  <td style="text-align: right; font-weight: bold;">7</td>
-                  <td style="text-align: right;">5</td>
-                  <td><span class="badge badge-available"><span class="badge-dot"></span>Tersedia</span></td>
-                  <td><a href="product-detail.html" class="btn btn-secondary btn-sm">Detail</a></td>
+                  <td colspan="7" style="text-align:center;padding:24px;color:var(--color-text-muted);">Memuat data...</td>
                 </tr>
               </tbody>
             </table>
           </div>
+          <!-- Pagination Stok Kritis (10 per halaman) -->
+          <div class="pagination-wrapper" style="justify-content: space-between; align-items: center; padding: 10px 16px; border-top: 1px solid var(--color-border-subtle); flex-shrink: 0;">
+            <div class="pagination-info" id="lowStockPaginationInfo" style="font-size: var(--font-size-xs); color: var(--color-text-muted);"></div>
+            <div class="pagination-controls" id="lowStockPagination"></div>
+          </div>
         </section>
 
         <!-- Kolom Kanan: Distribusi Kategori & Aktivitas -->
-        <div style="display: flex; flex-direction: column; gap: var(--spacing-lg);">
+        <div class="dashboard-right-col" style="display:flex; flex-direction:column; gap:var(--spacing-lg); min-height:0; overflow:hidden;">
+
           <!-- Distribusi Kategori Card -->
-          <section class="card">
+          <section class="card" id="categoryDistCard" style="flex-shrink:0;">
             <div class="card-header">
               <h2 class="card-title">Distribusi Kategori</h2>
-              <a href="categories.html" class="btn btn-secondary btn-sm">Kelola</a>
+              <a href="categories.html" class="btn btn-secondary btn-sm">Lihat Kategori</a>
             </div>
             <div class="card-body">
               <div class="category-chart-wrapper">
-                <div class="chart-bar-item">
-                  <div class="chart-bar-meta">
-                    <span class="chart-bar-name">Elektronik</span>
-                    <span class="chart-bar-count">42% (54 item)</span>
-                  </div>
-                  <div class="chart-bar-track">
-                    <div class="chart-bar-fill fill-primary" style="width: 42%;"></div>
-                  </div>
-                </div>
-
-                <div class="chart-bar-item">
-                  <div class="chart-bar-meta">
-                    <span class="chart-bar-name">Perabot</span>
-                    <span class="chart-bar-count">25% (32 item)</span>
-                  </div>
-                  <div class="chart-bar-track">
-                    <div class="chart-bar-fill fill-info" style="width: 25%;"></div>
-                  </div>
-                </div>
-
-                <div class="chart-bar-item">
-                  <div class="chart-bar-meta">
-                    <span class="chart-bar-name">Alat Kantor</span>
-                    <span class="chart-bar-count">20% (26 item)</span>
-                  </div>
-                  <div class="chart-bar-track">
-                    <div class="chart-bar-fill fill-warning" style="width: 20%;"></div>
-                  </div>
-                </div>
-
-                <div class="chart-bar-item">
-                  <div class="chart-bar-meta">
-                    <span class="chart-bar-name">Perlengkapan</span>
-                    <span class="chart-bar-count">13% (16 item)</span>
-                  </div>
-                  <div class="chart-bar-track">
-                    <div class="chart-bar-fill fill-purple" style="width: 13%;"></div>
-                  </div>
-                </div>
+                <p style="color:var(--color-text-muted);font-size:var(--font-size-sm);">Memuat kategori...</p>
               </div>
             </div>
           </section>
 
           <!-- Aktivitas Terbaru Card -->
-          <section class="card">
-            <div class="card-header">
+          <section class="card" id="recentActivitiesCard" style="display:flex; flex-direction:column; min-height:0; overflow:hidden;">
+            <div class="card-header" style="flex-shrink:0;">
               <h2 class="card-title">Aktivitas Stok Terbaru</h2>
               <a href="stock-history.html" class="btn btn-secondary btn-sm">Riwayat</a>
             </div>
-            <div class="card-body" style="padding-top: 0; padding-bottom: 0;">
+            <div class="card-body activity-card-body" style="padding-top:0; padding-bottom:0; flex:1; min-height:0; overflow-y:auto;">
               <div class="activity-list">
-                <div class="activity-item">
-                  <div class="activity-icon-box in">
-                    <svg viewBox="0 0 24 24"><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                  </div>
-                  <div class="activity-content">
-                    <span class="activity-title">Laptop ThinkPad X1</span>
-                    <span class="activity-subtitle">Penerimaan dari PT Teknologi Nusantara</span>
-                  </div>
-                  <div class="activity-meta">
-                    <span class="text-bold" style="color: var(--color-success);">+10 unit</span>
-                    <div>Hari ini, 10:30</div>
-                  </div>
-                </div>
-
-                <div class="activity-item">
-                  <div class="activity-icon-box out">
-                    <svg viewBox="0 0 24 24"><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-                  </div>
-                  <div class="activity-content">
-                    <span class="activity-title">Kabel LAN 20m</span>
-                    <span class="activity-subtitle">Pengeluaran - Dept. IT Kantor</span>
-                  </div>
-                  <div class="activity-meta">
-                    <span class="text-bold" style="color: var(--color-danger);">-5 roll</span>
-                    <div>Hari ini, 09:15</div>
-                  </div>
-                </div>
-
-                <div class="activity-item">
-                  <div class="activity-icon-box in">
-                    <svg viewBox="0 0 24 24"><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                  </div>
-                  <div class="activity-content">
-                    <span class="activity-title">Paper A4 80gsm</span>
-                    <span class="activity-subtitle">Restock CV Sinar Kantor</span>
-                  </div>
-                  <div class="activity-meta">
-                    <span class="text-bold" style="color: var(--color-success);">+50 rim</span>
-                    <div>Kemarin</div>
-                  </div>
-                </div>
+                <div style="padding:24px;text-align:center;color:var(--color-text-muted);">Memuat aktivitas...</div>
               </div>
             </div>
           </section>
+
         </div>
       </div>
     </main>
@@ -358,6 +256,7 @@
   </div>
 </div>
 
-<script src="../assets/js/dashboard.js"></script>
+<script src="../assets/js/access-control.js?v=11"></script>
+<script src="../assets/js/dashboard.js?v=24"></script>
 </body>
 </html>

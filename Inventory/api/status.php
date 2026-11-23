@@ -7,7 +7,7 @@ try {
     $pdo = getDbConnection();
     $stmt = $pdo->query('SELECT DATABASE() AS current_db, VERSION() AS db_version');
     $info = $stmt->fetch();
-    $tableNames = ['categories', 'products', 'suppliers', 'stock_movements'];
+    $tableNames = ['categories', 'products', 'suppliers', 'stock_movements', 'storage_locations', 'settings'];
     $tableCounts = [];
 
     foreach ($tableNames as $tableName) {

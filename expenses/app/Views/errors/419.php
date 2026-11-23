@@ -7,4 +7,4 @@
 <h1 class="h3 fw-bold mb-2">419 — Sesi Kedaluwarsa</h1>
 <p class="text-muted mb-4"><?= \App\Core\View::e($message ?? 'Sesi keamanan (CSRF token) Anda telah kedaluwarsa. Silakan refresh halaman dan coba kembali.') ?></p>
 <a href="javascript:history.back()" class="btn btn-outline-secondary me-2 px-4">Kembali</a>
-<a href="/dashboard" class="btn btn-primary px-4">Dashboard</a>
+<a href="<?= \App\Core\Url::to('/dashboard') ?>" class="btn btn-primary px-4">Dashboard</a>

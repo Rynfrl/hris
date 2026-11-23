@@ -111,7 +111,15 @@
           <h1>Daftar Produk</h1>
           <p>Kelola seluruh katalog barang, harga acuan, dan informasi stok gudang.</p>
         </div>
-        <div class="page-actions">
+        <div class="page-actions" style="display: flex; gap: 10px; align-items: center;">
+          <button type="button" id="btnOpenManageLocationsModal" class="btn btn-secondary" title="Kelola Lokasi Penyimpanan (Lihat, Tambah, Edit & Hapus)">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+              <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+              <line x1="12" y1="22.08" x2="12" y2="12"></line>
+            </svg>
+            <span>Kelola Lokasi Penyimpanan</span>
+          </button>
           <a href="product-form.html" class="btn btn-primary">
             <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
             <span>Tambah Produk Baru</span>
@@ -123,10 +131,10 @@
       <div class="card" style="margin-bottom: var(--spacing-lg);">
         <div class="card-body" style="padding: var(--spacing-md);">
           <div class="toolbar" style="margin-bottom: 0;">
-            <div class="toolbar-filters">
-              <input type="text" class="filter-input" placeholder="Filter nama / SKU produk..." style="width: 220px;">
+            <div class="toolbar-filters" style="display: flex; align-items: center; gap: 10px; flex-wrap: nowrap; width: 100%;">
+              <input type="text" class="filter-input" placeholder="Cari nama / SKU produk..." style="width: 240px; height: 38px; box-sizing: border-box; font-size: 13px;">
               
-              <select class="filter-select" aria-label="Filter Kategori">
+              <select class="filter-select" aria-label="Filter Kategori" style="width: 190px; height: 38px; box-sizing: border-box; font-size: 13px;">
                 <option value="">Semua Kategori</option>
                 <option value="elektronik">Elektronik</option>
                 <option value="perabot">Perabot</option>
@@ -134,16 +142,21 @@
                 <option value="perlengkapan">Perlengkapan</option>
               </select>
 
-              <select class="filter-select" aria-label="Filter Status Stok">
+              <select class="filter-select" aria-label="Filter Status Stok" style="width: 190px; height: 38px; box-sizing: border-box; font-size: 13px;">
                 <option value="">Semua Status Stok</option>
                 <option value="available">Tersedia</option>
                 <option value="low">Hampir Habis</option>
                 <option value="out">Habis</option>
+                <option value="incomplete">⚠️ Perlu Dilengkapi (Draft)</option>
               </select>
-            </div>
 
-            <div style="font-size: var(--font-size-xs); color: var(--color-text-muted);">
-              Menampilkan <strong>10</strong> dari <strong>128</strong> total produk
+              <select class="filter-select" id="filterLocation" aria-label="Filter Lokasi Penyimpanan" title="Filter berdasarkan Lokasi Penyimpanan" style="width: 240px; height: 38px; box-sizing: border-box; font-size: 13px;">
+                <option value="">Semua Lokasi</option>
+              </select>
+
+              <button type="button" id="btnResetFilters" class="btn btn-secondary btn-sm" style="display: none; height: 38px; padding: 0 14px; font-size: 13px; white-space: nowrap; align-items: center; gap: 4px;" title="Reset Semua Filter">
+                ✕ Reset
+              </button>
             </div>
           </div>
         </div>
@@ -161,195 +174,22 @@
               <th scope="col" style="text-align: right;">Harga Beli</th>
               <th scope="col" style="text-align: right;">Harga Jual</th>
               <th scope="col" style="text-align: center;">Sisa Stok</th>
-              <th scope="col">Status</th>
-              <th scope="col" style="text-align: right;">Aksi</th>
+              <th scope="col" style="text-align: center;">Status</th>
+              <th scope="col" style="text-align: center;">Aksi</th>
             </tr>
           </thead>
           <tbody>
-            <!-- 1. Laptop ThinkPad X1 -->
             <tr>
-              <td><span class="table-sku">EL-001</span></td>
-              <td><strong>Laptop ThinkPad X1</strong></td>
-              <td>Elektronik</td>
-              <td style="text-align: right;">Rp12.000.000</td>
-              <td style="text-align: right;">Rp15.000.000</td>
-              <td style="text-align: center; font-weight: bold;">18 unit</td>
-              <td><span class="badge badge-available"><span class="badge-dot"></span>Tersedia</span></td>
-              <td style="text-align: right;">
-                <div class="table-actions" style="justify-content: flex-end;">
-                  <a href="product-detail.html" class="btn btn-secondary btn-sm" title="Lihat Detail Produk">Lihat</a>
-                  <a href="product-form.html" class="btn btn-secondary btn-sm" title="Edit Data">Edit</a>
-                </div>
-              </td>
-            </tr>
-
-            <!-- 2. Mouse Wireless M1 -->
-            <tr>
-              <td><span class="table-sku">EL-002</span></td>
-              <td><strong>Mouse Wireless M1</strong></td>
-              <td>Elektronik</td>
-              <td style="text-align: right;">Rp120.000</td>
-              <td style="text-align: right;">Rp180.000</td>
-              <td style="text-align: center; font-weight: bold; color: var(--color-warning);">4 pcs</td>
-              <td><span class="badge badge-low"><span class="badge-dot"></span>Hampir habis</span></td>
-              <td style="text-align: right;">
-                <div class="table-actions" style="justify-content: flex-end;">
-                  <a href="product-detail.html" class="btn btn-secondary btn-sm">Lihat</a>
-                  <a href="product-form.html" class="btn btn-secondary btn-sm">Edit</a>
-                </div>
-              </td>
-            </tr>
-
-            <!-- 3. Meja Kerja 120 cm -->
-            <tr>
-              <td><span class="table-sku">AT-001</span></td>
-              <td><strong>Meja Kerja 120 cm</strong></td>
-              <td>Perabot</td>
-              <td style="text-align: right;">Rp850.000</td>
-              <td style="text-align: right;">Rp1.250.000</td>
-              <td style="text-align: center; font-weight: bold;">12 unit</td>
-              <td><span class="badge badge-available"><span class="badge-dot"></span>Tersedia</span></td>
-              <td style="text-align: right;">
-                <div class="table-actions" style="justify-content: flex-end;">
-                  <a href="product-detail.html" class="btn btn-secondary btn-sm">Lihat</a>
-                  <a href="product-form.html" class="btn btn-secondary btn-sm">Edit</a>
-                </div>
-              </td>
-            </tr>
-
-            <!-- 4. Kursi Kantor Ergonomis -->
-            <tr>
-              <td><span class="table-sku">AT-002</span></td>
-              <td><strong>Kursi Kantor Ergonomis</strong></td>
-              <td>Perabot</td>
-              <td style="text-align: right;">Rp1.100.000</td>
-              <td style="text-align: right;">Rp1.600.000</td>
-              <td style="text-align: center; font-weight: bold; color: var(--color-danger);">0 unit</td>
-              <td><span class="badge badge-out"><span class="badge-dot"></span>Habis</span></td>
-              <td style="text-align: right;">
-                <div class="table-actions" style="justify-content: flex-end;">
-                  <a href="product-detail.html" class="btn btn-secondary btn-sm">Lihat</a>
-                  <a href="product-form.html" class="btn btn-secondary btn-sm">Edit</a>
-                </div>
-              </td>
-            </tr>
-
-            <!-- 5. Paper A4 80gsm -->
-            <tr>
-              <td><span class="table-sku">AK-001</span></td>
-              <td><strong>Paper A4 80gsm</strong></td>
-              <td>Alat Kantor</td>
-              <td style="text-align: right;">Rp45.000</td>
-              <td style="text-align: right;">Rp58.000</td>
-              <td style="text-align: center; font-weight: bold;">120 rim</td>
-              <td><span class="badge badge-available"><span class="badge-dot"></span>Tersedia</span></td>
-              <td style="text-align: right;">
-                <div class="table-actions" style="justify-content: flex-end;">
-                  <a href="product-detail.html" class="btn btn-secondary btn-sm">Lihat</a>
-                  <a href="product-form.html" class="btn btn-secondary btn-sm">Edit</a>
-                </div>
-              </td>
-            </tr>
-
-            <!-- 6. Tinta Printer Hitam -->
-            <tr>
-              <td><span class="table-sku">AK-002</span></td>
-              <td><strong>Tinta Printer Hitam</strong></td>
-              <td>Alat Kantor</td>
-              <td style="text-align: right;">Rp110.000</td>
-              <td style="text-align: right;">Rp145.000</td>
-              <td style="text-align: center; font-weight: bold;">7 botol</td>
-              <td><span class="badge badge-available"><span class="badge-dot"></span>Tersedia</span></td>
-              <td style="text-align: right;">
-                <div class="table-actions" style="justify-content: flex-end;">
-                  <a href="product-detail.html" class="btn btn-secondary btn-sm">Lihat</a>
-                  <a href="product-form.html" class="btn btn-secondary btn-sm">Edit</a>
-                </div>
-              </td>
-            </tr>
-
-            <!-- 7. Monitor 24 Inch -->
-            <tr>
-              <td><span class="table-sku">EL-003</span></td>
-              <td><strong>Monitor 24 Inch</strong></td>
-              <td>Elektronik</td>
-              <td style="text-align: right;">Rp1.600.000</td>
-              <td style="text-align: right;">Rp2.100.000</td>
-              <td style="text-align: center; font-weight: bold;">9 unit</td>
-              <td><span class="badge badge-available"><span class="badge-dot"></span>Tersedia</span></td>
-              <td style="text-align: right;">
-                <div class="table-actions" style="justify-content: flex-end;">
-                  <a href="product-detail.html" class="btn btn-secondary btn-sm">Lihat</a>
-                  <a href="product-form.html" class="btn btn-secondary btn-sm">Edit</a>
-                </div>
-              </td>
-            </tr>
-
-            <!-- 8. Keyboard Mechanical -->
-            <tr>
-              <td><span class="table-sku">EL-004</span></td>
-              <td><strong>Keyboard Mechanical</strong></td>
-              <td>Elektronik</td>
-              <td style="text-align: right;">Rp450.000</td>
-              <td style="text-align: right;">Rp650.000</td>
-              <td style="text-align: center; font-weight: bold; color: var(--color-warning);">3 pcs</td>
-              <td><span class="badge badge-low"><span class="badge-dot"></span>Hampir habis</span></td>
-              <td style="text-align: right;">
-                <div class="table-actions" style="justify-content: flex-end;">
-                  <a href="product-detail.html" class="btn btn-secondary btn-sm">Lihat</a>
-                  <a href="product-form.html" class="btn btn-secondary btn-sm">Edit</a>
-                </div>
-              </td>
-            </tr>
-
-            <!-- 9. Kabel LAN 20m -->
-            <tr>
-              <td><span class="table-sku">PK-001</span></td>
-              <td><strong>Kabel LAN 20m</strong></td>
-              <td>Perlengkapan</td>
-              <td style="text-align: right;">Rp55.000</td>
-              <td style="text-align: right;">Rp85.000</td>
-              <td style="text-align: center; font-weight: bold;">35 roll</td>
-              <td><span class="badge badge-available"><span class="badge-dot"></span>Tersedia</span></td>
-              <td style="text-align: right;">
-                <div class="table-actions" style="justify-content: flex-end;">
-                  <a href="product-detail.html" class="btn btn-secondary btn-sm">Lihat</a>
-                  <a href="product-form.html" class="btn btn-secondary btn-sm">Edit</a>
-                </div>
-              </td>
-            </tr>
-
-            <!-- 10. Stop Kontak 4 Port -->
-            <tr>
-              <td><span class="table-sku">PK-002</span></td>
-              <td><strong>Stop Kontak 4 Port</strong></td>
-              <td>Perlengkapan</td>
-              <td style="text-align: right;">Rp40.000</td>
-              <td style="text-align: right;">Rp65.000</td>
-              <td style="text-align: center; font-weight: bold;">16 pcs</td>
-              <td><span class="badge badge-available"><span class="badge-dot"></span>Tersedia</span></td>
-              <td style="text-align: right;">
-                <div class="table-actions" style="justify-content: flex-end;">
-                  <a href="product-detail.html" class="btn btn-secondary btn-sm">Lihat</a>
-                  <a href="product-form.html" class="btn btn-secondary btn-sm">Edit</a>
-                </div>
+              <td colspan="8" style="text-align: center; padding: 24px; color: var(--color-text-muted);">
+                Memuat data produk dari database...
               </td>
             </tr>
           </tbody>
         </table>
 
         <!-- Pagination -->
-        <div class="pagination-wrapper">
-          <span class="pagination-info">Menampilkan halaman 1 dari 13 (Halaman Statis)</span>
-          <div class="pagination-controls">
-            <a href="#" class="page-btn disabled" aria-label="Sebelumnya">&laquo;</a>
-            <a href="#" class="page-btn active">1</a>
-            <a href="#" class="page-btn">2</a>
-            <a href="#" class="page-btn">3</a>
-            <span style="padding: 0 4px; color: var(--color-text-muted);">...</span>
-            <a href="#" class="page-btn">13</a>
-            <a href="#" class="page-btn" aria-label="Berikutnya">&raquo;</a>
-          </div>
+        <div class="pagination-wrapper" style="justify-content: flex-end;">
+          <div class="pagination-controls" id="paginationControls"></div>
         </div>
       </div>
     </main>
@@ -361,6 +201,7 @@
   </div>
 </div>
 
-<script src="../assets/js/products.js"></script>
+<script src="../assets/js/access-control.js?v=11"></script>
+<script src="../assets/js/products.js?v=6.3"></script>
 </body>
 </html>

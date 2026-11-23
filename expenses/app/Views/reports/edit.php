@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Core\Csrf;
+use App\Core\Url;
 use App\Core\View;
 
 $activeEmployees = $activeEmployees ?? [];
@@ -17,12 +18,12 @@ $currentEmpIds = array_column($reportEmployees, 'employee_id');
                 <h2 class="h4 fw-bold mb-1">Edit Laporan <?= View::e($report['report_number']) ?></h2>
                 <p class="text-secondary small mb-0">Perbarui informasi dan daftar karyawan yang terdaftar dalam laporan ini</p>
             </div>
-            <a href="/reports/<?= (int) $report['report_id'] ?>" class="btn btn-outline-secondary btn-sm">Kembali</a>
+            <a href="<?= Url::to('/reports/' . (int) $report['report_id']) ?>" class="btn btn-outline-secondary btn-sm">Kembali</a>
         </div>
 
         <div class="card card-gt">
             <div class="card-body p-4">
-                <form action="/reports/<?= (int) $report['report_id'] ?>/update" method="POST">
+                <form action="<?= Url::to('/reports/' . (int) $report['report_id'] . '/update') ?>" method="POST">
                     <?= Csrf::field() ?>
 
                     <div class="row g-3">
@@ -94,7 +95,7 @@ $currentEmpIds = array_column($reportEmployees, 'employee_id');
                     </div>
 
                     <div class="mt-4 pt-3 border-top d-flex justify-content-end gap-2">
-                        <a href="/reports/<?= (int) $report['report_id'] ?>" class="btn btn-outline-secondary">Batal</a>
+                        <a href="<?= Url::to('/reports/' . (int) $report['report_id']) ?>" class="btn btn-outline-secondary">Batal</a>
                         <button type="submit" class="btn btn-primary px-4">Simpan Perubahan</button>
                     </div>
                 </form>

@@ -5,11 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Detail Spesifikasi dan Stok Produk - Inventoria">
   <title>Detail Produk: Laptop ThinkPad X1 - Inventoria</title>
-  <link rel="stylesheet" href="../assets/css/base.css">
-  <link rel="stylesheet" href="../assets/css/layout.css">
-  <link rel="stylesheet" href="../assets/css/components.css">
-  <link rel="stylesheet" href="../assets/css/pages.css">
-  <link rel="stylesheet" href="../assets/css/responsive.css">
+  <link rel="stylesheet" href="../assets/css/base.css?v=3">
+  <link rel="stylesheet" href="../assets/css/layout.css?v=3">
+  <link rel="stylesheet" href="../assets/css/components.css?v=3">
+  <link rel="stylesheet" href="../assets/css/pages.css?v=3">
+  <link rel="stylesheet" href="../assets/css/responsive.css?v=3">
 </head>
 <body>
 
@@ -105,19 +105,23 @@
         <span class="breadcrumb-separator">/</span>
         <a href="products.html">Produk</a>
         <span class="breadcrumb-separator">/</span>
-        <span>Laptop ThinkPad X1</span>
+        <span id="breadcrumb-current">Detail Produk</span>
       </nav>
 
-      <div class="page-header">
+      <div class="page-header" style="margin-bottom: var(--spacing-xl);">
         <div class="page-title-group">
-          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 4px;">
-            <h1 style="margin: 0;">Laptop ThinkPad X1</h1>
-            <span class="table-sku" style="font-size: var(--font-size-sm); padding: 4px 8px;">SKU: EL-001</span>
+          <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+            <h1 id="page-product-title" style="margin: 0;">Detail Produk</h1>
+            <span class="table-sku" style="font-size: 13px; font-weight: 600; padding: 4px 10px; border-radius: 6px;"></span>
             <span class="badge badge-available"><span class="badge-dot"></span>Tersedia</span>
           </div>
-          <p>Kategori: <strong>Elektronik</strong> &bull; Pemasok: <strong>PT Teknologi Nusantara</strong></p>
+          <p id="page-product-subtitle" style="margin-top: 6px; color: var(--color-text-muted);">Informasi spesifikasi lengkap, kondisi stok fisik gudang, dan riwayat mutasi barang.</p>
         </div>
-        <div class="page-actions">
+        <div class="page-actions" style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <a href="products.html" class="btn btn-secondary">
+            <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+            <span>Kembali ke Daftar</span>
+          </a>
           <a href="product-form.html" class="btn btn-secondary">
             <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
             <span>Edit Produk</span>
@@ -126,18 +130,31 @@
             <svg viewBox="0 0 24 24"><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
             <span>Catat Stok Masuk</span>
           </a>
-          <a href="stock-out.html" class="btn btn-secondary">
-            <svg viewBox="0 0 24 24"><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-            <span>Catat Stok Keluar</span>
-          </a>
         </div>
       </div>
 
-      <!-- Layout Detail Produk -->
-      <div class="product-detail-layout">
+      <!-- Banner Peringatan Jika Data Produk Belum Lengkap -->
+      <div id="detail-incomplete-banner" style="display: none; margin-bottom: var(--spacing-xl); padding: 16px 20px; background-color: #fffbeb; border: 1px solid #fde68a; border-radius: var(--radius-md); color: #92400e;">
+        <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; flex-wrap: wrap;">
+          <div style="display: flex; align-items: flex-start; gap: 10px; flex: 1; min-width: 260px;">
+            <span style="font-size: 22px; line-height: 1;">⚠️</span>
+            <div>
+              <strong style="font-size: var(--font-size-sm); display: block; margin-bottom: 2px;">Konfigurasi Produk Belum Lengkap (Pengadaan Purchasing)</strong>
+              <p style="font-size: var(--font-size-xs); color: #78350f; margin-bottom: 0; line-height: 1.5;">
+                Produk ini belum dapat diproses untuk transaksi stok masuk atau keluar gudang karena data konfigurasi belum lengkap.
+                Bagian yang belum diisi: <strong id="detail-missing-fields-text"></strong>.
+              </p>
+            </div>
+          </div>
+          <a id="btn-complete-product-now" href="#" class="btn btn-primary btn-sm" style="white-space: nowrap; font-size: 12px; padding: 6px 14px;">Lengkapi Data Sekarang &rarr;</a>
+        </div>
+      </div>
+
+      <!-- Layout Detail Produk (Standar 2 Kolom Selaras Halaman Lain) -->
+      <div class="grid grid-dashboard-main" style="align-items: start; width: 100%; max-width: 100%;">
         <!-- Kolom Kiri: Informasi Spesifikasi & Deskripsi -->
-        <div style="display: flex; flex-direction: column; gap: var(--spacing-lg);">
-          <div class="card">
+        <div style="display: flex; flex-direction: column; gap: var(--spacing-lg); min-width: 0; max-width: 100%;">
+          <div class="card" style="min-width: 0; max-width: 100%;">
             <div class="card-header">
               <h2 class="card-title">Informasi & Spesifikasi Barang</h2>
             </div>
@@ -145,149 +162,128 @@
               <div class="detail-specs-grid">
                 <div class="spec-item">
                   <span class="spec-label">Kode SKU</span>
-                  <span class="spec-value">EL-001</span>
+                  <span class="spec-value" id="spec-sku">-</span>
                 </div>
                 <div class="spec-item">
                   <span class="spec-label">Kategori</span>
-                  <span class="spec-value">Elektronik</span>
-                </div>
-                <div class="spec-item">
-                  <span class="spec-label">Pemasok Utama</span>
-                  <span class="spec-value"><a href="suppliers.html">PT Teknologi Nusantara</a></span>
+                  <span class="spec-value" id="spec-category">-</span>
                 </div>
                 <div class="spec-item">
                   <span class="spec-label">Lokasi Rak / Penyimpanan</span>
-                  <span class="spec-value">Rak A-01 (Gudang Utama)</span>
+                  <span class="spec-value" id="spec-location">-</span>
                 </div>
                 <div class="spec-item">
                   <span class="spec-label">Harga Beli (Modal)</span>
-                  <span class="spec-value">Rp12.000.000 / unit</span>
+                  <span class="spec-value" id="spec-purchase-price">-</span>
                 </div>
                 <div class="spec-item">
                   <span class="spec-label">Harga Jual</span>
-                  <span class="spec-value" style="color: var(--color-primary);">Rp15.000.000 / unit</span>
+                  <span class="spec-value" id="spec-selling-price" style="color: var(--color-primary);">-</span>
                 </div>
                 <div class="spec-item">
                   <span class="spec-label">Margin Profit</span>
-                  <span class="spec-value">Rp3.000.000 (+25%)</span>
+                  <span class="spec-value" id="spec-margin">-</span>
                 </div>
                 <div class="spec-item">
                   <span class="spec-label">Satuan Produk</span>
-                  <span class="spec-value">Unit</span>
+                  <span class="spec-value" id="spec-unit">-</span>
                 </div>
               </div>
 
               <div style="margin-top: var(--spacing-lg); padding-top: var(--spacing-md); border-top: 1px solid var(--color-border-subtle);">
                 <span class="spec-label">Deskripsi Barang</span>
-                <p style="margin-top: 6px; font-size: var(--font-size-sm); line-height: 1.6;">
-                  Laptop bisnis premium ThinkPad X1 Carbon. Menggunakan processor Intel Core i7 generasi terbaru, RAM 16GB LPDDR5, SSD 512GB M.2 NVMe, layar 14 inci IPS Anti-glare 400 nits. Dilengkapi garansi distributor 3 tahun On-Site Service.
+                <p id="spec-description" style="margin-top: 6px; font-size: var(--font-size-sm); line-height: 1.6; color: var(--color-text);">
+                  Memuat deskripsi...
                 </p>
               </div>
-            </div>
-          </div>
-
-          <!-- Riwayat Pergerakan Khusus Produk Ini -->
-          <div class="card">
-            <div class="card-header">
-              <div>
-                <h2 class="card-title">Riwayat Pergerakan Produk Ini</h2>
-                <p class="card-subtitle">Catatan mutasi stok masuk dan keluar terkini</p>
-              </div>
-              <a href="stock-history.html" class="btn btn-secondary btn-sm">Lihat Semua Riwayat</a>
-            </div>
-            <div class="table-container" style="border: none; border-radius: 0;">
-              <table class="table">
-                <thead>
-                  <tr>
-                    <th scope="col">Tanggal</th>
-                    <th scope="col">Jenis Mutasi</th>
-                    <th scope="col" style="text-align: right;">Jumlah</th>
-                    <th scope="col" style="text-align: right;">Sisa Stok</th>
-                    <th scope="col">No. Referensi</th>
-                    <th scope="col">Petugas</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>16 Sep 2026</td>
-                    <td><span class="badge badge-available">Stok Masuk</span></td>
-                    <td style="text-align: right; color: var(--color-success); font-weight: bold;">+10 unit</td>
-                    <td style="text-align: right; font-weight: bold;">18 unit</td>
-                    <td>SJ-2026-009</td>
-                    <td>Andi Pratama</td>
-                  </tr>
-                  <tr>
-                    <td>10 Sep 2026</td>
-                    <td><span class="badge badge-low">Stok Keluar</span></td>
-                    <td style="text-align: right; color: var(--color-danger); font-weight: bold;">-2 unit</td>
-                    <td style="text-align: right; font-weight: bold;">8 unit</td>
-                    <td>REQ-IT-042</td>
-                    <td>Budi Santoso</td>
-                  </tr>
-                  <tr>
-                    <td>01 Sep 2026</td>
-                    <td><span class="badge badge-available">Stok Masuk</span></td>
-                    <td style="text-align: right; color: var(--color-success); font-weight: bold;">+10 unit</td>
-                    <td style="text-align: right; font-weight: bold;">10 unit</td>
-                    <td>SJ-2026-001</td>
-                    <td>Andi Pratama</td>
-                  </tr>
-                </tbody>
-              </table>
             </div>
           </div>
         </div>
 
         <!-- Kolom Kanan: Ringkasan Stok & Valuasi -->
-        <div style="display: flex; flex-direction: column; gap: var(--spacing-lg);">
-          <div class="card">
+        <div style="display: flex; flex-direction: column; gap: var(--spacing-lg); min-width: 0; max-width: 100%;">
+          <div class="card" style="min-width: 0; max-width: 100%;">
             <div class="card-header">
               <h2 class="card-title">Kondisi Stok Gudang</h2>
             </div>
             <div class="card-body">
               <div style="text-align: center; padding: var(--spacing-md) 0;">
-                <div style="font-size: 3rem; font-weight: var(--font-weight-bold); color: var(--color-primary); line-height: 1;">
-                  18
+                <div id="stat-stock-qty" style="font-size: 3rem; font-weight: var(--font-weight-bold); color: var(--color-primary); line-height: 1;">
+                  0
                 </div>
-                <div style="font-size: var(--font-size-sm); color: var(--color-text-muted); margin-top: 4px;">
+                <div id="stat-stock-unit-label" style="font-size: var(--font-size-sm); color: var(--color-text-muted); margin-top: 4px;">
                   Unit Tersedia Saat Ini
                 </div>
               </div>
 
-              <div class="stock-meter">
-                <div class="stock-meter-header">
-                  <span>Level Stok Saat Ini</span>
-                  <span class="text-bold">18 / Min: 5</span>
-                </div>
-                <div class="chart-bar-track" style="height: 12px;">
-                  <div class="chart-bar-fill fill-primary" style="width: 75%;"></div>
-                </div>
-                <div style="font-size: 11px; color: var(--color-text-muted); margin-top: 6px;">
-                  Stok dalam batas aman (+13 unit di atas batas minimum).
-                </div>
-              </div>
-
-              <div style="margin-top: var(--spacing-lg); display: flex; flex-direction: column; gap: 8px;">
+              <div style="margin-top: var(--spacing-md); display: flex; flex-direction: column; gap: 8px;">
                 <div style="display: flex; justify-content: space-between; font-size: var(--font-size-xs);">
                   <span class="text-muted">Total Nilai Beli:</span>
-                  <strong style="font-family: var(--font-mono);">Rp216.000.000</strong>
+                  <strong id="stat-total-valuation" style="font-family: var(--font-mono);">Rp0</strong>
                 </div>
                 <div style="display: flex; justify-content: space-between; font-size: var(--font-size-xs);">
                   <span class="text-muted">Potensi Omset:</span>
-                  <strong style="font-family: var(--font-mono); color: var(--color-primary);">Rp270.000.000</strong>
+                  <strong id="stat-potential-revenue" style="font-family: var(--font-mono); color: var(--color-primary);">Rp0</strong>
                 </div>
                 <div style="display: flex; justify-content: space-between; font-size: var(--font-size-xs);">
                   <span class="text-muted">Terakhir Diperbarui:</span>
-                  <span>16 September 2026, 10:30</span>
+                  <span id="stat-last-updated" style="font-weight: 500; color: var(--color-text);">-</span>
                 </div>
               </div>
             </div>
-            <div class="card-footer">
-              <a href="stock-in.html" class="btn btn-primary btn-sm" style="width: 100%;">
+            <div class="card-footer" style="display: flex; flex-direction: column; gap: 8px;">
+              <button type="button" id="btnOpenStatusModal" class="btn btn-secondary btn-sm" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 6px; font-weight: 600;">
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/>
+                </svg>
+                Atur Status Stok (Aktif / Draft / QC)
+              </button>
+              <a href="stock-in.html" class="btn btn-primary btn-sm" style="width: 100%; text-align: center;">
                 + Tambah Stok Cepat
               </a>
             </div>
           </div>
+        </div>
+      </div>
+
+      <!-- Riwayat Pergerakan Khusus Produk Ini (Full-Width Card Sejajar Batas Kanan) -->
+      <div class="card" style="width: 100%; max-width: 100%; margin-top: var(--spacing-lg); overflow: hidden;">
+        <div class="card-header">
+          <div>
+            <h2 class="card-title">Riwayat Pergerakan Produk Ini</h2>
+            <p class="card-subtitle">Catatan mutasi stok masuk dan keluar terkini</p>
+          </div>
+          <a href="stock-history.html" class="btn btn-secondary btn-sm">Lihat Semua Riwayat</a>
+        </div>
+        <div class="table-container" style="border: none; border-radius: 0; width: 100%; max-width: 100%; overflow-x: auto;">
+          <table class="table" style="width: 100%;">
+            <thead>
+              <tr>
+                <th scope="col" style="width: 50px; text-align: center;">No</th>
+                <th scope="col" style="white-space: nowrap;">Tanggal</th>
+                <th scope="col" style="white-space: nowrap;">Produk & SKU</th>
+                <th scope="col" style="text-align: center; white-space: nowrap;">Jenis Mutasi</th>
+                <th scope="col" style="text-align: right; white-space: nowrap;">Stok Awal</th>
+                <th scope="col" style="text-align: right; white-space: nowrap;">Jumlah Mutasi</th>
+                <th scope="col" style="text-align: right; white-space: nowrap;">Stok Akhir</th>
+                <th scope="col" style="white-space: nowrap;">No. Referensi</th>
+                <th scope="col" style="white-space: nowrap;">Petugas</th>
+                <th scope="col" style="text-align: center; white-space: nowrap;">Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td colspan="10" style="text-align: center; padding: 24px; color: var(--color-text-muted);">
+                  Memuat riwayat transaksi produk...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <!-- Pagination Controls -->
+        <div class="pagination-wrapper" style="padding: 12px 16px; border-top: 1px solid var(--color-border-subtle); display: flex; justify-content: space-between; align-items: center;">
+          <div id="product-history-count" style="font-size: var(--font-size-xs); color: var(--color-text-muted);"></div>
+          <div class="pagination-controls" id="productHistoryPagination"></div>
         </div>
       </div>
     </main>
@@ -299,6 +295,7 @@
   </div>
 </div>
 
-<script src="../assets/js/product-detail.js"></script>
+<script src="../assets/js/access-control.js?v=11"></script>
+<script src="../assets/js/product-detail.js?v=8.2"></script>
 </body>
 </html>

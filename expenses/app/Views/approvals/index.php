@@ -59,7 +59,7 @@ $isHistory = ($currentStatus === 'HISTORY');
                         <?php foreach ($reports as $ev): ?>
                             <tr>
                                 <td>
-                                    <a href="/reports/<?= (int) $ev['report_id'] ?>" class="fw-semibold text-primary text-decoration-none">
+                                    <a href="<?= Url::to('/reports/' . (int) $ev['report_id']) ?>" class="fw-semibold text-primary text-decoration-none">
                                         <?= View::e($ev['report_number']) ?>
                                     </a>
                                 </td>
@@ -83,7 +83,7 @@ $isHistory = ($currentStatus === 'HISTORY');
                                     <small class="text-muted"><?= View::formatDate($ev['decided_at'], 'd M Y H:i') ?></small>
                                 </td>
                                 <td class="text-end">
-                                    <a href="/reports/<?= (int) $ev['report_id'] ?>" class="btn btn-sm btn-outline-primary">
+                                    <a href="<?= Url::to('/reports/' . (int) $ev['report_id']) ?>" class="btn btn-sm btn-outline-primary">
                                         Buka Detail
                                     </a>
                                 </td>
@@ -126,7 +126,7 @@ $isHistory = ($currentStatus === 'HISTORY');
                             ?>
                             <tr>
                                 <td>
-                                    <a href="/reports/<?= (int) $item['report_id'] ?>" class="fw-semibold text-primary text-decoration-none">
+                                    <a href="<?= Url::to('/reports/' . (int) $item['report_id']) ?>" class="fw-semibold text-primary text-decoration-none">
                                         <?= View::e($item['report_number']) ?>
                                     </a>
                                 </td>
@@ -148,7 +148,7 @@ $isHistory = ($currentStatus === 'HISTORY');
                                 <td><strong class="text-primary"><?= View::formatRupiah($item['total_amount'] ?? 0) ?></strong></td>
                                 <td><?= View::statusBadge($item['status'] ?? 'SUBMITTED') ?></td>
                                 <td class="text-end">
-                                    <a href="/reports/<?= (int) $item['report_id'] ?>" class="btn btn-sm btn-primary">
+                                    <a href="<?= Url::to('/reports/' . (int) $item['report_id']) ?>" class="btn btn-sm btn-primary">
                                         Tinjau Rincian
                                     </a>
                                 </td>

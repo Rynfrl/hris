@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Core\Url;
 use App\Core\View;
 ?>
 
@@ -12,7 +13,7 @@ use App\Core\View;
     </div>
     <?php if (in_array($user['role_name'] ?? '', ['ADMIN', 'Admin_HR', 'ADMIN_EXPENSE'], true) || in_array('expenses.manage', $user['permissions'] ?? [])): ?>
         <div>
-            <a href="/reports/create" class="btn btn-primary btn-sm d-flex align-items-center gap-1">
+            <a href="<?= Url::to('/reports/create') ?>" class="btn btn-primary btn-sm d-flex align-items-center gap-1">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                 <span>Buat Laporan Baru</span>
             </a>
@@ -23,7 +24,7 @@ use App\Core\View;
 <!-- Filters Toolbar -->
 <div class="card card-gt mb-4">
     <div class="card-body p-3">
-        <form action="/expenses" method="GET" class="row g-2 align-items-center">
+        <form action="<?= Url::to('/expenses') ?>" method="GET" class="row g-2 align-items-center">
             <div class="col-md-3">
                 <input type="text" name="search" class="form-control form-control-sm" placeholder="Cari nomor/deskripsi/merchant..." value="<?= View::e($filters['search'] ?? '') ?>">
             </div>
@@ -55,7 +56,7 @@ use App\Core\View;
             </div>
             <div class="col-md-1 d-flex gap-1">
                 <button type="submit" class="btn btn-sm btn-primary w-100">Filter</button>
-                <a href="/expenses" class="btn btn-sm btn-outline-secondary" title="Reset">✕</a>
+                <a href="<?= Url::to('/expenses') ?>" class="btn btn-sm btn-outline-secondary" title="Reset">✕</a>
             </div>
         </form>
     </div>
@@ -90,7 +91,7 @@ use App\Core\View;
                     <?php foreach ($expenses as $item): ?>
                         <tr>
                             <td>
-                                <a href="/expenses/<?= (int) $item['expense_id'] ?>" class="fw-semibold text-primary text-decoration-none">
+                                <a href="<?= Url::to('/expenses/' . (int) $item['expense_id']) ?>" class="fw-semibold text-primary text-decoration-none">
                                     <?= View::e($item['expense_number']) ?>
                                 </a>
                             </td>
@@ -113,7 +114,7 @@ use App\Core\View;
                             <td><strong><?= View::formatRupiah($item['amount'] ?? 0) ?></strong></td>
                             <td>
                                 <?php if (!empty($item['receipt_stored_name'])): ?>
-                                    <a href="/expenses/<?= (int) $item['expense_id'] ?>/receipt" target="_blank" class="badge bg-info text-white text-decoration-none" title="Lihat Bukti">
+                                    <a href="<?= Url::to('/expenses/' . (int) $item['expense_id'] . '/receipt') ?>" target="_blank" class="badge bg-info text-white text-decoration-none" title="Lihat Bukti">
                                         Ada Bukti
                                     </a>
                                 <?php else: ?>
@@ -123,7 +124,7 @@ use App\Core\View;
                             <td><?= View::statusBadge($item['status'] ?? 'DRAFT') ?></td>
                             <td>
                                 <?php if (!empty($item['report_id'])): ?>
-                                    <a href="/reports/<?= (int) $item['report_id'] ?>" class="text-decoration-none small">
+                                    <a href="<?= Url::to('/reports/' . (int) $item['report_id']) ?>" class="text-decoration-none small">
                                         <?= View::e($item['report_number']) ?>
                                     </a>
                                 <?php else: ?>
@@ -131,7 +132,7 @@ use App\Core\View;
                                 <?php endif; ?>
                             </td>
                             <td class="text-end">
-                                <a href="/expenses/<?= (int) $item['expense_id'] ?>" class="btn btn-sm btn-outline-secondary">
+                                <a href="<?= Url::to('/expenses/' . (int) $item['expense_id']) ?>" class="btn btn-sm btn-outline-secondary">
                                     Detail
                                 </a>
                             </td>

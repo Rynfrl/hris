@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Core\Csrf;
+use App\Core\Url;
 use App\Core\View;
 ?>
 
@@ -13,12 +14,12 @@ use App\Core\View;
                 <h2 class="h4 fw-bold mb-1">Edit Pengeluaran <?= View::e($expense['expense_number']) ?></h2>
                 <p class="text-secondary small mb-0">Perbarui rincian pengeluaran draft</p>
             </div>
-            <a href="/expenses/<?= (int) $expense['expense_id'] ?>" class="btn btn-outline-secondary btn-sm">Kembali</a>
+            <a href="<?= Url::to('/expenses/' . (int) $expense['expense_id']) ?>" class="btn btn-outline-secondary btn-sm">Kembali</a>
         </div>
 
         <div class="card card-gt">
             <div class="card-body p-4">
-                <form action="/expenses/<?= (int) $expense['expense_id'] ?>/update" method="POST">
+                <form action="<?= Url::to('/expenses/' . (int) $expense['expense_id'] . '/update') ?>" method="POST">
                     <?= Csrf::field() ?>
 
                     <div class="row g-3">
@@ -89,7 +90,7 @@ use App\Core\View;
                     </div>
 
                     <div class="mt-4 pt-3 border-top d-flex justify-content-end gap-2">
-                        <a href="/expenses/<?= (int) $expense['expense_id'] ?>" class="btn btn-outline-secondary">Batal</a>
+                        <a href="<?= Url::to('/expenses/' . (int) $expense['expense_id']) ?>" class="btn btn-outline-secondary">Batal</a>
                         <button type="submit" class="btn btn-primary px-4">Simpan Perubahan</button>
                     </div>
                 </form>

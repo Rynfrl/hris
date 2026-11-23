@@ -2,14 +2,26 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Manajemen Kategori Produk - Inventoria">
-  <title>Kategori Produk - Inventoria</title>
+  <meta name="description" content="Manajemen Klasifikasi & Kategori Produk Inventaris - Inventoria">
+  <title>Kategori Barang - Inventoria</title>
   <link rel="stylesheet" href="../assets/css/base.css">
   <link rel="stylesheet" href="../assets/css/layout.css">
   <link rel="stylesheet" href="../assets/css/components.css">
   <link rel="stylesheet" href="../assets/css/pages.css">
   <link rel="stylesheet" href="../assets/css/responsive.css">
+  <style>
+    .table-categories th, 
+    .table-categories td {
+      padding: 10px 12px;
+      vertical-align: middle;
+      height: 48px;
+      box-sizing: border-box;
+    }
+  </style>
 </head>
 <body>
 
@@ -108,167 +120,261 @@
 
       <div class="page-header">
         <div class="page-title-group">
-          <h1>Kategori Barang</h1>
-          <p>Pengelompokan barang untuk memudahkan filter inventaris dan analisis valuasi stok.</p>
+          <h1>Klasifikasi &amp; Kategori Komoditas Inventaris</h1>
+          <p>Standarisasi taksonomi dan pengelompokan produk inventaris gudang guna optimalisasi tata letak penyimpanan, pemantauan aset, dan analisis valuasi persediaan.</p>
         </div>
-        <div class="page-actions">
-          <button type="button" class="btn btn-primary" onclick="alert('Form modal tambah kategori akan dibuka di fase selanjutnya.');">
+        <div class="page-actions" style="display: flex; gap: 8px;">
+          <button type="button" class="btn btn-secondary" id="btn-view-deleted-categories" style="display: inline-flex; align-items: center; gap: 6px;">
+            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            <span>Riwayat Kategori</span>
+          </button>
+          <button type="button" class="btn btn-primary" id="btn-add-category">
             <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
             <span>Tambah Kategori</span>
           </button>
         </div>
       </div>
 
-      <!-- Kartu Ringkasan Kategori (Grid 4 Kolom) -->
-      <div class="grid grid-cols-4" style="margin-bottom: var(--spacing-xl);">
-        <!-- 1. Elektronik -->
-        <div class="category-card">
-          <div class="category-top">
-            <div>
-              <h2 class="category-name">Elektronik</h2>
-              <span class="text-muted" style="font-size: 11px;">Kode: KAT-ELK</span>
-            </div>
-            <div class="category-icon">
-              <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
-            </div>
-          </div>
-          <p class="category-desc">Laptop, mouse, keyboard mechanical, monitor resolusi tinggi, dan peripheral IT.</p>
-          <div class="category-footer">
-            <span class="category-item-count">4 Produk Terdaftar</span>
-            <a href="products.html" class="btn btn-secondary btn-sm">Lihat Produk</a>
-          </div>
-        </div>
-
-        <!-- 2. Perabot -->
-        <div class="category-card">
-          <div class="category-top">
-            <div>
-              <h2 class="category-name">Perabot</h2>
-              <span class="text-muted" style="font-size: 11px;">Kode: KAT-PBT</span>
-            </div>
-            <div class="category-icon" style="background-color: var(--color-info-light); color: var(--color-info);">
-              <svg viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"></path><rect x="3" y="3" width="18" height="18" rx="2"></rect></svg>
-            </div>
-          </div>
-          <p class="category-desc">Meja kerja workstation, kursi kantor ergonomis, lemari berkas, dan partisi ruangan.</p>
-          <div class="category-footer">
-            <span class="category-item-count">2 Produk Terdaftar</span>
-            <a href="products.html" class="btn btn-secondary btn-sm">Lihat Produk</a>
-          </div>
-        </div>
-
-        <!-- 3. Alat Kantor -->
-        <div class="category-card">
-          <div class="category-top">
-            <div>
-              <h2 class="category-name">Alat Kantor</h2>
-              <span class="text-muted" style="font-size: 11px;">Kode: KAT-ATK</span>
-            </div>
-            <div class="category-icon" style="background-color: var(--color-warning-light); color: var(--color-warning);">
-              <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
-            </div>
-          </div>
-          <p class="category-desc">Kertas A4 berbagai gramatur, tinta printer, binder, dan perlengkapan tulis harian.</p>
-          <div class="category-footer">
-            <span class="category-item-count">2 Produk Terdaftar</span>
-            <a href="products.html" class="btn btn-secondary btn-sm">Lihat Produk</a>
-          </div>
-        </div>
-
-        <!-- 4. Perlengkapan -->
-        <div class="category-card">
-          <div class="category-top">
-            <div>
-              <h2 class="category-name">Perlengkapan</h2>
-              <span class="text-muted" style="font-size: 11px;">Kode: KAT-PKP</span>
-            </div>
-            <div class="category-icon" style="background-color: #EBF4FF; color: #6B46C1;">
-              <svg viewBox="0 0 24 24"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path><line x1="12" y1="2" x2="12" y2="12"></line></svg>
-            </div>
-          </div>
-          <p class="category-desc">Kabel LAN jaringan UTP Cat6, stop kontak listrik, surge protector, dan konektor RJ45.</p>
-          <div class="category-footer">
-            <span class="category-item-count">2 Produk Terdaftar</span>
-            <a href="products.html" class="btn btn-secondary btn-sm">Lihat Produk</a>
-          </div>
-        </div>
-      </div>
-
-      <!-- Tabel Detail Kategori & Aksi Pengelolaan -->
+      <!-- Tabel Master Kategori Inventaris (Tampilan Utama yang Bersih & Fokus) -->
       <div class="card">
-        <div class="card-header">
+        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
           <div>
-            <h2 class="card-title">Tabel Rincian Kategori</h2>
-            <p class="card-subtitle">Pengaturan nama, slug, dan deskripsi kategori inventaris</p>
+            <h2 class="card-title">Tabel Master Kategori Inventaris</h2>
+            <p class="card-subtitle">Daftar klasifikasi resmi komoditas barang beserta jumlah unit produk aktif yang terdaftar</p>
           </div>
         </div>
         <div class="table-container" style="border: none; border-radius: 0;">
-          <table class="table">
+          <table class="table table-categories" id="categoriesTable">
             <thead>
               <tr>
-                <th scope="col">Nama Kategori</th>
-                <th scope="col">Deskripsi</th>
-                <th scope="col" style="text-align: center;">Jumlah Barang</th>
-                <th scope="col" style="text-align: right;">Aksi</th>
+                <th scope="col" style="width: 50px; text-align: center;">No</th>
+                <th scope="col" style="width: 120px;">Kode</th>
+                <th scope="col" style="min-width: 180px;">Nama Kategori</th>
+                <th scope="col" style="min-width: 280px;">Deskripsi Pengelompokan</th>
+                <th scope="col" style="width: 150px; text-align: center;">Produk Terdaftar</th>
+                <th scope="col" style="width: 220px; text-align: right;">Aksi</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td><strong>Elektronik</strong></td>
-                <td>Laptop, peripheral, komputer, monitor layar, dan aksesoris audio/video.</td>
-                <td style="text-align: center; font-weight: bold;">4 item</td>
-                <td style="text-align: right;">
-                  <div class="table-actions" style="justify-content: flex-end;">
-                    <button type="button" class="btn btn-secondary btn-sm" onclick="alert('Edit kategori Elektronik');">Edit</button>
-                    <button type="button" class="btn btn-secondary btn-sm" style="color: var(--color-danger);" onclick="alert('Hapus kategori Elektronik');">Hapus</button>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td><strong>Perabot</strong></td>
-                <td>Perlengkapan meja, kursi staf, filing cabinet, dan perabot kantor lainnya.</td>
-                <td style="text-align: center; font-weight: bold;">2 item</td>
-                <td style="text-align: right;">
-                  <div class="table-actions" style="justify-content: flex-end;">
-                    <button type="button" class="btn btn-secondary btn-sm" onclick="alert('Edit kategori Perabot');">Edit</button>
-                    <button type="button" class="btn btn-secondary btn-sm" style="color: var(--color-danger);" onclick="alert('Hapus kategori Perabot');">Hapus</button>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td><strong>Alat Kantor</strong></td>
-                <td>Alat tulis kantor (ATK), kertas cetak, toner, dan tinta printer.</td>
-                <td style="text-align: center; font-weight: bold;">2 item</td>
-                <td style="text-align: right;">
-                  <div class="table-actions" style="justify-content: flex-end;">
-                    <button type="button" class="btn btn-secondary btn-sm" onclick="alert('Edit kategori Alat Kantor');">Edit</button>
-                    <button type="button" class="btn btn-secondary btn-sm" style="color: var(--color-danger);" onclick="alert('Hapus kategori Alat Kantor');">Hapus</button>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td><strong>Perlengkapan</strong></td>
-                <td>Kabel jaringan Ethernet, extension daya listrik, dan perlengkapan utilitas gudang.</td>
-                <td style="text-align: center; font-weight: bold;">2 item</td>
-                <td style="text-align: right;">
-                  <div class="table-actions" style="justify-content: flex-end;">
-                    <button type="button" class="btn btn-secondary btn-sm" onclick="alert('Edit kategori Perlengkapan');">Edit</button>
-                    <button type="button" class="btn btn-secondary btn-sm" style="color: var(--color-danger);" onclick="alert('Hapus kategori Perlengkapan');">Hapus</button>
-                  </div>
+                <td colspan="6" style="text-align: center; padding: 28px; color: var(--color-text-muted);">
+                  Memuat data rincian kategori...
                 </td>
               </tr>
             </tbody>
           </table>
         </div>
       </div>
+
+      <!-- Paginasi Standar Enterprise (Seragam dengan Riwayat Stok & Supplier) -->
+      <div class="pagination-wrapper" style="margin-top: 16px; display: flex; justify-content: flex-end;" id="categoriesPaginationWrapper">
+        <div class="pagination-controls" id="categoriesPaginationControls"></div>
+      </div>
     </main>
 
     <footer class="app-footer">
-      <div>&copy; 2026 <strong>Inventoria</strong> - Prototype Sistem Manajemen Inventory</div>
+      <div>&copy; 2026 <strong>Inventoria</strong> - Sistem Manajemen Inventory</div>
       <div>Modul: Kategori Barang</div>
     </footer>
   </div>
 </div>
 
+<!-- Modal Tambah / Edit Kategori -->
+<div id="categoryFormModal" role="dialog" aria-modal="true" style="position: fixed; inset: 0; z-index: 10000; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,0.5); backdrop-filter: blur(2px); padding: 16px;">
+  <div style="background: #fff; border-radius: 12px; width: 100%; max-width: 500px; box-shadow: 0 12px 40px rgba(0,0,0,0.2); overflow: hidden; animation: popIn 0.2s ease-out;">
+    <div style="padding: 16px 20px; border-bottom: 1px solid var(--color-border-subtle); display: flex; align-items: center; justify-content: space-between; background: var(--color-bg-subtle, #f8fafc);">
+      <h3 id="categoryFormModalTitle" style="font-size: var(--font-size-base); font-weight: 700; margin: 0; color: var(--color-text-emphasis);">Tambah Kategori Baru</h3>
+      <button type="button" onclick="closeCategoryFormModal()" style="background: none; border: none; font-size: 20px; line-height: 1; cursor: pointer; color: var(--color-text-muted);">&times;</button>
+    </div>
+    <form id="categoryModalForm" autocomplete="off" novalidate>
+      <div style="padding: 20px; display: flex; flex-direction: column; gap: 14px;">
+        <div class="form-group" style="margin-bottom: 0;">
+          <label for="cat_code" class="form-label" style="display: flex; justify-content: space-between;">
+            <span>Kode Kategori <span class="form-required" style="color: var(--color-danger);">*</span></span>
+            <span style="font-size: 11px; color: var(--color-text-muted); font-weight: normal;">Contoh: CAT-EL</span>
+          </label>
+          <input type="text" id="cat_code" name="cat_code" class="form-input" placeholder="Contoh: CAT-EL" required style="font-family: var(--font-mono); text-transform: uppercase;">
+          <span class="form-hint" style="font-size: 11px; margin-top: 4px; display: block; color: var(--color-text-muted);">Masukkan kode singkat kategori (2-20 karakter kapital/angka).</span>
+        </div>
+        <div class="form-group" style="margin-bottom: 0;">
+          <label for="cat_name" class="form-label">Nama Kategori <span class="form-required" style="color: var(--color-danger);">*</span></label>
+          <input type="text" id="cat_name" name="cat_name" class="form-input" placeholder="Contoh: Elektronik & Periferal" required>
+        </div>
+        <div class="form-group" style="margin-bottom: 0;">
+          <label for="cat_desc" class="form-label">Deskripsi Klasifikasi <span class="form-required" style="color: var(--color-danger);">*</span></label>
+          <textarea id="cat_desc" name="cat_desc" class="form-textarea" rows="3" placeholder="Contoh: Komoditas perangkat keras elektronik, monitor, laptop, aksesoris audio/video kantor" required></textarea>
+        </div>
+        <div class="form-group" style="margin-bottom: 0;">
+          <label for="cat_reason" class="form-label" style="display: flex; justify-content: space-between;">
+            <span>Keterangan / Alasan Penambahan</span>
+            <span style="font-size: 11px; color: var(--color-text-muted); font-weight: normal;">Opsional</span>
+          </label>
+          <input type="text" id="cat_reason" name="cat_reason" class="form-input" placeholder="Contoh: Pemisahan kategori baru untuk inventaris IT (kosong = Tidak ada alasan khusus)">
+          <span class="form-hint" style="font-size: 11px; margin-top: 4px; display: block; color: var(--color-text-muted);">Akan dicatat pada riwayat aktivitas kategori (otomatis &quot;Tidak ada alasan khusus&quot; jika dikosongkan).</span>
+        </div>
+      </div>
+      <div style="padding: 12px 20px; border-top: 1px solid var(--color-border-subtle); display: flex; justify-content: flex-end; gap: 8px; background: var(--color-bg-subtle, #f8fafc);">
+        <button type="button" class="btn btn-secondary" onclick="closeCategoryFormModal()">Batal</button>
+        <button type="submit" class="btn btn-primary" id="btn-submit-category">
+          <span>Simpan Data</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal Daftar Produk dalam Kategori -->
+<div id="categoryProductsModal" role="dialog" aria-modal="true" style="position: fixed; inset: 0; z-index: 10000; display: none; align-items: center; justify-content: center; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(2px); padding: 16px;">
+  <div style="background: #fff; border-radius: 12px; width: 100%; max-width: 850px; max-height: 90vh; display: flex; flex-direction: column; box-shadow: 0 16px 40px rgba(0,0,0,0.25); overflow: hidden; animation: popIn 0.2s ease-out;">
+    <div style="padding: 16px 20px; border-bottom: 1px solid var(--color-border-subtle); display: flex; align-items: center; justify-content: space-between; background: var(--color-bg-subtle, #f8fafc);">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <div style="width: 36px; height: 36px; border-radius: 8px; background: #e0f2fe; color: #0369a1; display: flex; align-items: center; justify-content: center;">
+          <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+        </div>
+        <div>
+          <h3 id="categoryProductsModalTitle" style="margin: 0; font-size: 16px; font-weight: 700; color: var(--color-text-emphasis);">Daftar Produk Kategori</h3>
+          <p id="categoryProductsModalSubtitle" style="margin: 2px 0 0 0; font-size: 12px; color: var(--color-text-muted);">Menampilkan seluruh produk inventaris yang terdaftar dalam kategori ini.</p>
+        </div>
+      </div>
+      <button type="button" onclick="closeCategoryProductsModal()" style="background: none; border: none; font-size: 22px; line-height: 1; cursor: pointer; color: var(--color-text-muted);">&times;</button>
+    </div>
+
+    <div style="padding: 16px; overflow-y: auto; flex: 1;">
+      <div class="table-container" style="border: 1px solid var(--color-border-subtle); border-radius: 8px;">
+        <table class="table" style="margin-bottom: 0; font-size: 13px;">
+          <thead>
+            <tr style="background: var(--color-bg-subtle, #f8fafc);">
+              <th style="width: 45px; text-align: center;">No</th>
+              <th style="width: 120px;">SKU</th>
+              <th style="min-width: 220px;">Nama Produk</th>
+              <th style="min-width: 140px;">Lokasi Rak</th>
+              <th style="width: 110px; text-align: right;">Stok Fisik</th>
+              <th style="width: 80px; text-align: center;">Satuan</th>
+              <th style="width: 100px; text-align: center;">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="categoryProductsTableBody">
+            <tr>
+              <td colspan="7" style="text-align: center; padding: 24px; color: var(--color-text-muted);">
+                Memuat daftar produk...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div style="padding: 12px 20px; border-top: 1px solid var(--color-border-subtle); display: flex; justify-content: space-between; align-items: center; background: var(--color-bg-subtle, #f8fafc);">
+      <div id="categoryProductsSummary" style="font-size: 12px; font-weight: 600; color: var(--color-text-muted);">
+        Total: 0 produk
+      </div>
+      <button type="button" class="btn btn-secondary" onclick="closeCategoryProductsModal()">Tutup</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Konfirmasi Hapus Kategori Interaktif (Wajib Alasan & Proteksi Produk) -->
+<div id="deleteCategoryModal" role="dialog" aria-modal="true" style="position: fixed; inset: 0; z-index: 10001; display: none; align-items: center; justify-content: center; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(2px); padding: 16px;">
+  <div style="background: #fff; border-radius: 12px; width: 100%; max-width: 480px; box-shadow: 0 16px 40px rgba(0,0,0,0.25); overflow: hidden; animation: popIn 0.2s ease-out;">
+    <div style="padding: 18px 20px; border-bottom: 1px solid #fee2e2; display: flex; align-items: center; gap: 12px; background: #fff5f5;">
+      <div style="width: 38px; height: 38px; border-radius: 50%; background: #fee2e2; color: #dc2626; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+      </div>
+      <div>
+        <h3 style="margin: 0; font-size: 15px; font-weight: 700; color: #991b1b;">Konfirmasi Hapus Kategori</h3>
+        <p style="margin: 2px 0 0 0; font-size: 12px; color: #b91c1c;">Pengarsipan master kategori komoditas barang.</p>
+      </div>
+    </div>
+    <form id="deleteCategoryForm" autocomplete="off" novalidate>
+      <div style="padding: 20px; display: flex; flex-direction: column; gap: 12px;">
+        <p style="margin: 0; font-size: 13px; color: #334155; line-height: 1.5;">
+          Anda akan menghapus kategori: <strong id="deleteCategoryTargetName" style="color: #0f172a;">-</strong> (<span id="deleteCategoryTargetCode" style="font-family: var(--font-mono); font-weight: 600;">-</span>).
+        </p>
+        <div id="deleteCategoryWarningBox" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 12px; font-size: 12px; color: #475569; line-height: 1.5;">
+          <!-- Keterangan dependensi produk -->
+        </div>
+        <div class="form-group" id="deleteCategoryReasonGroup" style="margin-bottom: 0;">
+          <label for="deleteCategoryReasonInput" class="form-label" style="font-weight: 600; font-size: 12px; color: #1e293b;">
+            Alasan Penghapusan Kategori <span style="color: #dc2626;">*</span>
+          </label>
+          <textarea id="deleteCategoryReasonInput" class="form-textarea" rows="2" placeholder="Tuliskan alasan spesifik (contoh: Kategori tidak lagi relevan / Penggabungan klasifikasi barang)" required style="font-size: 13px;"></textarea>
+          <span style="font-size: 11px; color: #64748b; margin-top: 4px; display: block;">Wajib diisi agar terekam dalam audit trail penghapusan kategori inventaris.</span>
+        </div>
+      </div>
+      <div style="padding: 12px 20px; border-top: 1px solid #f1f5f9; display: flex; justify-content: flex-end; gap: 8px; background: #f8fafc;">
+        <button type="button" class="btn btn-secondary" onclick="closeDeleteCategoryModal()">Batal</button>
+        <button type="submit" class="btn btn-primary" id="btn-confirm-delete-category" style="background-color: #dc2626; border-color: #dc2626; color: #fff;">
+          <span>Ya, Hapus Kategori</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal Riwayat Kategori (Audit Trail Berhalaman) -->
+<div id="deletedCategoriesModal" role="dialog" aria-modal="true" style="position: fixed; inset: 0; z-index: 10000; display: none; align-items: center; justify-content: center; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(2px); padding: 16px;">
+  <div style="background: #fff; border-radius: 12px; width: 100%; max-width: 1000px; max-height: 90vh; display: flex; flex-direction: column; box-shadow: 0 16px 40px rgba(0,0,0,0.25); overflow: hidden; animation: popIn 0.2s ease-out;">
+    <div style="padding: 16px 20px; border-bottom: 1px solid var(--color-border-subtle); display: flex; align-items: center; justify-content: space-between; background: var(--color-bg-subtle, #f8fafc);">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <div style="width: 32px; height: 32px; border-radius: 8px; background: #f1f5f9; display: flex; align-items: center; justify-content: center; color: var(--color-text-main);">
+          <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+        </div>
+        <div>
+          <h3 style="margin: 0; font-size: 15px; font-weight: 700; color: var(--color-text-emphasis);">Riwayat Kategori</h3>
+          <p style="margin: 2px 0 0 0; font-size: 12px; color: var(--color-text-muted);">Log audit riwayat aktivitas kategori barang (penambahan &amp; penghapusan data) tercatat lengkap beserta petugas penanggung jawab.</p>
+        </div>
+      </div>
+      <button type="button" onclick="closeDeletedCategoriesModal()" style="background: none; border: none; font-size: 22px; line-height: 1; cursor: pointer; color: var(--color-text-muted);">&times;</button>
+    </div>
+    
+    <div style="padding: 16px; overflow-y: auto; flex: 1;">
+      <div class="table-container" style="border: 1px solid var(--color-border-subtle); border-radius: 8px;">
+        <table class="table" style="margin-bottom: 0; font-size: 12px;">
+          <thead>
+            <tr style="background: var(--color-bg-subtle, #f8fafc);">
+              <th style="width: 40px; text-align: center;">No</th>
+              <th style="width: 130px; text-align: center;">Aktivitas</th>
+              <th style="width: 90px;">Kode</th>
+              <th style="min-width: 160px;">Nama Kategori</th>
+              <th style="min-width: 130px;">Waktu &amp; Tanggal</th>
+              <th style="min-width: 200px;">Petugas &amp; Role</th>
+              <th style="min-width: 200px;">Keterangan / Alasan</th>
+            </tr>
+          </thead>
+          <tbody id="deletedCategoriesTableBody">
+            <tr>
+              <td colspan="7" style="text-align: center; padding: 24px; color: var(--color-text-muted);">
+                Memuat riwayat kategori...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Paginasi Modal Riwayat Kategori -->
+      <div class="pagination-wrapper" style="margin-top: 12px; padding: 8px 12px; border-top: none; display: flex; justify-content: flex-end; background: transparent;" id="deletedCategoriesPaginationWrapper">
+        <div class="pagination-controls" id="deletedCategoriesPaginationControls"></div>
+      </div>
+    </div>
+
+    <div style="padding: 12px 20px; border-top: 1px solid var(--color-border-subtle); display: flex; justify-content: flex-end; background: var(--color-bg-subtle, #f8fafc);">
+      <button type="button" class="btn btn-secondary" onclick="closeDeletedCategoriesModal()">Tutup</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Dialog Alert Universal Interaktif (Pengganti alert() browser) -->
+<div id="categoryAlertModal" role="dialog" aria-modal="true" style="position: fixed; inset: 0; z-index: 10002; display: none; align-items: center; justify-content: center; background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(2px); padding: 16px;">
+  <div style="background: #fff; border-radius: 12px; width: 100%; max-width: 420px; box-shadow: 0 16px 40px rgba(0,0,0,0.25); overflow: hidden; animation: popIn 0.2s ease-out; text-align: center; padding: 24px 20px;">
+    <div id="categoryAlertIcon" style="width: 48px; height: 48px; border-radius: 50%; margin: 0 auto 14px auto; display: flex; align-items: center; justify-content: center;">
+      <!-- Dynamic SVG -->
+    </div>
+    <h3 id="categoryAlertTitle" style="margin: 0 0 8px 0; font-size: 16px; font-weight: 700; color: #0f172a;">Notifikasi</h3>
+    <p id="categoryAlertMessage" style="margin: 0 0 20px 0; font-size: 13px; color: #475569; line-height: 1.5;"></p>
+    <button type="button" class="btn btn-primary" id="categoryAlertBtn" style="min-width: 110px;">OK</button>
+  </div>
+</div>
+
+<script src="../assets/js/categories.js?v=2.1"></script>
 </body>
 </html>

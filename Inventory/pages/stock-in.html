@@ -126,61 +126,83 @@
             <div class="form-grid-2">
               <!-- Pilihan Produk -->
               <div class="form-group form-grid-full">
-                <label for="product_select" class="form-label">Pilih Produk <span class="form-required">*</span></label>
+                <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px;">
+                  <label for="product_select" class="form-label" style="margin-bottom: 0;">Pilih Produk <span class="form-required">*</span></label>
+                  <span style="font-size: 11px; color: var(--color-text-muted);">Ketik nama/SKU untuk memfilter pilihan</span>
+                </div>
+
+                <!-- Input Pencarian / Filter Produk Cepat -->
+                <div style="position: relative; margin-bottom: 8px;">
+                  <span style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; pointer-events: none; font-size: 13px;">🔍</span>
+                  <input type="text" id="product_search_filter" class="form-control" placeholder="Cari nama produk, SKU, atau kategori untuk memfilter..." autocomplete="off" style="padding-left: 34px; padding-right: 32px; font-size: var(--font-size-sm); background: #f8fafc; border: 1px solid var(--color-border); border-radius: var(--radius-md);">
+                  <button type="button" id="btn_clear_product_search" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 16px; display: none; line-height: 1; padding: 2px 6px;" title="Reset Pencarian">&times;</button>
+                </div>
+                <div id="product_search_info" style="display: none; font-size: 11px; color: var(--color-primary); font-weight: 500; margin-bottom: 8px; padding-left: 2px;"></div>
+
                 <select id="product_select" name="product_select" class="form-select" required>
                   <option value="">-- Pilih Barang dari Katalog --</option>
-                  <option value="EL-001" selected>EL-001 - Laptop ThinkPad X1 (Sisa Stok: 18 unit)</option>
-                  <option value="EL-002">EL-002 - Mouse Wireless M1 (Sisa Stok: 4 pcs)</option>
-                  <option value="AT-001">AT-001 - Meja Kerja 120 cm (Sisa Stok: 12 unit)</option>
-                  <option value="AT-002">AT-002 - Kursi Kantor Ergonomis (Sisa Stok: 0 unit - HABIS)</option>
-                  <option value="AK-001">AK-001 - Paper A4 80gsm (Sisa Stok: 120 rim)</option>
-                  <option value="AK-002">AK-002 - Tinta Printer Hitam (Sisa Stok: 7 botol)</option>
-                  <option value="EL-003">EL-003 - Monitor 24 Inch (Sisa Stok: 9 unit)</option>
-                  <option value="EL-004">EL-004 - Keyboard Mechanical (Sisa Stok: 3 pcs)</option>
-                  <option value="PK-001">PK-001 - Kabel LAN 20m (Sisa Stok: 35 roll)</option>
-                  <option value="PK-002">PK-002 - Stop Kontak 4 Port (Sisa Stok: 16 pcs)</option>
                 </select>
+                <!-- Alert Peringatan Produk Belum Lengkap -->
+                <div id="product_incomplete_alert" style="display:none; margin-top: 10px; padding: 12px 16px; background-color: #fffbeb; border: 1px solid #fde68a; border-radius: var(--radius-md); font-size: var(--font-size-xs); color: #92400e;">
+                  <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 200px;">
+                      <strong style="display: block; margin-bottom: 2px;">⚠️ Data Produk Belum Lengkap!</strong>
+                      <span id="product_incomplete_text">Produk ini belum dapat diproses karena data konfigurasi belum lengkap.</span>
+                    </div>
+                    <a id="btn_edit_incomplete_product" href="#" class="btn btn-primary btn-sm" style="white-space: nowrap; font-size: 11px; padding: 5px 12px;">Lengkapi Data Sekarang &rarr;</a>
+                  </div>
+                </div>
               </div>
 
               <!-- Jumlah Masuk -->
               <div class="form-group">
                 <label for="quantity" class="form-label">Jumlah Barang Masuk <span class="form-required">*</span></label>
-                <input type="number" id="quantity" name="quantity" class="form-input" placeholder="10" value="10" min="1" required>
+                <input type="number" id="quantity" name="quantity" class="form-input" placeholder="10" min="1" required>
                 <span class="form-hint">Satuan unit otomatis mengikuti produk terpilih.</span>
               </div>
 
-              <!-- Tanggal Transaksi -->
+              <!-- Tanggal Penerimaan -->
               <div class="form-group">
                 <label for="transaction_date" class="form-label">Tanggal Penerimaan <span class="form-required">*</span></label>
-                <input type="date" id="transaction_date" name="transaction_date" class="form-input" value="2026-09-16" required>
-              </div>
-
-              <!-- Nomor Referensi / Surat Jalan -->
-              <div class="form-group">
-                <label for="reference_number" class="form-label">No. Surat Jalan / Purchase Order <span class="form-required">*</span></label>
-                <input type="text" id="reference_number" name="reference_number" class="form-input" placeholder="SJ-2026-009" value="SJ-2026-009" required>
+                <input type="date" id="transaction_date" name="transaction_date" class="form-input" required>
               </div>
 
               <!-- Supplier -->
               <div class="form-group">
                 <label for="supplier" class="form-label">Pemasok (Supplier) <span class="form-required">*</span></label>
                 <select id="supplier" name="supplier" class="form-select" required>
-                  <option value="pt-teknologi-nusantara" selected>PT Teknologi Nusantara</option>
-                  <option value="cv-sinar-kantor">CV Sinar Kantor Sejahtera</option>
-                  <option value="mitra-furnitur">Mitra Furnitur Indonesia</option>
+                  <option value="">-- Pilih Supplier --</option>
                 </select>
               </div>
 
-              <!-- Petugas Penerima -->
-              <div class="form-group form-grid-full">
-                <label for="performed_by" class="form-label">Petugas Penerima Gudang <span class="form-required">*</span></label>
-                <input type="text" id="performed_by" name="performed_by" class="form-input" value="Andi Pratama (Staff Gudang)" readonly style="background-color: var(--color-bg);">
+              <!-- No. Surat Jalan (auto-generate, readonly) -->
+              <div class="form-group">
+                <label for="no_surat_jalan" class="form-label">No. Surat Jalan</label>
+                <input type="text" id="no_surat_jalan" name="no_surat_jalan" class="form-input" placeholder="SJ-YYYYMM-XXX" readonly style="background-color: var(--color-bg); color: var(--color-text-muted); font-family: var(--font-mono); cursor: default;">
+                <span class="form-hint">Kode referensi diisi otomatis oleh sistem.</span>
+              </div>
+
+              <!-- Status Stok / Status Produk -->
+              <div class="form-group">
+                <label for="stock_status" class="form-label">Status Stok / Produk <span class="form-required">*</span></label>
+                <select id="stock_status" name="stock_status" class="form-select" required>
+                  <option value="aktif" selected>Aktif / Siap Edar (Tersedia)</option>
+                  <option value="draft">Draft (Belum Dipublikasikan)</option>
+                  <option value="karantina">Karantina / Hold (Inspeksi QC)</option>
+                </select>
+                <span class="form-hint">Menentukan ketersediaan barang di katalog operasional & distribusi.</span>
+              </div>
+
+              <!-- Lokasi Penyimpanan (Read-Only Terkunci) -->
+              <div class="form-group">
+                <label for="location" class="form-label">Lokasi Penyimpanan <span class="form-required">*</span></label>
+                <input type="text" id="location" name="location" class="form-input" placeholder="Otomatis mengikuti master data produk" readonly style="background-color: var(--color-bg); color: var(--color-text); font-weight: 600; cursor: default;" required>
               </div>
 
               <!-- Catatan Tambahan -->
               <div class="form-group form-grid-full">
-                <label for="notes" class="form-label">Catatan Tambahan / Kondisi Barang</label>
-                <textarea id="notes" name="notes" class="form-textarea" placeholder="Contoh: Dus dalam kondisi segel rapat, serial number terverifikasi utuh.">Penerimaan PO #PO-8819 dari supplier PT Teknologi Nusantara. Semua unit tersegel utuh tanpa cacat fisik.</textarea>
+                <label for="notes" class="form-label">Catatan</label>
+                <textarea id="notes" name="notes" class="form-textarea" placeholder="Contoh: Dus dalam kondisi segel rapat, serial number terverifikasi utuh."></textarea>
               </div>
             </div>
 
@@ -195,40 +217,25 @@
           </form>
         </div>
 
-        <!-- Box Ringkasan Statis -->
+        <!-- Box Ringkasan Real-Time -->
         <div style="display: flex; flex-direction: column; gap: var(--spacing-lg);">
-          <div class="card">
+          <div class="card" id="stockSummaryCard">
             <div class="card-header">
-              <h2 class="card-title">Ringkasan Mutasi Stok</h2>
+              <h2 class="card-title">Ringkasan Penerimaan Stok</h2>
             </div>
-            <div class="card-body">
-              <div style="margin-bottom: var(--spacing-md); padding-bottom: var(--spacing-md); border-bottom: 1px solid var(--color-border-subtle);">
-                <span class="text-muted" style="font-size: var(--font-size-xs);">Produk Terpilih:</span>
-                <div class="text-bold" style="font-size: var(--font-size-base); margin-top: 2px;">Laptop ThinkPad X1</div>
-                <span class="table-sku" style="margin-top: 4px;">EL-001</span>
-              </div>
+            <div class="card-body" id="stockSummaryBody">
+              <!-- Dirender dinamis oleh stock.js -->
+            </div>
+          </div>
 
-              <div style="display: flex; flex-direction: column; gap: 10px; font-size: var(--font-size-sm);">
-                <div style="display: flex; justify-content: space-between;">
-                  <span class="text-muted">Stok Saat Ini:</span>
-                  <strong>18 unit</strong>
-                </div>
-                <div style="display: flex; justify-content: space-between;">
-                  <span class="text-muted">Rencana Masuk:</span>
-                  <strong style="color: var(--color-success);">+10 unit</strong>
-                </div>
-                <div style="display: flex; justify-content: space-between; padding-top: 8px; border-top: 1px dashed var(--color-border);">
-                  <span class="text-muted">Estimasi Stok Akhir:</span>
-                  <strong style="font-size: var(--font-size-base); color: var(--color-primary);">28 unit</strong>
-                </div>
-              </div>
-
-              <div class="alert alert-info" style="margin-top: var(--spacing-lg); margin-bottom: 0;">
-                <svg class="alert-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-                <div style="font-size: var(--font-size-xs); line-height: 1.4;">
-                  Pada fase prototype, form ini mensimulasikan pencatatan stok tanpa mengubah data backend.
-                </div>
-              </div>
+          <!-- Box Spesifikasi & Catatan Produk -->
+          <div class="card" id="productDescCard">
+            <div class="card-header" style="padding: 12px 16px; border-bottom: 1px solid var(--color-border-subtle); display: flex; align-items: center; gap: 8px;">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--color-primary); flex-shrink: 0;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+              <h2 class="card-title" style="font-size: var(--font-size-sm); margin: 0; font-weight: 600;">Spesifikasi &amp; Catatan Produk</h2>
+            </div>
+            <div class="card-body" id="productDescBody" style="padding: 14px 16px;">
+              <span class="text-muted" style="font-size: var(--font-size-xs); font-style: italic;">Pilih produk terlebih dahulu untuk melihat catatan teknis, spesifikasi, atau garansi barang.</span>
             </div>
           </div>
         </div>
@@ -236,12 +243,13 @@
     </main>
 
     <footer class="app-footer">
-      <div>&copy; 2026 <strong>Inventoria</strong> - Prototype Sistem Manajemen Inventory</div>
+      <div>&copy; 2026 <strong>Inventoria</strong> - Sistem Manajemen Inventory</div>
       <div>Modul: Stok Masuk</div>
     </footer>
   </div>
 </div>
 
-<script src="../assets/js/stock.js"></script>
+<script src="../assets/js/access-control.js"></script>
+<script src="../assets/js/stock.js?v=6.5"></script>
 </body>
 </html>

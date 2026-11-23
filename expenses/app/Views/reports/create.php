@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Core\Csrf;
+use App\Core\Url;
 use App\Core\View;
 
 $activeEmployees = $activeEmployees ?? [];
@@ -16,12 +17,12 @@ $userEmpId = !empty($user['employee_id']) ? (int) $user['employee_id'] : 0;
                 <h2 class="h4 fw-bold mb-1">Buat Laporan Pengeluaran Gabungan</h2>
                 <p class="text-secondary small mb-0">Kelola pengeluaran perusahaan dengan memilih satu atau beberapa karyawan dalam satu laporan</p>
             </div>
-            <a href="/reports" class="btn btn-outline-secondary btn-sm">Kembali</a>
+            <a href="<?= Url::to('/reports') ?>" class="btn btn-outline-secondary btn-sm">Kembali</a>
         </div>
 
         <div class="card card-gt">
             <div class="card-body p-4">
-                <form action="/reports" method="POST">
+                <form action="<?= Url::to('/reports') ?>" method="POST">
                     <?= Csrf::field() ?>
 
                     <div class="row g-3">
@@ -107,7 +108,7 @@ $userEmpId = !empty($user['employee_id']) ? (int) $user['employee_id'] : 0;
                     </div>
 
                     <div class="mt-4 pt-3 border-top d-flex justify-content-end gap-2">
-                        <a href="/reports" class="btn btn-outline-secondary">Batal</a>
+                        <a href="<?= Url::to('/reports') ?>" class="btn btn-outline-secondary">Batal</a>
                         <button type="submit" class="btn btn-primary px-4">Buat Laporan Draft</button>
                     </div>
                 </form>

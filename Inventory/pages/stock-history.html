@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Riwayat Mutasi Pergerakan Stok - Inventoria">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <title>Riwayat Stok - Inventoria</title>
   <link rel="stylesheet" href="../assets/css/base.css">
   <link rel="stylesheet" href="../assets/css/layout.css">
@@ -108,8 +111,8 @@
 
       <div class="page-header">
         <div class="page-title-group">
-          <h1>Riwayat Pergerakan Stok</h1>
-          <p>Audit trail lengkap mutasi barang masuk dan keluar di seluruh gudang.</p>
+          <h1>Audit Mutasi &amp; Riwayat Stok Persediaan</h1>
+          <p>Buku besar audit trail resmi seluruh transaksi penerimaan, pengeluaran, penyesuaian, dan pergeseran status stok barang di gudang.</p>
         </div>
         <div class="page-actions">
           <a href="stock-in.html" class="btn btn-primary">
@@ -127,175 +130,72 @@
       <div class="card" style="margin-bottom: var(--spacing-lg);">
         <div class="card-body" style="padding: var(--spacing-md);">
           <div class="toolbar" style="margin-bottom: 0;">
-            <div class="toolbar-filters">
-              <!-- Filter Tanggal -->
-              <input type="date" class="filter-input" value="2026-09-01" aria-label="Tanggal Awal">
-              <span class="text-muted">s/d</span>
-              <input type="date" class="filter-input" value="2026-09-16" aria-label="Tanggal Akhir">
+            <div class="toolbar-filters" style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center; width: 100%;">
+              <!-- Filter Rentang Tanggal -->
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <input type="date" id="filterStartDate" class="filter-input" aria-label="Tanggal Awal" title="Tanggal Awal">
+                <span class="text-muted" style="font-size: 12px;">s/d</span>
+                <input type="date" id="filterEndDate" class="filter-input" aria-label="Tanggal Akhir" title="Tanggal Akhir">
+              </div>
 
               <!-- Filter Jenis Transaksi -->
-              <select class="filter-select" aria-label="Filter Jenis Transaksi">
+              <select id="filterType" class="filter-select" aria-label="Filter Jenis Transaksi">
                 <option value="">Semua Jenis Transaksi</option>
                 <option value="in">Stok Masuk (+)</option>
                 <option value="out">Stok Keluar (-)</option>
+                <option value="transfer">Pergeseran Status (🔄)</option>
               </select>
 
-              <!-- Filter Produk -->
-              <select class="filter-select" aria-label="Filter Produk">
-                <option value="">Semua Produk</option>
-                <option value="EL-001">Laptop ThinkPad X1</option>
-                <option value="EL-002">Mouse Wireless M1</option>
-                <option value="AT-001">Meja Kerja 120 cm</option>
-                <option value="AK-001">Paper A4 80gsm</option>
-                <option value="PK-001">Kabel LAN 20m</option>
-              </select>
-            </div>
+              <!-- Filter / Cari No. Referensi -->
+              <div style="position: relative; flex: 1; min-width: 220px; max-width: 320px;">
+                <span style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: #94a3b8; pointer-events: none; font-size: 13px;">🔍</span>
+                <input type="text" id="filterRefNo" class="filter-input" placeholder="Cari No. Referensi (SO, SJ, SPK, TRF...)" autocomplete="off" style="padding-left: 32px; padding-right: 28px; width: 100%;">
+                <button type="button" id="btnClearRefNo" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 16px; display: none; line-height: 1; padding: 2px;" title="Reset">&times;</button>
+              </div>
 
-            <div style="font-size: var(--font-size-xs); color: var(--color-text-muted);">
-              Total <strong>8 Transaksi Terakhir</strong>
+              <!-- Tombol Reset Filter -->
+              <button type="button" id="btnResetFilters" class="btn btn-secondary btn-sm" style="display: none; padding: 6px 12px; font-size: 12px;">
+                Reset Filter
+              </button>
             </div>
           </div>
         </div>
       </div>
 
       <!-- Tabel Riwayat Transaksi -->
+      <style>
+        .table-stock-history th { padding: 10px 10px; font-size: 11.5px; }
+        .table-stock-history td { padding: 11px 10px; font-size: 12.5px; }
+      </style>
       <div class="table-container">
-        <table class="table">
+        <table class="table table-stock-history">
           <caption>Log Transaksi Pergerakan Stok</caption>
           <thead>
             <tr>
-              <th scope="col">Tanggal</th>
-              <th scope="col">Produk & SKU</th>
-              <th scope="col">Jenis</th>
-              <th scope="col" style="text-align: right;">Jumlah Mutasi</th>
-              <th scope="col" style="text-align: right;">Stok Akhir</th>
-              <th scope="col">No. Referensi</th>
-              <th scope="col">Petugas</th>
+              <th scope="col" style="width: 50px; text-align: center;">No</th>
+              <th scope="col" style="white-space: nowrap;">Tanggal</th>
+              <th scope="col" style="white-space: nowrap;">Produk & SKU</th>
+              <th scope="col" style="text-align: center; white-space: nowrap;">Jenis Mutasi</th>
+              <th scope="col" style="text-align: right; white-space: nowrap;">Stok Awal</th>
+              <th scope="col" style="text-align: right; white-space: nowrap;">Jumlah Mutasi</th>
+              <th scope="col" style="text-align: right; white-space: nowrap;">Stok Akhir</th>
+              <th scope="col" style="white-space: nowrap;">No. Referensi</th>
+              <th scope="col" style="white-space: nowrap;">Petugas</th>
+              <th scope="col" style="text-align: center; white-space: nowrap;">Aksi</th>
             </tr>
           </thead>
           <tbody>
-            <!-- Row 1 -->
             <tr>
-              <td>16 September 2026</td>
-              <td>
-                <strong>Laptop ThinkPad X1</strong>
-                <br><span class="table-sku">EL-001</span>
+              <td colspan="10" style="text-align: center; padding: 24px; color: var(--color-text-muted);">
+                Memuat riwayat transaksi dari database...
               </td>
-              <td><span class="badge badge-available"><span class="badge-dot"></span>Stok Masuk</span></td>
-              <td style="text-align: right; font-weight: bold; color: var(--color-success);">+10 unit</td>
-              <td style="text-align: right; font-weight: bold;">18 unit</td>
-              <td><span style="font-family: var(--font-mono);">SJ-2026-009</span></td>
-              <td>Andi Pratama</td>
-            </tr>
-
-            <!-- Row 2 -->
-            <tr>
-              <td>16 September 2026</td>
-              <td>
-                <strong>Kabel LAN 20m</strong>
-                <br><span class="table-sku">PK-001</span>
-              </td>
-              <td><span class="badge badge-low"><span class="badge-dot"></span>Stok Keluar</span></td>
-              <td style="text-align: right; font-weight: bold; color: var(--color-danger);">-5 roll</td>
-              <td style="text-align: right; font-weight: bold;">35 roll</td>
-              <td><span style="font-family: var(--font-mono);">REQ-IT-042</span></td>
-              <td>Andi Pratama</td>
-            </tr>
-
-            <!-- Row 3 -->
-            <tr>
-              <td>15 September 2026</td>
-              <td>
-                <strong>Paper A4 80gsm</strong>
-                <br><span class="table-sku">AK-001</span>
-              </td>
-              <td><span class="badge badge-available"><span class="badge-dot"></span>Stok Masuk</span></td>
-              <td style="text-align: right; font-weight: bold; color: var(--color-success);">+50 rim</td>
-              <td style="text-align: right; font-weight: bold;">120 rim</td>
-              <td><span style="font-family: var(--font-mono);">SJ-2026-008</span></td>
-              <td>Siti Rahma</td>
-            </tr>
-
-            <!-- Row 4 -->
-            <tr>
-              <td>14 September 2026</td>
-              <td>
-                <strong>Kursi Kantor Ergonomis</strong>
-                <br><span class="table-sku">AT-002</span>
-              </td>
-              <td><span class="badge badge-low"><span class="badge-dot"></span>Stok Keluar</span></td>
-              <td style="text-align: right; font-weight: bold; color: var(--color-danger);">-2 unit</td>
-              <td style="text-align: right; font-weight: bold; color: var(--color-danger);">0 unit</td>
-              <td><span style="font-family: var(--font-mono);">REQ-HR-019</span></td>
-              <td>Andi Pratama</td>
-            </tr>
-
-            <!-- Row 5 -->
-            <tr>
-              <td>12 September 2026</td>
-              <td>
-                <strong>Stop Kontak 4 Port</strong>
-                <br><span class="table-sku">PK-002</span>
-              </td>
-              <td><span class="badge badge-available"><span class="badge-dot"></span>Stok Masuk</span></td>
-              <td style="text-align: right; font-weight: bold; color: var(--color-success);">+10 pcs</td>
-              <td style="text-align: right; font-weight: bold;">16 pcs</td>
-              <td><span style="font-family: var(--font-mono);">SJ-2026-007</span></td>
-              <td>Andi Pratama</td>
-            </tr>
-
-            <!-- Row 6 -->
-            <tr>
-              <td>10 September 2026</td>
-              <td>
-                <strong>Mouse Wireless M1</strong>
-                <br><span class="table-sku">EL-002</span>
-              </td>
-              <td><span class="badge badge-low"><span class="badge-dot"></span>Stok Keluar</span></td>
-              <td style="text-align: right; font-weight: bold; color: var(--color-danger);">-6 pcs</td>
-              <td style="text-align: right; font-weight: bold; color: var(--color-warning);">4 pcs</td>
-              <td><span style="font-family: var(--font-mono);">REQ-OPS-088</span></td>
-              <td>Budi Santoso</td>
-            </tr>
-
-            <!-- Row 7 -->
-            <tr>
-              <td>08 September 2026</td>
-              <td>
-                <strong>Meja Kerja 120 cm</strong>
-                <br><span class="table-sku">AT-001</span>
-              </td>
-              <td><span class="badge badge-available"><span class="badge-dot"></span>Stok Masuk</span></td>
-              <td style="text-align: right; font-weight: bold; color: var(--color-success);">+5 unit</td>
-              <td style="text-align: right; font-weight: bold;">12 unit</td>
-              <td><span style="font-family: var(--font-mono);">SJ-2026-005</span></td>
-              <td>Andi Pratama</td>
-            </tr>
-
-            <!-- Row 8 -->
-            <tr>
-              <td>05 September 2026</td>
-              <td>
-                <strong>Keyboard Mechanical</strong>
-                <br><span class="table-sku">EL-004</span>
-              </td>
-              <td><span class="badge badge-low"><span class="badge-dot"></span>Stok Keluar</span></td>
-              <td style="text-align: right; font-weight: bold; color: var(--color-danger);">-2 pcs</td>
-              <td style="text-align: right; font-weight: bold; color: var(--color-warning);">3 pcs</td>
-              <td><span style="font-family: var(--font-mono);">REQ-DEV-012</span></td>
-              <td>Andi Pratama</td>
             </tr>
           </tbody>
         </table>
 
         <!-- Pagination -->
-        <div class="pagination-wrapper">
-          <span class="pagination-info">Menampilkan halaman 1 dari 1</span>
-          <div class="pagination-controls">
-            <a href="#" class="page-btn disabled">&laquo;</a>
-            <a href="#" class="page-btn active">1</a>
-            <a href="#" class="page-btn disabled">&raquo;</a>
-          </div>
+        <div class="pagination-wrapper" style="padding: 14px 16px; border-top: 1px solid var(--color-border-subtle); display: flex; justify-content: center; align-items: center;">
+          <div class="pagination-controls" id="stockHistoryPaginationControls" style="display: flex; gap: 4px; align-items: center; justify-content: center; flex-wrap: wrap;"></div>
         </div>
       </div>
     </main>
@@ -307,6 +207,31 @@
   </div>
 </div>
 
-<script src="../assets/js/stock.js"></script>
+<!-- Modal Detail Aktivitas Stok -->
+<div id="stockDetailModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:1000; align-items:center; justify-content:center;">
+  <div style="background:#fff; border-radius:12px; width:100%; max-width:480px; margin:16px; box-shadow:0 8px 32px rgba(0,0,0,0.18); overflow:hidden;">
+    <!-- Modal Header -->
+    <div style="padding:18px 20px 12px; border-bottom:1px solid var(--color-border-subtle); display:flex; align-items:center; justify-content:space-between;">
+      <div>
+        <div style="font-weight:700; font-size:var(--font-size-base);">Detail Aktivitas Stok</div>
+        <div id="modalBadge" style="margin-top:4px;"></div>
+      </div>
+      <button onclick="closeStockDetailModal()" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--color-text-muted);line-height:1;">&times;</button>
+    </div>
+    <!-- Modal Body -->
+    <div style="padding:20px;">
+      <table style="width:100%; border-collapse:collapse; font-size:var(--font-size-sm);">
+        <tbody id="modalBody"></tbody>
+      </table>
+    </div>
+    <!-- Modal Footer -->
+    <div style="padding:12px 20px; border-top:1px solid var(--color-border-subtle); display:flex; justify-content:flex-end;">
+      <button onclick="closeStockDetailModal()" class="btn btn-secondary" style="min-width:80px;">Tutup</button>
+    </div>
+  </div>
+</div>
+
+<script src="../assets/js/access-control.js"></script>
+<script src="../assets/js/stock.js?v=6.5"></script>
 </body>
 </html>

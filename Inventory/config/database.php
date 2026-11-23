@@ -18,10 +18,13 @@ function getDbConnection(): PDO
         );
 
         $pdo = new PDO($dsn, $databaseConfig['user'], $databaseConfig['pass'], [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-            PDO::ATTR_EMULATE_PREPARES => false,
+            PDO::ATTR_EMULATE_PREPARES   => false,
         ]);
+
+        // Set timezone MySQL session ke WIB (UTC+7)
+        $pdo->exec("SET time_zone = '+07:00'");
     }
 
     return $pdo;

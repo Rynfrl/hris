@@ -66,7 +66,101 @@ function inventoryJsonError(Throwable $error, string $context): void
 {
     error_log(sprintf('[Inventory] %s: %s', $context, $error));
     sendJsonResponse([
-        'status' => 'error',
+        'status'  => 'error',
         'message' => 'Terjadi kesalahan server. Detail teknis dicatat di log server.',
     ], 500);
+}
+
+/**
+ * Format angka stok: hilangkan desimal trailing zeros
+ * 10.00 → 10 | 10.50 → 10.5 | 0.00 → 0
+ */
+function fmtQty($val): int|float
+{
+    $f = (float)$val;
+    return $f == floor($f) ? (int)$f : $f;
+}
+
+/**
+ * Memeriksa kelengkapan konfigurasi data produk (Product Readiness Check)
+ * Sesuai Standar Operasional Gudang (9 Kriteria Wajib):
+ * 1. Nama Produk (product_name)
+ * 2. Kode SKU (sku)
+ * 3. Kategori Produk (category_id > 0)
+ * 4. Satuan Barang (unit)
+ * 5. Harga Beli / Modal (purchase_price > 0)
+ * 6. Harga Jual Patokan (selling_price > 0)
+ * 7. Lokasi Rak / Penyimpanan Gudang (location)
+ * 8. Batas Minimum Stok (minimum_stock > 0)
+ * 9. Status Produk (is_active == 1)
+ *
+ * @param array $p Baris produk dari database
+ * @return array ['is_complete' => bool, 'missing_fields' => string[], 'missing_keys' => string[]]
+ */
+function inventoryCheckProductCompleteness(array $p): array
+{
+    $missing = [];
+    $missingKeys = [];
+
+    // 1. Nama Produk
+    $name = trim((string)($p['product_name'] ?? $p['name'] ?? ''));
+    if ($name === '') {
+        $missing[] = 'Nama Produk';
+        $missingKeys[] = 'product_name';
+    }
+
+    // 2. SKU / Kode Produk
+    $sku = trim((string)($p['sku'] ?? ''));
+    if ($sku === '') {
+        $missing[] = 'Kode SKU';
+        $missingKeys[] = 'sku';
+    }
+
+    // 3. Kategori Produk
+    $catId = (int)($p['category_id'] ?? 0);
+    if ($catId <= 0) {
+        $missing[] = 'Kategori Produk';
+        $missingKeys[] = 'category_id';
+    }
+
+    // 4. Satuan Barang
+    $unit = trim((string)($p['unit'] ?? ''));
+    if ($unit === '') {
+        $missing[] = 'Satuan Barang';
+        $missingKeys[] = 'unit';
+    }
+
+    // 5. Harga Beli / Modal (harus > 0)
+    $buyPrice = (float)($p['purchase_price'] ?? 0);
+    if ($buyPrice <= 0) {
+        $missing[] = 'Harga Beli (Modal)';
+        $missingKeys[] = 'purchase_price';
+    }
+
+    // 6. Harga Jual Patokan (harus > 0)
+    $sellPrice = (float)($p['selling_price'] ?? 0);
+    if ($sellPrice <= 0) {
+        $missing[] = 'Harga Jual';
+        $missingKeys[] = 'selling_price';
+    }
+
+    // 7. Lokasi Rak / Penyimpanan Gudang
+    $location = trim((string)($p['location'] ?? ''));
+    if ($location === '') {
+        $missing[] = 'Lokasi Rak Gudang';
+        $missingKeys[] = 'location';
+    }
+
+    // 8. Batas Minimum Stok (harus > 0)
+    $minStock = $p['minimum_stock'] ?? null;
+    if ($minStock === null || $minStock === '' || (float)$minStock <= 0) {
+        $missing[] = 'Batas Minimum Stok';
+        $missingKeys[] = 'minimum_stock';
+    }
+
+    return [
+        'is_complete'    => empty($missing),
+        'missing_fields' => $missing,
+        'missing_keys'   => $missingKeys,
+    ];
 }

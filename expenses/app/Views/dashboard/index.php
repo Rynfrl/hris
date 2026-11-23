@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Core\Url;
 use App\Core\View;
 
 $role = $metrics['role'] ?? 'ADMIN';
@@ -22,21 +23,21 @@ $role = $metrics['role'] ?? 'ADMIN';
     </div>
     <div class="d-flex gap-2">
         <?php if ($role === 'MANAGER'): ?>
-            <a href="/approvals" class="btn btn-warning btn-sm d-flex align-items-center gap-1">
+            <a href="<?= Url::to('/approvals') ?>" class="btn btn-warning btn-sm d-flex align-items-center gap-1">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
                 <span>Tinjau Persetujuan Laporan</span>
             </a>
         <?php elseif ($role === 'FINANCE'): ?>
-            <a href="/finance/posting" class="btn btn-outline-primary btn-sm d-flex align-items-center gap-1">
+            <a href="<?= Url::to('/finance/posting') ?>" class="btn btn-outline-primary btn-sm d-flex align-items-center gap-1">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
                 <span>Antrean Pembukuan</span>
             </a>
-            <a href="/reimbursements" class="btn btn-primary btn-sm d-flex align-items-center gap-1">
+            <a href="<?= Url::to('/reimbursements') ?>" class="btn btn-primary btn-sm d-flex align-items-center gap-1">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
                 <span>Antrean Reimbursement</span>
             </a>
         <?php else: ?>
-            <a href="/reports/create" class="btn btn-primary btn-sm d-flex align-items-center gap-1">
+            <a href="<?= Url::to('/reports/create') ?>" class="btn btn-primary btn-sm d-flex align-items-center gap-1">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                 <span>Buat Laporan Gabungan</span>
             </a>
@@ -283,7 +284,7 @@ $role = $metrics['role'] ?? 'ADMIN';
             <div class="card card-gt">
                 <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
                     <h5 class="card-title h6 fw-bold mb-0">Antrean Persetujuan Laporan (SUBMITTED)</h5>
-                    <a href="/approvals" class="btn btn-sm btn-outline-primary">Lihat Semua Antrean</a>
+                    <a href="<?= Url::to('/approvals') ?>" class="btn btn-sm btn-outline-primary">Lihat Semua Antrean</a>
                 </div>
                 <div class="table-responsive">
                     <table class="table table-hover table-gt mb-0 align-middle">
@@ -301,7 +302,7 @@ $role = $metrics['role'] ?? 'ADMIN';
                             <?php foreach ($metrics['pending_approval_reports'] as $item): ?>
                                 <tr>
                                     <td>
-                                        <a href="/reports/<?= (int) $item['report_id'] ?>" class="fw-semibold text-primary text-decoration-none">
+                                        <a href="<?= Url::to('/reports/' . (int) $item['report_id']) ?>" class="fw-semibold text-primary text-decoration-none">
                                             <?= View::e($item['report_number']) ?>
                                         </a>
                                     </td>
@@ -313,7 +314,7 @@ $role = $metrics['role'] ?? 'ADMIN';
                                     <td><?= View::formatDate($item['submitted_at']) ?></td>
                                     <td><strong><?= View::formatRupiah($item['total_amount']) ?></strong></td>
                                     <td class="text-end">
-                                        <a href="/reports/<?= (int) $item['report_id'] ?>" class="btn btn-sm btn-warning">Tinjau Keputusan</a>
+                                        <a href="<?= Url::to('/reports/' . (int) $item['report_id']) ?>" class="btn btn-sm btn-warning">Tinjau Keputusan</a>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
@@ -329,7 +330,7 @@ $role = $metrics['role'] ?? 'ADMIN';
             <div class="card card-gt h-100">
                 <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
                     <h5 class="card-title h6 fw-bold mb-0">Siap Dibukukan (Posting)</h5>
-                    <a href="/finance/posting" class="btn btn-sm btn-outline-primary">Lihat Antrean</a>
+                    <a href="<?= Url::to('/finance/posting') ?>" class="btn btn-sm btn-outline-primary">Lihat Antrean</a>
                 </div>
                 <div class="p-3">
                     <?php if (empty($metrics['posting_queue'])): ?>
@@ -337,7 +338,7 @@ $role = $metrics['role'] ?? 'ADMIN';
                     <?php else: ?>
                         <div class="list-group list-group-flush">
                             <?php foreach ($metrics['posting_queue'] as $post): ?>
-                                <a href="/reports/<?= (int) $post['report_id'] ?>" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center px-0">
+                                <a href="<?= Url::to('/reports/' . (int) $post['report_id']) ?>" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center px-0">
                                     <div>
                                         <div class="fw-semibold"><?= View::e($post['report_number']) ?> &bull; <?= View::e($post['title']) ?></div>
                                         <div class="text-muted small">Karyawan: <?= View::e($post['employees_summary'] ?? '-') ?></div>
@@ -354,7 +355,7 @@ $role = $metrics['role'] ?? 'ADMIN';
             <div class="card card-gt h-100">
                 <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
                     <h5 class="card-title h6 fw-bold mb-0">Antrean Reimbursement Satu Laporan</h5>
-                    <a href="/reimbursements" class="btn btn-sm btn-outline-primary">Proses Bayar</a>
+                    <a href="<?= Url::to('/reimbursements') ?>" class="btn btn-sm btn-outline-primary">Proses Bayar</a>
                 </div>
                 <div class="p-3">
                     <?php if (empty($metrics['reimbursement_queue'])): ?>
@@ -382,7 +383,7 @@ $role = $metrics['role'] ?? 'ADMIN';
             <div class="card card-gt h-100">
                 <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
                     <h5 class="card-title h6 fw-bold mb-0">Laporan Gabungan Terbaru</h5>
-                    <a href="/reports" class="btn btn-sm btn-outline-primary">Lihat Semua</a>
+                    <a href="<?= Url::to('/reports') ?>" class="btn btn-sm btn-outline-primary">Lihat Semua</a>
                 </div>
                 <div class="p-3">
                     <?php if (empty($metrics['recent_reports'])): ?>
@@ -390,7 +391,7 @@ $role = $metrics['role'] ?? 'ADMIN';
                     <?php else: ?>
                         <div class="list-group list-group-flush">
                             <?php foreach ($metrics['recent_reports'] as $rep): ?>
-                                <a href="/reports/<?= (int) $rep['report_id'] ?>" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center px-0">
+                                <a href="<?= Url::to('/reports/' . (int) $rep['report_id']) ?>" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center px-0">
                                     <div>
                                         <div class="fw-semibold"><?= View::e($rep['report_number']) ?> &bull; <?= View::e($rep['title']) ?></div>
                                         <div class="text-muted small">
@@ -412,7 +413,7 @@ $role = $metrics['role'] ?? 'ADMIN';
             <div class="card card-gt h-100">
                 <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
                     <h5 class="card-title h6 fw-bold mb-0">Aktivitas Sistem Terbaru (Audit Log)</h5>
-                    <a href="/settings/audit-logs" class="btn btn-sm btn-outline-primary">Audit Log Penuh</a>
+                    <a href="<?= Url::to('/settings/audit-logs') ?>" class="btn btn-sm btn-outline-primary">Audit Log Penuh</a>
                 </div>
                 <div class="p-3">
                     <?php if (empty($metrics['recent_activity'])): ?>

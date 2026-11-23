@@ -3,13 +3,853 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Laporan Rekapitulasi & Valuasi Inventory - Inventoria">
-  <title>Laporan Inventory - Inventoria</title>
+  <meta name="description" content="Laporan & Pembukuan Mutasi Inventaris - Inventoria">
+  <title>Laporan & Pembukuan Inventory - Inventoria</title>
   <link rel="stylesheet" href="../assets/css/base.css">
-  <link rel="stylesheet" href="../assets/css/layout.css">
-  <link rel="stylesheet" href="../assets/css/components.css">
-  <link rel="stylesheet" href="../assets/css/pages.css">
+  <link rel="stylesheet" href="../assets/css/layout.css?v=2">
+  <link rel="stylesheet" href="../assets/css/components.css?v=2">
+  <link rel="stylesheet" href="../assets/css/pages.css?v=3">
   <link rel="stylesheet" href="../assets/css/responsive.css">
+
+  <style>
+    /* ==========================================================================
+       MODERN BOOKKEEPING & INVENTORY REPORTS STYLES
+       ========================================================================== */
+
+    /* Filter Card - Responsive & Flexible */
+    .filter-card {
+      background-color: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 16px 20px;
+      margin-bottom: var(--spacing-xl);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .filter-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      align-items: flex-end;
+    }
+
+    .filter-row + .filter-row {
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid var(--color-border-subtle);
+    }
+
+    .filter-col {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      flex: 1 1 160px;
+      min-width: 140px;
+    }
+
+    .filter-col-search {
+      flex: 2 1 260px;
+      min-width: 200px;
+    }
+
+    .filter-col-actions {
+      display: flex;
+      gap: 8px;
+      flex: 0 0 auto;
+      align-items: flex-end;
+    }
+
+    .filter-col-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: #475569;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .filter-control {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 8px 12px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      background-color: #fff;
+      color: var(--color-text);
+      transition: all var(--transition-fast);
+      outline: none;
+      height: 38px;
+    }
+
+    .filter-control:focus {
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+    }
+
+    .filter-info-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 14px;
+      padding-top: 10px;
+      border-top: 1px dashed var(--color-border-subtle);
+      font-size: 12px;
+      color: var(--color-text-muted);
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .active-period-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 9999px;
+      color: #1e40af;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    /* Tabs Navigasi Laporan */
+    .report-tabs {
+      display: flex;
+      gap: 6px;
+      border-bottom: 2px solid var(--color-border);
+      margin-bottom: var(--spacing-xl);
+      overflow-x: auto;
+    }
+
+    .report-tab-btn {
+      padding: 10px 18px;
+      border: none;
+      background: transparent;
+      font-size: 13px;
+      font-weight: 600;
+      color: #64748b;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+
+    .report-tab-btn:hover {
+      color: var(--color-primary);
+    }
+
+    .report-tab-btn.active {
+      color: var(--color-primary);
+      border-bottom-color: var(--color-primary);
+      background-color: rgba(37, 99, 235, 0.04);
+      border-top-left-radius: var(--radius-sm);
+      border-top-right-radius: var(--radius-sm);
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* Reconciliation Strip */
+    .reconciliation-strip {
+      background: linear-gradient(90deg, #f8fafc 0%, #f1f5f9 100%);
+      border: 1px solid #e2e8f0;
+      border-left: 4px solid var(--color-primary);
+      border-radius: var(--radius-md);
+      padding: 12px 18px;
+      margin-bottom: var(--spacing-xl);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+
+    .recon-equation {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 13px;
+      flex-wrap: wrap;
+    }
+
+    .recon-block {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .recon-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #64748b;
+      font-weight: 600;
+    }
+
+    .recon-val {
+      font-size: 14px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    .recon-operator {
+      font-size: 16px;
+      font-weight: 700;
+      color: #94a3b8;
+    }
+
+    .recon-status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .recon-status-badge.balanced {
+      background: #dcfce7;
+      color: #15803d;
+      border: 1px solid #bbf7d0;
+    }
+
+    /* Analysis Grid */
+    .analysis-grid {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr;
+      gap: var(--spacing-xl);
+      margin-bottom: var(--spacing-xl);
+    }
+
+    @media (max-width: 1024px) {
+      .analysis-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .chart-container-card {
+      height: 380px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .chart-wrapper {
+      position: relative;
+      flex: 1;
+      width: 100%;
+      min-height: 0;
+    }
+
+    .side-panels-column {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-lg);
+    }
+
+    .side-panel-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .side-panel-header {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--color-border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #fafbfc;
+    }
+
+    .side-panel-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--color-text);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .side-panel-body {
+      padding: 10px 16px;
+      flex: 1;
+      max-height: 310px;
+      overflow-y: auto;
+    }
+
+    /* Top Dispatched Products */
+    .top-product-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 0;
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    .top-product-item:last-child {
+      border-bottom: none;
+    }
+
+    .top-product-rank {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #f1f5f9;
+      color: #64748b;
+      font-size: 11px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .top-product-rank.rank-1 { background: #fef08a; color: #854d0e; }
+    .top-product-rank.rank-2 { background: #e2e8f0; color: #334155; }
+    .top-product-rank.rank-3 { background: #fed7aa; color: #9a3412; }
+
+    .top-product-meta {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .top-product-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 3px;
+    }
+
+    .top-product-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: #1e293b;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 170px;
+    }
+
+    .top-product-qty {
+      font-size: 12px;
+      font-weight: 700;
+      color: #dc2626;
+      white-space: nowrap;
+    }
+
+    .top-product-sub {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 10px;
+      margin-bottom: 4px;
+    }
+
+    .sku-tag {
+      font-family: var(--font-mono);
+      font-weight: 600;
+      color: #475569;
+    }
+
+    .category-tag {
+      color: #64748b;
+    }
+
+    .pct-tag {
+      color: #2563eb;
+      font-weight: 600;
+      margin-left: auto;
+    }
+
+    .top-product-track {
+      height: 4px;
+      background: #e2e8f0;
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .top-product-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #3b82f6 0%, #ef4444 100%);
+      border-radius: 2px;
+    }
+
+    /* Critical Stock List */
+    .critical-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 7px 0;
+      border-bottom: 1px solid #f1f5f9;
+      font-size: 12px;
+    }
+
+    .critical-item:last-child {
+      border-bottom: none;
+    }
+
+    .critical-name {
+      font-weight: 600;
+      color: #1e293b;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 190px;
+    }
+
+    .critical-sub {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 10px;
+      color: #64748b;
+      margin-top: 2px;
+    }
+
+    .empty-panel-text {
+      padding: 24px 12px;
+      text-align: center;
+      font-size: 12px;
+      color: var(--color-text-muted);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Ledger & Journal Tables */
+    .ledger-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+      margin-bottom: var(--spacing-xl);
+    }
+
+    .ledger-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--color-border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .ledger-title-group h2 {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--color-text);
+      margin: 0;
+    }
+
+    .ledger-title-group p {
+      font-size: 12px;
+      color: var(--color-text-muted);
+      margin: 2px 0 0 0;
+    }
+
+    .category-pill {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      background: #f1f5f9;
+      color: #475569;
+      font-size: 11px;
+      font-weight: 500;
+    }
+
+    .btn-stock-card {
+      padding: 4px 8px;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      background: #fff;
+      color: #3b82f6;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s ease;
+    }
+
+    .btn-stock-card:hover {
+      background: #eff6ff;
+      border-color: #93c5fd;
+    }
+
+    .ledger-total-row {
+      background-color: #f8fafc !important;
+      border-top: 2px solid #cbd5e1;
+      border-bottom: 2px solid #cbd5e1;
+    }
+
+    .ledger-total-row td {
+      padding: 12px 14px !important;
+      color: #0f172a;
+    }
+
+    .table-footer-controls {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 20px;
+      border-top: 1px solid var(--color-border-subtle);
+      background: #fafbfc;
+      font-size: 12px;
+      color: var(--color-text-muted);
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .pagination-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .pagination-btn {
+      padding: 5px 10px;
+      border: 1px solid #cbd5e1;
+      background: #fff;
+      color: #334155;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .pagination-btn:hover:not(:disabled) {
+      background: #f1f5f9;
+      border-color: #94a3b8;
+    }
+
+    .pagination-btn.active {
+      background: #2563eb;
+      color: #fff;
+      border-color: #2563eb;
+    }
+
+    .pagination-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* Modal Kartu Stok */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(2px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      padding: 20px;
+    }
+
+    .modal-dialog {
+      background: #fff;
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-lg);
+      width: 100%;
+      max-width: 840px;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .modal-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--color-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #fafbfc;
+    }
+
+    .modal-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .modal-body {
+      padding: 20px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .modal-footer {
+      padding: 12px 20px;
+      border-top: 1px solid var(--color-border);
+      background: #fafbfc;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .stock-card-meta-box {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: var(--radius-sm);
+      padding: 12px;
+      margin-bottom: 16px;
+    }
+
+    @media (max-width: 768px) {
+      .stock-card-meta-box {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .stock-card-meta-item {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .stock-card-meta-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      color: #64748b;
+      font-weight: 600;
+    }
+
+    .stock-card-meta-val {
+      font-size: 13px;
+      font-weight: 700;
+      color: #0f172a;
+      margin-top: 2px;
+    }
+
+    /* Print Document Styles */
+    #official-print-document {
+      display: none;
+    }
+
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+
+      .app-container, .main-wrapper, .content-area {
+        padding: 0 !important;
+        margin: 0 !important;
+        display: block !important;
+      }
+
+      .sidebar, .app-header, .page-header, .filter-card, .breadcrumb,
+      .reconciliation-strip, .grid-cols-4, .analysis-grid, .ledger-card,
+      .report-tabs, .modal-overlay,
+      .app-footer, .page-actions, .stat-card {
+        display: none !important;
+      }
+
+      #official-print-document, #official-print-document * {
+        visibility: visible;
+      }
+
+      #official-print-document {
+        display: block !important;
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        background: #fff;
+        color: #000;
+        padding: 20px;
+        box-sizing: border-box;
+      }
+
+      .print-official-wrapper {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        color: #111;
+      }
+
+      .print-header {
+        text-align: center;
+        margin-bottom: 20px;
+      }
+
+      .print-company-name {
+        font-size: 18pt;
+        font-weight: 800;
+        margin: 0;
+        letter-spacing: 0.5px;
+      }
+
+      .print-company-sub {
+        font-size: 10pt;
+        color: #444;
+        margin: 3px 0;
+      }
+
+      .print-company-contact {
+        font-size: 8.5pt;
+        color: #666;
+        margin: 0;
+      }
+
+      .print-header-divider {
+        height: 2px;
+        background: #000;
+        margin: 12px 0 16px 0;
+      }
+
+      .print-document-title {
+        font-size: 13pt;
+        font-weight: 700;
+        margin: 0 0 16px 0;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+      }
+
+      .print-meta-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        margin-bottom: 16px;
+        font-size: 9pt;
+      }
+
+      .print-meta-table td {
+        padding: 2px 4px;
+        vertical-align: top;
+      }
+
+      .print-summary-box {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        border: 1px solid #333;
+        border-radius: 4px;
+        margin-bottom: 20px;
+        background: #f8fafc;
+      }
+
+      .print-summary-col {
+        padding: 10px 12px;
+        border-right: 1px solid #ccc;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .print-summary-col:last-child {
+        border-right: none;
+      }
+
+      .print-summary-label {
+        font-size: 7.5pt;
+        text-transform: uppercase;
+        font-weight: 700;
+        color: #555;
+      }
+
+      .print-summary-val {
+        font-size: 12pt;
+        font-weight: 800;
+        margin: 2px 0;
+      }
+
+      .print-summary-sub {
+        font-size: 7.5pt;
+        color: #666;
+      }
+
+      .print-ledger-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 8.5pt;
+        margin-bottom: 30px;
+      }
+
+      .print-ledger-table th, .print-ledger-table td {
+        border: 1px solid #666;
+        padding: 5px 6px;
+      }
+
+      .print-ledger-table th {
+        background-color: #f1f5f9;
+        font-weight: 700;
+        text-transform: uppercase;
+      }
+
+      .print-badge {
+        display: inline-block;
+        padding: 1px 6px;
+        border-radius: 3px;
+        font-size: 7.5pt;
+        font-weight: 600;
+      }
+
+      .print-badge.safe { background: #dcfce7; color: #15803d; }
+      .print-badge.low { background: #fef3c7; color: #b45309; }
+      .print-badge.out { background: #fee2e2; color: #b91c1c; }
+
+      .print-signature-section {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 60px;
+        margin-top: 40px;
+        page-break-inside: avoid;
+      }
+
+      .print-signature-box {
+        text-align: center;
+        font-size: 9pt;
+      }
+
+      .print-sign-title {
+        margin: 0 0 65px 0;
+        font-weight: 600;
+      }
+
+      .print-sign-space {
+        height: 60px;
+      }
+
+      .print-sign-name {
+        font-weight: 700;
+        text-decoration: underline;
+        margin: 0;
+      }
+
+      .print-sign-role {
+        color: #444;
+        margin: 2px 0;
+      }
+
+      .print-sign-date {
+        font-size: 8pt;
+        color: #666;
+      }
+    }
+  </style>
 </head>
 <body>
 
@@ -67,7 +907,7 @@
         <span>Laporan</span>
       </a>
       <a href="settings.html" class="nav-item">
-        <svg class="nav-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        <svg class="nav-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
         <span>Pengaturan</span>
       </a>
     </nav>
@@ -99,181 +939,348 @@
     </header>
 
     <main class="content-area">
-      <!-- Breadcrumb & Header -->
+      <!-- Breadcrumb -->
       <nav class="breadcrumb" aria-label="Breadcrumb">
         <a href="dashboard.html">Dashboard</a>
         <span class="breadcrumb-separator">/</span>
-        <span>Laporan</span>
+        <span>Laporan & Analisis</span>
       </nav>
 
+      <!-- Page Header -->
       <div class="page-header">
         <div class="page-title-group">
           <h1>Laporan & Analisis Inventory</h1>
-          <p>Rekapitulasi pergerakan mutasi, valuasi aset, dan tren permintaan barang.</p>
+          <p>Rekapitulasi resmi pergerakan mutasi masuk/keluar, buku besar saldo, dan valuasi aset persediaan.</p>
         </div>
         <div class="page-actions">
-          <button type="button" class="btn btn-secondary" onclick="window.print();">
-            <svg viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+          <button type="button" class="btn btn-secondary" id="btn-print-report" title="Cetak Dokumen Resmi">
+            <svg viewBox="0 0 24 24" width="16" height="16"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
             <span>Cetak Laporan</span>
           </button>
-          <button type="button" class="btn btn-primary" onclick="alert('File PDF Laporan Inventory telah disimulasikan untuk diunduh.');">
-            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          <button type="button" class="btn btn-primary" id="btn-download-pdf" title="Unduh Dokumen PDF">
+            <svg viewBox="0 0 24 24" width="16" height="16"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
             <span>Unduh PDF</span>
           </button>
         </div>
       </div>
 
-      <!-- Filter Periode Laporan -->
-      <div class="card" style="margin-bottom: var(--spacing-xl);">
-        <div class="card-body" style="padding: var(--spacing-md);">
-          <div class="toolbar" style="margin-bottom: 0;">
-            <div class="toolbar-filters">
-              <span class="text-bold" style="font-size: var(--font-size-xs);">Periode Laporan:</span>
-              <input type="date" class="filter-input" value="2026-09-01">
-              <span class="text-muted">s/d</span>
-              <input type="date" class="filter-input" value="2026-09-16">
-              <select class="filter-select">
-                <option value="all">Semua Kategori</option>
-                <option value="elektronik">Elektronik</option>
-                <option value="perabot">Perabot</option>
-              </select>
-              <button type="button" class="btn btn-secondary btn-sm">Terapkan Filter</button>
-            </div>
-            <span class="badge badge-primary">Periode: September 2026</span>
+      <!-- 1. Filter Card - Responsive 2-Row Layout -->
+      <div class="filter-card">
+        <!-- Row 1: Parameter Periode & Kategori -->
+        <div class="filter-row">
+          <div class="filter-col">
+            <label class="filter-col-label" for="filter-start-date">Periode Mulai</label>
+            <input type="date" id="filter-start-date" class="filter-control" value="">
+          </div>
+
+          <div class="filter-col">
+            <label class="filter-col-label" for="filter-end-date">Periode Selesai</label>
+            <input type="date" id="filter-end-date" class="filter-control" value="">
+          </div>
+
+          <div class="filter-col">
+            <label class="filter-col-label" for="filter-category">Kategori Barang</label>
+            <select id="filter-category" class="filter-control">
+              <option value="all">Semua Kategori</option>
+            </select>
+          </div>
+
+          <div class="filter-col">
+            <label class="filter-col-label" for="filter-scope">Status Pergerakan</label>
+            <select id="filter-scope" class="filter-control">
+              <option value="all">Semua Produk (Termasuk Nol Mutasi)</option>
+              <option value="active">Hanya Produk Bergerak (Mutasi > 0)</option>
+              <option value="in">Hanya Stok Masuk (Penerimaan)</option>
+              <option value="out">Hanya Stok Keluar (Pengeluaran)</option>
+              <option value="critical">Hanya Stok Kritis / Restock</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Row 2: Pengurutan, Pencarian, & Tombol Aksi -->
+        <div class="filter-row">
+          <div class="filter-col">
+            <label class="filter-col-label" for="filter-sort-by">Urutkan Berdasarkan</label>
+            <select id="filter-sort-by" class="filter-control">
+              <option value="out_desc">Mutasi Keluar Terbanyak (Paling Laris)</option>
+              <option value="in_desc">Mutasi Masuk Terbanyak</option>
+              <option value="stock_desc">Saldo Stok Terbanyak</option>
+              <option value="stock_asc">Stok Menipis (Prioritas Restock)</option>
+              <option value="val_desc">Valuasi Aset Terbesar (Rp)</option>
+              <option value="name_asc">Nama Produk (A – Z)</option>
+              <option value="sku_asc">Kode SKU (A – Z)</option>
+            </select>
+          </div>
+
+          <div class="filter-col filter-col-search">
+            <label class="filter-col-label" for="filter-search">Cari SKU / Nama Barang / Ref No</label>
+            <input type="text" id="filter-search" class="filter-control" placeholder="Ketik kode SKU, nama barang, atau no referensi...">
+          </div>
+
+          <div class="filter-col-actions">
+            <button type="button" id="btn-apply-filter" class="btn btn-primary" style="height: 38px;">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
+              <span>Terapkan Filter</span>
+            </button>
+            <button type="button" id="btn-reset-filter" class="btn btn-secondary" style="height: 38px;" title="Kembalikan Filter Awal">
+              <span>Reset</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Info Bar Penjelasan Filter -->
+        <div class="filter-info-bar">
+          <div id="filter-explanation-text">
+            Menampilkan aktivitas mutasi barang dari <strong id="info-start-date">01/09/2026</strong> s/d <strong id="info-end-date">22/11/2026</strong>.
+          </div>
+          <div id="active-period-badge" class="active-period-badge">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="16" y1="2" x2="16" y2="6"></line>
+              <line x1="8" y1="2" x2="8" y2="6"></line>
+              <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+            <span>Periode Aktif: <strong>01/09/2026 – 22/11/2026</strong></span>
           </div>
         </div>
       </div>
 
-      <!-- 4 Kartu Ringkasan Laporan -->
-      <section class="grid grid-cols-4" style="margin-bottom: var(--spacing-xl);">
-        <div class="stat-card">
-          <div class="stat-info">
-            <span class="stat-label">Total Mutasi Masuk</span>
-            <span class="stat-value">342 unit</span>
-            <span class="stat-trend positive">Nilai: Rp94.200.000</span>
+      <!-- 2. Navigasi Tab Laporan -->
+      <div class="report-tabs">
+        <button type="button" class="report-tab-btn active" data-tab="ledger">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+          Buku Besar Mutasi (Rekap Produk)
+        </button>
+        <button type="button" class="report-tab-btn" data-tab="journal">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+          Jurnal Transaksi Rinci (Log Mutasi)
+        </button>
+        <button type="button" class="report-tab-btn" data-tab="valuation">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+          Valuasi & Analisis Aset Kategori
+        </button>
+      </div>
+
+      <!-- ====================================================================
+           TAB 1: BUKU BESAR MUTASI (REKAP PRODUK)
+           ==================================================================== -->
+      <div id="tab-ledger" class="tab-content active">
+        <!-- Persamaan Rekonsiliasi Pembukuan -->
+        <div class="reconciliation-strip">
+          <div class="recon-equation">
+            <div class="recon-block">
+              <span class="recon-label">Stok Awal Periode</span>
+              <span class="recon-val" id="recon-initial-qty">0 unit</span>
+            </div>
+            <span class="recon-operator">+</span>
+            <div class="recon-block">
+              <span class="recon-label">Total Masuk</span>
+              <span class="recon-val" style="color: var(--color-success);" id="recon-in-qty">+0 unit</span>
+            </div>
+            <span class="recon-operator">-</span>
+            <div class="recon-block">
+              <span class="recon-label">Total Keluar</span>
+              <span class="recon-val" style="color: var(--color-danger);" id="recon-out-qty">-0 unit</span>
+            </div>
+            <span class="recon-operator">=</span>
+            <div class="recon-block">
+              <span class="recon-label">Saldo Stok Akhir</span>
+              <span class="recon-val" style="color: var(--color-primary);" id="recon-final-qty">0 unit</span>
+            </div>
           </div>
-          <div class="stat-icon-wrapper primary">
-            <svg viewBox="0 0 24 24"><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          <div>
+            <span id="recon-status-badge" class="recon-status-badge balanced">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              Buku Besar Seimbang (Balance Matched)
+            </span>
           </div>
         </div>
 
-        <div class="stat-card">
-          <div class="stat-info">
-            <span class="stat-label">Total Mutasi Keluar</span>
-            <span class="stat-value">86 unit</span>
-            <span class="stat-trend neutral">Nilai: Rp28.450.000</span>
+        <!-- 4 Kartu KPI Pembukuan -->
+        <section class="grid grid-cols-4" style="margin-bottom: var(--spacing-xl);">
+          <div class="stat-card">
+            <div class="stat-info">
+              <span class="stat-label">Total Mutasi Masuk</span>
+              <span class="stat-value" id="kpi-in-qty" style="color: #16a34a;">+0 unit</span>
+              <span class="stat-trend positive" id="kpi-in-val">Nilai: Rp0</span>
+            </div>
+            <div class="stat-icon-wrapper" style="background-color: #dcfce7; color: #16a34a;">
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            </div>
           </div>
-          <div class="stat-icon-wrapper danger">
-            <svg viewBox="0 0 24 24"><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-          </div>
-        </div>
 
-        <div class="stat-card">
-          <div class="stat-info">
-            <span class="stat-label">Produk Paling Aktif</span>
-            <span class="stat-value" style="font-size: var(--font-size-lg);">ThinkPad X1</span>
-            <span class="stat-trend positive">28 transaksi mutasi</span>
+          <div class="stat-card">
+            <div class="stat-info">
+              <span class="stat-label">Total Mutasi Keluar</span>
+              <span class="stat-value" id="kpi-out-qty" style="color: #dc2626;">-0 unit</span>
+              <span class="stat-trend warning" id="kpi-out-val" style="color: #b91c1c;">Nilai: Rp0</span>
+            </div>
+            <div class="stat-icon-wrapper danger">
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+            </div>
           </div>
-          <div class="stat-icon-wrapper info">
-            <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-          </div>
-        </div>
 
-        <div class="stat-card">
-          <div class="stat-info">
-            <span class="stat-label">Valuasi Stok Akhir</span>
-            <span class="stat-value">Rp184.5M</span>
-            <span class="stat-trend positive">+14.8% vs bulan lalu</span>
+          <div class="stat-card">
+            <div class="stat-info">
+              <span class="stat-label">Saldo Stok Akhir</span>
+              <span class="stat-value" id="kpi-final-qty" style="color: #1e40af;">0 unit</span>
+              <span class="stat-trend positive" id="kpi-final-val" style="color: #1d4ed8;">Valuasi: Rp0</span>
+            </div>
+            <div class="stat-icon-wrapper primary">
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+            </div>
           </div>
-          <div class="stat-icon-wrapper primary">
-            <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
-          </div>
-        </div>
-      </section>
 
-      <!-- Distribusi Nilai Stok & Rekapitulasi Kategori -->
-      <div class="grid grid-cols-2" style="margin-bottom: var(--spacing-xl);">
-        <div class="card">
-          <div class="card-header">
-            <h2 class="card-title">Valuasi Aset per Kategori</h2>
+          <div class="stat-card">
+            <div class="stat-info">
+              <span class="stat-label">Produk Kritis / Restock</span>
+              <span class="stat-value" id="kpi-critical-count" style="color: #ea580c;">0 SKU</span>
+              <span class="stat-trend warning">Di bawah batas minimum</span>
+            </div>
+            <div class="stat-icon-wrapper" style="background-color: #ffedd5; color: #ea580c;">
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+            </div>
           </div>
-          <div class="card-body">
-            <div class="category-chart-wrapper">
-              <div class="chart-bar-item">
-                <div class="chart-bar-meta">
-                  <span class="chart-bar-name">Elektronik</span>
-                  <span class="chart-bar-count">Rp128.500.000 (69.6%)</span>
-                </div>
-                <div class="chart-bar-track">
-                  <div class="chart-bar-fill fill-primary" style="width: 70%;"></div>
-                </div>
+        </section>
+
+        <!-- Visualisasi Tren & Panel Analisis -->
+        <div class="analysis-grid">
+          <!-- Grafik Tren Mutasi -->
+          <div class="card chart-container-card">
+            <div class="card-header">
+              <div>
+                <h2 class="card-title">Tren Pergerakan Mutasi Stok</h2>
+                <p class="card-subtitle">Perbandingan barang masuk (penerimaan PO) vs barang keluar (sales/pemakaian).</p>
               </div>
-
-              <div class="chart-bar-item">
-                <div class="chart-bar-meta">
-                  <span class="chart-bar-name">Perabot</span>
-                  <span class="chart-bar-count">Rp34.200.000 (18.5%)</span>
-                </div>
-                <div class="chart-bar-track">
-                  <div class="chart-bar-fill fill-info" style="width: 19%;"></div>
-                </div>
+            </div>
+            <div class="card-body" style="padding: 16px; position: relative;">
+              <div class="chart-wrapper">
+                <canvas id="stockTrendChart"></canvas>
               </div>
+            </div>
+          </div>
 
-              <div class="chart-bar-item">
-                <div class="chart-bar-meta">
-                  <span class="chart-bar-name">Alat Kantor</span>
-                  <span class="chart-bar-count">Rp14.800.000 (8.0%)</span>
-                </div>
-                <div class="chart-bar-track">
-                  <div class="chart-bar-fill fill-warning" style="width: 8%;"></div>
-                </div>
+          <!-- Side Panel: Top Dispatched -->
+          <div class="side-panels-column">
+            <div class="side-panel-card">
+              <div class="side-panel-header">
+                <span class="side-panel-title">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                  Produk Paling Laris (Top Dispatched)
+                </span>
+                <span style="font-size: 11px; color: #64748b;">Unit Keluar</span>
               </div>
-
-              <div class="chart-bar-item">
-                <div class="chart-bar-meta">
-                  <span class="chart-bar-name">Perlengkapan</span>
-                  <span class="chart-bar-count">Rp7.000.000 (3.9%)</span>
-                </div>
-                <div class="chart-bar-track">
-                  <div class="chart-bar-fill fill-purple" style="width: 4%;"></div>
-                </div>
+              <div class="side-panel-body" id="top-products-list">
+                <div class="empty-panel-text">Memuat analisis produk...</div>
               </div>
             </div>
           </div>
         </div>
 
-        <div class="card">
-          <div class="card-header">
-            <h2 class="card-title">Produk Peringatan Pengadaan (Kritis)</h2>
+        <!-- Tabel Utama Pembukuan Mutasi -->
+        <div class="ledger-card">
+          <div class="ledger-header">
+            <div class="ledger-title-group">
+              <h2>Buku Besar Mutasi & Saldo Persediaan</h2>
+              <p>Rincian mutasi fisik barang dan valuasi modal beli persediaan per produk.</p>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <label for="page-size-select" style="font-size: 12px; color: var(--color-text-muted);">Tampilkan:</label>
+              <select id="page-size-select" class="filter-control" style="width: auto; height: 32px; padding: 4px 8px; font-size: 12px;">
+                <option value="10">10 baris</option>
+                <option value="25">25 baris</option>
+                <option value="50">50 baris</option>
+                <option value="100">100 baris</option>
+              </select>
+            </div>
           </div>
-          <div class="card-body" style="padding: 0;">
+
+          <div class="table-container" style="border: none; border-radius: 0; margin-bottom: 0;">
             <table class="table">
               <thead>
                 <tr>
-                  <th scope="col">SKU</th>
-                  <th scope="col">Produk</th>
-                  <th scope="col" style="text-align: right;">Sisa</th>
-                  <th scope="col">Kondisi</th>
+                  <th scope="col" style="text-align: center; width: 44px;">No</th>
+                  <th scope="col" style="width: 100px;">SKU</th>
+                  <th scope="col">Nama Produk</th>
+                  <th scope="col">Kategori</th>
+                  <th scope="col" style="text-align: right;">Stok Awal</th>
+                  <th scope="col" style="text-align: right;">Masuk (+)</th>
+                  <th scope="col" style="text-align: right;">Keluar (-)</th>
+                  <th scope="col" style="text-align: right;">Stok Akhir</th>
+                  <th scope="col" style="text-align: right;">Batas Min</th>
+                  <th scope="col" style="text-align: center;">Status</th>
+                  <th scope="col" style="text-align: right;">Harga Satuan</th>
+                  <th scope="col" style="text-align: right;">Valuasi Akhir</th>
+                  <th scope="col" style="text-align: center; width: 80px;">Aksi</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody id="ledger-table-body">
                 <tr>
-                  <td><span class="table-sku">AT-002</span></td>
-                  <td>Kursi Kantor Ergonomis</td>
-                  <td style="text-align: right; font-weight: bold; color: var(--color-danger);">0 unit</td>
-                  <td><span class="badge badge-out">Habis Total</span></td>
+                  <td colspan="13" style="text-align: center; padding: 32px; color: var(--color-text-muted);">
+                    Memuat data buku besar mutasi...
+                  </td>
                 </tr>
+              </tbody>
+              <tfoot id="ledger-table-foot"></tfoot>
+            </table>
+
+            <!-- Empty State -->
+            <div id="ledger-empty-state" style="display: none; padding: 48px 24px; text-align: center;">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5" style="margin: 0 auto 12px auto; display: block;">
+                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                <line x1="12" y1="22.08" x2="12" y2="12"></line>
+              </svg>
+              <h3 style="font-size: 15px; font-weight: 700; color: #1e293b; margin: 0 0 4px 0;">Tidak Ada Data Mutasi</h3>
+              <p style="font-size: 13px; color: #64748b; margin: 0 0 16px 0;">Tidak ditemukan produk atau transaksi yang cocok dengan kriteria filter.</p>
+              <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('btn-reset-filter').click();">
+                Kembalikan Filter Awal
+              </button>
+            </div>
+          </div>
+
+          <div class="table-footer-controls">
+            <div id="ledger-table-info">Menampilkan 0 produk</div>
+            <div class="pagination-wrapper" id="ledger-pagination"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ====================================================================
+           TAB 2: JURNAL TRANSAKSI RINCI (LOG MUTASI MASUK & KELUAR)
+           ==================================================================== -->
+      <div id="tab-journal" class="tab-content">
+        <div class="ledger-card">
+          <div class="ledger-header">
+            <div class="ledger-title-group">
+              <h2>Jurnal Riwayat Mutasi Transaksi</h2>
+              <p>Log setiap pergerakan barang (PO masuk, penjualan SO keluar, penyesuaian opname) yang terjadi dalam periode terpilih.</p>
+            </div>
+            <div id="journal-count-badge" style="font-size: 12px; font-weight: 600; color: #2563eb;">
+              0 Transaksi Tercatat
+            </div>
+          </div>
+
+          <div class="table-container" style="border: none; border-radius: 0; margin-bottom: 0;">
+            <table class="table">
+              <thead>
                 <tr>
-                  <td><span class="table-sku">EL-004</span></td>
-                  <td>Keyboard Mechanical</td>
-                  <td style="text-align: right; font-weight: bold; color: var(--color-warning);">3 pcs</td>
-                  <td><span class="badge badge-low">Batas Min: 4</span></td>
+                  <th scope="col" style="width: 130px;">Waktu</th>
+                  <th scope="col" style="width: 160px;">No. Referensi</th>
+                  <th scope="col" style="text-align: center; width: 100px;">Tipe Mutasi</th>
+                  <th scope="col">SKU & Nama Produk</th>
+                  <th scope="col" style="text-align: right; width: 90px;">Jumlah</th>
+                  <th scope="col" style="text-align: right; width: 130px;">Nilai Nominal</th>
+                  <th scope="col">Pihak Rekanan</th>
+                  <th scope="col">Petugas</th>
+                  <th scope="col">Catatan</th>
                 </tr>
+              </thead>
+              <tbody id="journal-table-body">
                 <tr>
-                  <td><span class="table-sku">EL-002</span></td>
-                  <td>Mouse Wireless M1</td>
-                  <td style="text-align: right; font-weight: bold; color: var(--color-warning);">4 pcs</td>
-                  <td><span class="badge badge-low">Batas Min: 5</span></td>
+                  <td colspan="9" style="text-align: center; padding: 32px; color: var(--color-text-muted);">
+                    Memuat log jurnal transaksi...
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -281,78 +1288,167 @@
         </div>
       </div>
 
-      <!-- Tabel Rekapitulasi Laporan Global -->
-      <div class="card">
-        <div class="card-header">
-          <h2 class="card-title">Tabel Rekapitulasi Mutasi Barang per Kategori</h2>
+      <!-- ====================================================================
+           TAB 3: VALUASI & KESEHATAN ASET PERSAMAAN
+           ==================================================================== -->
+      <div id="tab-valuation" class="tab-content">
+        <!-- Breakdown Status Fisik Gudang -->
+        <div class="grid grid-cols-3" style="margin-bottom: var(--spacing-xl);">
+          <div class="stat-card">
+            <div class="stat-info">
+              <span class="stat-label">Stok Aktif (Siap Edar)</span>
+              <span class="stat-value" id="val-active-qty" style="color: #15803d;">0 unit</span>
+              <span class="stat-trend positive">Tersedia untuk dijual / didistribusikan</span>
+            </div>
+            <div class="stat-icon-wrapper" style="background-color: #dcfce7; color: #15803d;">
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-info">
+              <span class="stat-label">Stok Karantina (QC / Retur)</span>
+              <span class="stat-value" id="val-quarantine-qty" style="color: #ea580c;">0 unit</span>
+              <span class="stat-trend warning">Tertahan pengujian mutu / rusak</span>
+            </div>
+            <div class="stat-icon-wrapper" style="background-color: #ffedd5; color: #ea580c;">
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-info">
+              <span class="stat-label">Stok Draft (Penerimaan)</span>
+              <span class="stat-value" id="val-draft-qty" style="color: #64748b;">0 unit</span>
+              <span class="stat-trend neutral">Menunggu verifikasi administrasi PO</span>
+            </div>
+            <div class="stat-icon-wrapper" style="background-color: #f1f5f9; color: #64748b;">
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+            </div>
+          </div>
         </div>
-        <div class="table-container" style="border: none; border-radius: 0;">
-          <table class="table">
-            <thead>
-              <tr>
-                <th scope="col">Kategori</th>
-                <th scope="col" style="text-align: center;">Jumlah SKU</th>
-                <th scope="col" style="text-align: right;">Stok Masuk (Unit)</th>
-                <th scope="col" style="text-align: right;">Stok Keluar (Unit)</th>
-                <th scope="col" style="text-align: right;">Total Sisa Stok</th>
-                <th scope="col" style="text-align: right;">Nilai Aset (IDR)</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td><strong>Elektronik</strong></td>
-                <td style="text-align: center;">4 item</td>
-                <td style="text-align: right; color: var(--color-success); font-weight: bold;">+140</td>
-                <td style="text-align: right; color: var(--color-danger); font-weight: bold;">-34</td>
-                <td style="text-align: right; font-weight: bold;">34 unit</td>
-                <td style="text-align: right; font-family: var(--font-mono);">Rp128.500.000</td>
-              </tr>
-              <tr>
-                <td><strong>Perabot</strong></td>
-                <td style="text-align: center;">2 item</td>
-                <td style="text-align: right; color: var(--color-success); font-weight: bold;">+32</td>
-                <td style="text-align: right; color: var(--color-danger); font-weight: bold;">-18</td>
-                <td style="text-align: right; font-weight: bold;">12 unit</td>
-                <td style="text-align: right; font-family: var(--font-mono);">Rp34.200.000</td>
-              </tr>
-              <tr>
-                <td><strong>Alat Kantor</strong></td>
-                <td style="text-align: center;">2 item</td>
-                <td style="text-align: right; color: var(--color-success); font-weight: bold;">+120</td>
-                <td style="text-align: right; color: var(--color-danger); font-weight: bold;">-22</td>
-                <td style="text-align: right; font-weight: bold;">127 unit</td>
-                <td style="text-align: right; font-family: var(--font-mono);">Rp14.800.000</td>
-              </tr>
-              <tr>
-                <td><strong>Perlengkapan</strong></td>
-                <td style="text-align: center;">2 item</td>
-                <td style="text-align: right; color: var(--color-success); font-weight: bold;">+50</td>
-                <td style="text-align: right; color: var(--color-danger); font-weight: bold;">-12</td>
-                <td style="text-align: right; font-weight: bold;">51 unit</td>
-                <td style="text-align: right; font-family: var(--font-mono);">Rp7.000.000</td>
-              </tr>
-            </tbody>
-            <tfoot>
-              <tr style="background-color: #F8FAFC; font-weight: bold;">
-                <td>TOTAL KESELURUHAN</td>
-                <td style="text-align: center;">10 item</td>
-                <td style="text-align: right; color: var(--color-success);">+342 unit</td>
-                <td style="text-align: right; color: var(--color-danger);">-86 unit</td>
-                <td style="text-align: right;">224 unit</td>
-                <td style="text-align: right; font-family: var(--font-mono); color: var(--color-primary);">Rp184.500.000</td>
-              </tr>
-            </tfoot>
-          </table>
+
+        <!-- Tabel Valuasi per Kategori -->
+        <div class="ledger-card">
+          <div class="ledger-header">
+            <div class="ledger-title-group">
+              <h2>Distribusi Valuasi Aset per Kategori</h2>
+              <p>Komparasi modal pembelian, estimasi potensi penjualan, dan porsi aset gudang per kategori barang.</p>
+            </div>
+          </div>
+          <div class="table-container" style="border: none; border-radius: 0;">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th scope="col">Kategori</th>
+                  <th scope="col" style="text-align: center; width: 120px;">Jumlah SKU</th>
+                  <th scope="col" style="text-align: right; width: 140px;">Saldo Fisik</th>
+                  <th scope="col" style="text-align: right;">Valuasi Modal (Beli)</th>
+                  <th scope="col" style="text-align: right;">Potensi Nilai Jual</th>
+                  <th scope="col" style="text-align: right;">Estimasi Margin</th>
+                  <th scope="col" style="width: 180px;">Porsi Aset</th>
+                </tr>
+              </thead>
+              <tbody id="category-valuation-table-body">
+                <tr>
+                  <td colspan="7" style="text-align: center; padding: 24px; color: var(--color-text-muted);">
+                    Memuat data kategori...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
+
     </main>
 
     <footer class="app-footer">
-      <div>&copy; 2026 <strong>Inventoria</strong> - Prototype Sistem Manajemen Inventory</div>
-      <div>Modul: Laporan & Analitik</div>
+      <div>&copy; 2026 <strong>Inventoria</strong> - Sistem Manajemen Inventory</div>
+      <div>Modul: Laporan & Pembukuan Mutasi</div>
     </footer>
   </div>
 </div>
 
+<!-- 4. Modal Kartu Riwayat Mutasi Stok Produk (Drill-Down Detail) -->
+<div id="stock-card-modal" class="modal-overlay" style="display: none;">
+  <div class="modal-dialog">
+    <div class="modal-header">
+      <div class="modal-title">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+        <span id="sc-modal-title">Kartu Riwayat Mutasi Produk</span>
+      </div>
+      <button type="button" id="btn-close-modal" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #94a3b8;">&times;</button>
+    </div>
+    <div class="modal-body">
+      <!-- Info Header Produk -->
+      <div class="stock-card-meta-box">
+        <div class="stock-card-meta-item">
+          <span class="stock-card-meta-label">Kode SKU</span>
+          <span class="stock-card-meta-val font-mono" id="sc-sku">-</span>
+        </div>
+        <div class="stock-card-meta-item">
+          <span class="stock-card-meta-label">Kategori / Lokasi</span>
+          <span class="stock-card-meta-val" id="sc-category-loc">-</span>
+        </div>
+        <div class="stock-card-meta-item">
+          <span class="stock-card-meta-label">Harga Pokok (Beli)</span>
+          <span class="stock-card-meta-val font-mono" id="sc-price">-</span>
+        </div>
+        <div class="stock-card-meta-item">
+          <span class="stock-card-meta-label">Batas Min. Stok</span>
+          <span class="stock-card-meta-val" id="sc-min-stock">-</span>
+        </div>
+      </div>
+
+      <!-- Ringkasan Periode Kartu -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 12px; padding: 6px 12px; background: #eff6ff; border-radius: 4px; border: 1px solid #bfdbfe;">
+        <div>Periode: <strong id="sc-period-range">-</strong></div>
+        <div>
+          Stok Awal: <strong id="sc-initial-qty">0</strong> | 
+          Masuk: <strong style="color: #16a34a;" id="sc-in-qty">+0</strong> | 
+          Keluar: <strong style="color: #dc2626;" id="sc-out-qty">-0</strong> | 
+          Saldo Akhir: <strong style="color: #1e40af;" id="sc-final-qty">0</strong>
+        </div>
+      </div>
+
+      <!-- Tabel Mutasi Kartu Stok -->
+      <div class="table-container" style="border: 1px solid var(--color-border); border-radius: 4px; max-height: 340px; overflow-y: auto;">
+        <table class="table" style="font-size: 12px;">
+          <thead>
+            <tr>
+              <th style="width: 110px;">Tanggal</th>
+              <th style="width: 140px;">No. Referensi</th>
+              <th style="text-align: center; width: 70px;">Tipe</th>
+              <th style="text-align: right; width: 70px;">Jumlah</th>
+              <th style="text-align: right; width: 80px;">Saldo</th>
+              <th>Pihak / Rekanan</th>
+              <th>Petugas</th>
+              <th>Catatan</th>
+            </tr>
+          </thead>
+          <tbody id="sc-movements-tbody">
+            <tr>
+              <td colspan="8" style="text-align: center; padding: 20px; color: var(--color-text-muted);">
+                Memuat riwayat transaksi...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary btn-sm" id="btn-modal-done">Tutup</button>
+    </div>
+  </div>
+</div>
+
+<!-- 5. Wadah Dokumen Cetak / Unduh PDF Resmi Formal -->
+<div id="official-print-document"></div>
+
+<!-- Vendor Chart.js -->
+<script src="../../assets/vendor/chartjs/chart.umd.min.js"></script>
+<!-- Controller Laporan -->
+<script src="../assets/js/reports.js?v=20261123_v1"></script>
 </body>
 </html>

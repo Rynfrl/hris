@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Core\Url;
 use App\Core\View;
 ?>
 
@@ -11,11 +12,11 @@ use App\Core\View;
         <p class="text-secondary small mb-0">Statistik agregat dan ekspor data pengeluaran organisasi</p>
     </div>
     <div class="d-flex gap-2">
-        <a href="/exports/expenses.csv?<?= http_build_query(['start_date' => $startDate, 'end_date' => $endDate, 'status' => $status]) ?>" class="btn btn-outline-success btn-sm d-flex align-items-center gap-1">
+        <a href="<?= Url::to('/exports/expenses.csv?' . http_build_query(['start_date' => $startDate, 'end_date' => $endDate, 'status' => $status])) ?>" class="btn btn-outline-success btn-sm d-flex align-items-center gap-1">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
             <span>Ekspor Expense CSV</span>
         </a>
-        <a href="/exports/reports.csv?<?= http_build_query(['start_date' => $startDate, 'end_date' => $endDate, 'status' => $status]) ?>" class="btn btn-outline-primary btn-sm d-flex align-items-center gap-1">
+        <a href="<?= Url::to('/exports/reports.csv?' . http_build_query(['start_date' => $startDate, 'end_date' => $endDate, 'status' => $status])) ?>" class="btn btn-outline-primary btn-sm d-flex align-items-center gap-1">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
             <span>Ekspor Laporan CSV</span>
         </a>
@@ -25,7 +26,7 @@ use App\Core\View;
 <!-- Filter Bar -->
 <div class="card card-gt mb-4">
     <div class="card-body p-3">
-        <form action="/analytics" method="GET" class="row g-2 align-items-center">
+        <form action="<?= Url::to('/analytics') ?>" method="GET" class="row g-2 align-items-center">
             <div class="col-md-3">
                 <label class="form-label small mb-1">Dari Tanggal</label>
                 <input type="date" name="start_date" class="form-control form-control-sm" value="<?= View::e($startDate) ?>">

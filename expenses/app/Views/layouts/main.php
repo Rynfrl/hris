@@ -33,7 +33,7 @@ $isFinance = ($role === 'FINANCE') || $hasPostPerm || $hasReimbursePerm;
 <div class="app-wrapper">
     <!-- Sidebar -->
     <aside class="sidebar">
-        <a href="/dashboard" class="sidebar-brand">
+        <a href="<?= Url::to('/dashboard') ?>" class="sidebar-brand">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                 <rect x="2" y="5" width="20" height="14" rx="2"></rect>
                 <line x1="2" y1="10" x2="22" y2="10"></line>
@@ -188,7 +188,7 @@ $isFinance = ($role === 'FINANCE') || $hasPostPerm || $hasReimbursePerm;
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
                     <span>Menu Utama HRIS</span>
                 </a>
-                <form action="/logout" method="POST" class="d-inline">
+                <form action="<?= Url::to('/logout') ?>" method="POST" class="d-inline">
                     <?= Csrf::field() ?>
                     <button type="submit" class="btn btn-sm btn-outline-danger d-flex align-items-center gap-1">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>

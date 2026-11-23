@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Core\Url;
 use App\Core\View;
 ?>
 
@@ -15,7 +16,7 @@ $canCreateReport = in_array($user['role_name'] ?? '', ['ADMIN', 'ADMIN_EXPENSE',
     </div>
     <?php if ($canCreateReport): ?>
         <div>
-            <a href="/reports/create" class="btn btn-primary btn-sm d-flex align-items-center gap-1">
+            <a href="<?= Url::to('/reports/create') ?>" class="btn btn-primary btn-sm d-flex align-items-center gap-1">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                 <span>Buat Laporan Gabungan</span>
             </a>
@@ -26,7 +27,7 @@ $canCreateReport = in_array($user['role_name'] ?? '', ['ADMIN', 'ADMIN_EXPENSE',
 <!-- Filters Toolbar -->
 <div class="card card-gt mb-4">
     <div class="card-body p-3">
-        <form action="/reports" method="GET" class="row g-2 align-items-center">
+        <form action="<?= Url::to('/reports') ?>" method="GET" class="row g-2 align-items-center">
             <div class="col-md-4">
                 <input type="text" name="search" class="form-control form-control-sm" placeholder="Cari nomor/judul/karyawan..." value="<?= View::e($filters['search'] ?? '') ?>">
             </div>
@@ -48,7 +49,7 @@ $canCreateReport = in_array($user['role_name'] ?? '', ['ADMIN', 'ADMIN_EXPENSE',
             </div>
             <div class="col-md-1 d-flex gap-1">
                 <button type="submit" class="btn btn-sm btn-primary w-100">Filter</button>
-                <a href="/reports" class="btn btn-sm btn-outline-secondary" title="Reset">✕</a>
+                <a href="<?= Url::to('/reports') ?>" class="btn btn-sm btn-outline-secondary" title="Reset">✕</a>
             </div>
         </form>
     </div>
@@ -85,7 +86,7 @@ $canCreateReport = in_array($user['role_name'] ?? '', ['ADMIN', 'ADMIN_EXPENSE',
                         ?>
                         <tr>
                             <td>
-                                <a href="/reports/<?= (int) $item['report_id'] ?>" class="fw-semibold text-primary text-decoration-none">
+                                <a href="<?= Url::to('/reports/' . (int) $item['report_id']) ?>" class="fw-semibold text-primary text-decoration-none">
                                     <?= View::e($item['report_number']) ?>
                                 </a>
                             </td>
@@ -107,7 +108,7 @@ $canCreateReport = in_array($user['role_name'] ?? '', ['ADMIN', 'ADMIN_EXPENSE',
                             <td><?= View::statusBadge($item['status'] ?? 'DRAFT') ?></td>
                             <td><?= View::formatDate($item['created_at'] ?? null) ?></td>
                             <td class="text-end">
-                                <a href="/reports/<?= (int) $item['report_id'] ?>" class="btn btn-sm btn-outline-secondary">
+                                <a href="<?= Url::to('/reports/' . (int) $item['report_id']) ?>" class="btn btn-sm btn-outline-secondary">
                                     Buka Detail
                                 </a>
                             </td>
@@ -126,15 +127,15 @@ $canCreateReport = in_array($user['role_name'] ?? '', ['ADMIN', 'ADMIN_EXPENSE',
             </div>
             <ul class="pagination pagination-sm mb-0">
                 <li class="page-item <?= $page <= 1 ? 'disabled' : '' ?>">
-                    <a class="page-link" href="/reports?<?= http_build_query(array_merge($filters, ['page' => $page - 1])) ?>">«</a>
+                    <a class="page-link" href="<?= Url::to('/reports?' . http_build_query(array_merge($filters, ['page' => $page - 1]))) ?>">«</a>
                 </li>
                 <?php for ($p = max(1, $page - 2); $p <= min($totalPages, $page + 2); $p++): ?>
                     <li class="page-item <?= $p === $page ? 'active' : '' ?>">
-                        <a class="page-link" href="/reports?<?= http_build_query(array_merge($filters, ['page' => $p])) ?>"><?= $p ?></a>
+                        <a class="page-link" href="<?= Url::to('/reports?' . http_build_query(array_merge($filters, ['page' => $p]))) ?>"><?= $p ?></a>
                     </li>
                 <?php endfor; ?>
                 <li class="page-item <?= $page >= $totalPages ? 'disabled' : '' ?>">
-                    <a class="page-link" href="/reports?<?= http_build_query(array_merge($filters, ['page' => $page + 1])) ?>">»</a>
+                    <a class="page-link" href="<?= Url::to('/reports?' . http_build_query(array_merge($filters, ['page' => $page + 1]))) ?>">»</a>
                 </li>
             </ul>
         </div>
