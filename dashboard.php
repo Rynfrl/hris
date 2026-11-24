@@ -6,7 +6,25 @@
     exit();
   }
 
+  include_once "koneksi.php";
+
   $isAdmin = hr_is_admin($_SESSION['role'] ?? '');
+
+  // Retrieve division for the logged-in user if available
+  $userDivision = null;
+  if (!empty($_SESSION['user_id']) && isset($conn) && $conn instanceof mysqli) {
+    $divStmt = $conn->prepare("SELECT divisi FROM employees WHERE id_user = ? LIMIT 1");
+    if ($divStmt) {
+      $divStmt->bind_param("i", $_SESSION['user_id']);
+      $divStmt->execute();
+      $divRes = $divStmt->get_result();
+      if ($divRow = $divRes->fetch_assoc()) {
+        $userDivision = $divRow['divisi'] ?? null;
+      }
+      $divStmt->close();
+    }
+  }
+
   $divisions = [];
   $roles = [];
   $users = [];
@@ -15,7 +33,6 @@
   $employees = [];
   $payrolls = [];
   if ($isAdmin) {
-    include "koneksi.php";
     $divisionResult = $conn->query("SELECT id_divisi, divisi FROM divisi ORDER BY divisi");
     $roleResult = $conn->query("SELECT id_role, role_name FROM roles ORDER BY role_name");
     $usersResult = $conn->query(
@@ -93,83 +110,222 @@
     }
 
     .hris-layout {
-      display: flex;
       min-height: 100vh;
-    }
-
-    .hris-sidebar {
-      width: 260px;
-      background: #1e293b;
-      color: #f1f5f9;
-      flex-shrink: 0;
       display: flex;
       flex-direction: column;
+      width: 100%;
+      margin: 0;
+      padding: 0;
+      background: #f8fafc;
+    }
+
+    .hris-header {
       position: sticky;
       top: 0;
-      height: 100vh;
-      overflow-y: auto;
-      transition: transform 0.25s ease-in-out;
       z-index: 100;
+      background: #ffffff;
+      border-bottom: 1px solid #e2e8f0;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     }
 
-    .hris-sidebar-brand {
-      padding: 18px 20px;
+    .hris-topbar {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .hris-brand-area {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: #0f172a;
+    }
+
+    .hris-brand-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      background: #2563eb;
+      color: #ffffff;
+      border-radius: 8px;
+      flex-shrink: 0;
+    }
+
+    .hris-brand-title {
       font-size: 1.15rem;
       font-weight: 700;
+      letter-spacing: -0.01em;
+      color: #0f172a;
+    }
+
+    .hris-module-tag {
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      padding: 2px 8px;
+      background: #eff6ff;
+      color: #2563eb;
+      border: 1px solid #bfdbfe;
+      border-radius: 9999px;
+    }
+
+    .hris-user-area {
       display: flex;
       align-items: center;
-      gap: 10px;
-      background: #0f172a;
-      border-bottom: 1px solid #334155;
+      gap: 16px;
+      flex-wrap: wrap;
     }
 
-    .hris-nav {
-      padding: 12px 10px;
+    .hris-user-profile {
       display: flex;
-      flex-direction: column;
-      gap: 3px;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.88rem;
+      color: #334155;
     }
 
-    .hris-nav-header {
-      font-size: 0.72rem;
-      font-weight: 700;
+    .hris-user-profile strong {
+      color: #0f172a;
+    }
+
+    .badge-role {
+      background: #e2e8f0;
+      color: #334155;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+
+    .badge-division {
+      background: #dbeafe;
+      color: #1e40af;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .logout-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: #ffffff;
+      text-decoration: none;
+      background: #ef4444;
+      padding: 7px 14px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      transition: background 0.15s ease;
+    }
+
+    .logout-btn:hover {
+      background: #dc2626;
+    }
+
+    .hris-nav-bar {
+      border-top: 1px solid #f1f5f9;
+      background: #f8fafc;
+    }
+
+    .hris-nav-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 8px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .hris-nav-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .hris-nav-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: #475569;
+      text-decoration: none;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+
+    .hris-nav-pill:hover {
+      background: #e2e8f0;
+      color: #0f172a;
+    }
+
+    .hris-nav-pill.active {
+      background: #2563eb;
+      color: #ffffff;
+    }
+
+    .hris-nav-divider {
+      width: 1px;
+      height: 24px;
+      background: #cbd5e1;
+      flex-shrink: 0;
+    }
+
+    .hris-erp-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .hris-erp-label {
+      font-size: 0.75rem;
+      font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.05em;
-      color: #94a3b8;
-      padding: 14px 10px 4px;
+      color: #64748b;
+      margin-right: 4px;
+      white-space: nowrap;
     }
 
-    .hris-nav-item {
-      display: flex;
+    .hris-erp-pill {
+      display: inline-flex;
       align-items: center;
-      gap: 10px;
-      padding: 8px 12px;
-      color: #cbd5e1;
-      text-decoration: none;
+      gap: 6px;
+      padding: 5px 10px;
       border-radius: 6px;
-      font-size: 0.88rem;
+      font-size: 0.82rem;
       font-weight: 500;
-      transition: background 0.15s, color 0.15s;
+      color: #0369a1;
+      background: #f0f9ff;
+      border: 1px solid #bae6fd;
+      text-decoration: none;
+      transition: all 0.15s ease;
+      white-space: nowrap;
     }
 
-    .hris-nav-item:hover,
-    .hris-nav-item.active {
-      background: #334155;
-      color: #ffffff;
-    }
-
-    .hris-nav-item.erp-link {
-      color: #38bdf8;
-    }
-
-    .hris-nav-item.erp-link:hover {
+    .hris-erp-pill:hover {
       background: #0284c7;
       color: #ffffff;
-    }
-
-    .hris-nav-item.text-danger:hover {
-      background: #dc2626;
-      color: #ffffff;
+      border-color: #0284c7;
     }
 
     .hris-main {
@@ -177,62 +333,13 @@
       min-width: 0;
       display: flex;
       flex-direction: column;
-    }
-
-    .hris-topbar {
-      background: #ffffff;
-      border-bottom: 1px solid #e2e8f0;
-      padding: 12px 24px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      position: sticky;
-      top: 0;
-      z-index: 50;
-    }
-
-    .hris-toggle {
-      display: none;
-      background: none;
-      border: 1px solid #cbd5e1;
-      border-radius: 6px;
-      padding: 6px;
-      cursor: pointer;
-    }
-
-    .hris-user-badge {
-      font-size: 0.9rem;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .hris-user-badge .badge {
-      background: #e2e8f0;
-      color: #334155;
-      padding: 3px 8px;
-      border-radius: 4px;
-      font-size: 0.75rem;
-      font-weight: 600;
-    }
-
-    .navbar {
-      display: none;
-    }
-
-    .logout {
-      color: white;
-      text-decoration: none;
-      background: #1d4ed8;
-      padding: 8px 14px;
-      border-radius: 6px;
-      font-size: 14px;
+      width: 100%;
     }
 
     .container {
-      max-width: 1100px;
-      margin: 20px auto 40px;
-      padding: 20px;
+      max-width: 1400px;
+      margin: 24px auto 48px;
+      padding: 0 24px;
       width: 100%;
       box-sizing: border-box;
     }
@@ -454,7 +561,28 @@
       cursor: not-allowed;
     }
 
+    @media (max-width: 900px) {
+      .hris-topbar {
+        padding: 10px 16px;
+      }
+      .hris-nav-container {
+        padding: 8px 16px;
+      }
+      .container {
+        padding: 0 16px;
+        margin: 16px auto 32px;
+      }
+    }
+
     @media (max-width: 600px) {
+      .hris-topbar {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .hris-user-area {
+        width: 100%;
+        justify-content: space-between;
+      }
       .operation-card,
       .welcome-card {
         padding: 18px;
@@ -465,81 +593,92 @@
 
 <body>
   <div class="hris-layout">
-    <!-- Sidebar HRIS (Section F.5.A) -->
-    <aside class="hris-sidebar" id="hrisSidebar">
-      <div class="hris-sidebar-brand">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="2" y="3" width="20" height="14" rx="2"></rect>
-          <line x1="8" y1="21" x2="16" y2="21"></line>
-          <line x1="12" y1="17" x2="12" y2="21"></line>
-        </svg>
-        <span>HRIS &amp; ERP System</span>
+    <!-- Top Navigation Header (Replaces Sidebar) -->
+    <header class="hris-header">
+      <div class="hris-topbar">
+        <div class="hris-brand-area">
+          <div class="hris-brand-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="3" width="20" height="14" rx="2"></rect>
+              <line x1="8" y1="21" x2="16" y2="21"></line>
+              <line x1="12" y1="17" x2="12" y2="21"></line>
+            </svg>
+          </div>
+          <div>
+            <span class="hris-brand-title">HRIS &amp; ERP System</span>
+          </div>
+          <span class="hris-module-tag">Modul HRIS</span>
+        </div>
+
+        <div class="hris-user-area">
+          <div class="hris-user-profile">
+            <span>Halo, <strong><?= htmlspecialchars($_SESSION['name']) ?></strong></span>
+            <span class="badge-role"><?= htmlspecialchars(trim((string)($_SESSION['role'] ?? '-'))) ?></span>
+            <?php if (!empty($userDivision)): ?>
+              <span class="badge-division" title="Divisi Karyawan"><?= htmlspecialchars($userDivision) ?></span>
+            <?php endif; ?>
+          </div>
+          <a href="logout.php" class="logout-btn">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+            <span>Logout</span>
+          </a>
+        </div>
       </div>
 
-      <nav class="hris-nav">
-        <div class="hris-nav-header">Modul HRIS</div>
-        <a href="#dashboard" class="hris-nav-item active">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-          <span>Dashboard HR</span>
-        </a>
-        <?php if ($isAdmin): ?>
-          <a href="#employees" class="hris-nav-item">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-            <span>Data Karyawan</span>
-          </a>
-          <a href="#divisions" class="hris-nav-item">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
-            <span>Data Divisi</span>
-          </a>
-          <a href="#payrolls" class="hris-nav-item">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
-            <span>Payroll</span>
-          </a>
-          <a href="#users" class="hris-nav-item">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-            <span>Manajemen Pengguna</span>
-          </a>
-        <?php endif; ?>
+      <nav class="hris-nav-bar">
+        <div class="hris-nav-container">
+          <div class="hris-nav-group">
+            <a href="#dashboard" class="hris-nav-pill active">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+              <span>Dashboard HR</span>
+            </a>
+            <?php if ($isAdmin): ?>
+              <a href="#employees" class="hris-nav-pill">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                <span>Data Karyawan</span>
+              </a>
+              <a href="#divisions" class="hris-nav-pill">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+                <span>Data Divisi</span>
+              </a>
+              <a href="#payrolls" class="hris-nav-pill">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                <span>Payroll</span>
+              </a>
+              <a href="#users" class="hris-nav-pill">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                <span>Manajemen Pengguna</span>
+              </a>
+            <?php endif; ?>
+          </div>
 
-        <div class="hris-nav-header">Modul ERP Terintegrasi</div>
-        <a href="/purchasing/dashboard.php" class="hris-nav-item erp-link">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
-          <span>Purchasing</span>
-        </a>
-        <a href="/sales/index.php" class="hris-nav-item erp-link">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
-          <span>Sales</span>
-        </a>
-        <a href="/Inventory/pages/dashboard.html" class="hris-nav-item erp-link">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
-          <span>Inventory</span>
-        </a>
-        <a href="/expenses/dashboard" class="hris-nav-item erp-link">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg>
-          <span>Expense Management</span>
-        </a>
+          <div class="hris-nav-divider"></div>
 
-        <div class="hris-nav-header">Akun</div>
-        <a href="/logout.php" class="hris-nav-item text-danger">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-          <span>Logout</span>
-        </a>
+          <div class="hris-erp-group">
+            <span class="hris-erp-label">Modul ERP:</span>
+            <a href="/purchasing/dashboard.php" class="hris-erp-pill">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+              <span>Purchasing</span>
+            </a>
+            <a href="/sales/index.php" class="hris-erp-pill">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+              <span>Sales</span>
+            </a>
+            <a href="/Inventory/pages/dashboard.html" class="hris-erp-pill">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
+              <span>Inventory</span>
+            </a>
+            <a href="/expenses/dashboard" class="hris-erp-pill">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg>
+              <span>GT Expense</span>
+            </a>
+          </div>
+        </div>
       </nav>
-    </aside>
+    </header>
 
     <!-- Main Content Area -->
-    <div class="hris-main">
-      <header class="hris-topbar">
-        <button class="hris-toggle" id="hrisToggleBtn" type="button" aria-label="Toggle Navigation">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
-        </button>
-        <div class="hris-user-badge">
-          <span>Selamat datang, <strong><?= htmlspecialchars($_SESSION['name']) ?></strong></span>
-          <span class="badge"><?= htmlspecialchars(trim((string)($_SESSION['role'] ?? '-'))) ?></span>
-        </div>
-        <a href="logout.php" class="logout">Logout</a>
-      </header>
-
+    <main class="hris-main">
       <div class="container" id="dashboard">
         <div class="welcome-card">
           <h2>
@@ -554,6 +693,11 @@
             <br>
             <strong>Role:</strong>
             <?= htmlspecialchars(trim((string)($_SESSION['role'] ?? '-'))) ?>
+            <?php if (!empty($userDivision)): ?>
+              <br>
+              <strong>Divisi:</strong>
+              <?= htmlspecialchars($userDivision) ?>
+            <?php endif; ?>
           </div>
         </div>
 
@@ -975,30 +1119,42 @@
       <p class="admin-note">Formulir operasional hanya tersedia untuk akun Admin.</p>
     <?php endif; ?>
       </div><!-- /.container -->
-    </div><!-- /.hris-main -->
+    </main><!-- /.hris-main -->
   </div><!-- /.hris-layout -->
 
   <script>
     document.addEventListener('DOMContentLoaded', function () {
-      const toggleBtn = document.getElementById('hrisToggleBtn');
-      const sidebar = document.getElementById('hrisSidebar');
-      if (toggleBtn && sidebar) {
-        toggleBtn.addEventListener('click', function () {
-          sidebar.classList.toggle('open');
-        });
-      }
-
-      // Smooth navigation active update
-      const navLinks = document.querySelectorAll('.hris-nav-item');
+      const navLinks = document.querySelectorAll('.hris-nav-pill');
       navLinks.forEach(function (link) {
         link.addEventListener('click', function () {
           navLinks.forEach(function (l) { l.classList.remove('active'); });
           this.classList.add('active');
-          if (window.innerWidth <= 900 && sidebar) {
-            sidebar.classList.remove('open');
-          }
         });
       });
+
+      // Update active nav pill on scroll
+      const sections = document.querySelectorAll('section[id], div[id="dashboard"]');
+      if ('IntersectionObserver' in window && sections.length > 0) {
+        const observer = new IntersectionObserver(function (entries) {
+          entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+              const id = entry.target.getAttribute('id');
+              if (id) {
+                navLinks.forEach(function (link) {
+                  if (link.getAttribute('href') === '#' + id) {
+                    navLinks.forEach(function (l) { l.classList.remove('active'); });
+                    link.classList.add('active');
+                  }
+                });
+              }
+            }
+          });
+        }, { rootMargin: '-10% 0px -70% 0px' });
+
+        sections.forEach(function (section) {
+          observer.observe(section);
+        });
+      }
     });
   </script>
 </body>
