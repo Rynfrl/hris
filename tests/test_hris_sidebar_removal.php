@@ -50,7 +50,7 @@ assertTrue(!str_contains($dashboardContent, 'class="hris-topbar"'), "Topbar 'hri
 assertTrue(!str_contains($dashboardContent, 'class="hris-nav-bar"'), "Secondary navbar 'hris-nav-bar' is removed");
 assertTrue(!str_contains($dashboardContent, 'class="hris-nav-pill'), "Nav pills 'hris-nav-pill' are removed");
 assertTrue(!str_contains($dashboardContent, 'class="hris-erp-pill"'), "ERP pills 'hris-erp-pill' are removed");
-assertTrue(str_contains($dashboardContent, 'max-width: 1400px'), "Layout container max-width 1400px is configured");
+assertTrue(str_contains($dashboardContent, 'max-width: 1100px'), "Layout container max-width 1100px is configured");
 assertTrue(str_contains($dashboardContent, '$userDivision'), "Division lookup variable '\$userDivision' is implemented");
 
 // 2. ERP Sidebars Integrity Checks

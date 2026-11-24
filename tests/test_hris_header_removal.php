@@ -59,6 +59,9 @@ assertTrue(!str_contains($dashboardContent, 'id="hrisToggleBtn"'), "Element 'hri
 
 // 2. Preserved Components in dashboard.php
 echo "\n--- 2. Checking Preserved Components in dashboard.php ---\n";
+assertTrue(str_contains($dashboardContent, 'class="navbar"'), "Classic headbar 'navbar' is present");
+assertTrue(str_contains($dashboardContent, '<h2>HRIS</h2>'), "Headbar title '<h2>HRIS</h2>' is present");
+assertTrue(str_contains($dashboardContent, '<a href="logout.php" class="logout">Logout</a>'), "Headbar logout button is present");
 assertTrue(str_contains($dashboardContent, 'class="welcome-card"'), "Welcome card 'welcome-card' is preserved");
 assertTrue(str_contains($dashboardContent, 'Selamat datang, <?= htmlspecialchars($_SESSION[\'name\']) ?>!'), "Welcome card title is preserved");
 assertTrue(str_contains($dashboardContent, '<strong>Username:</strong>'), "Username label in welcome card is preserved");
@@ -75,7 +78,7 @@ assertTrue(str_contains($dashboardContent, 'id="payrolls"'), "Section id 'payrol
 
 // Check clean layout styles
 assertTrue(str_contains($dashboardContent, '.container {'), "Container CSS rule is present");
-assertTrue(str_contains($dashboardContent, 'max-width: 1400px;'), "Container max-width 1400px is present");
+assertTrue(str_contains($dashboardContent, 'max-width: 1100px;'), "Container max-width 1100px is present");
 
 // 3. Logout Backend & Auth Integrity
 echo "\n--- 3. Checking Logout Backend & Session Integrity ---\n";

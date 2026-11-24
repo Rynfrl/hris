@@ -104,33 +104,49 @@
     }
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background: #f8fafc;
+      background: #f4f6f8;
       margin: 0;
       color: #1e293b;
     }
 
-    .hris-layout {
-      min-height: 100vh;
+    .navbar {
+      background: #2563eb;
+      color: white;
+      padding: 18px 30px;
       display: flex;
-      flex-direction: column;
-      width: 100%;
-      margin: 0;
-      padding: 0;
-      background: #f8fafc;
+      justify-content: space-between;
+      align-items: center;
+      box-sizing: border-box;
     }
 
-    .hris-main {
-      flex: 1;
-      min-width: 0;
-      display: flex;
-      flex-direction: column;
-      width: 100%;
+    .navbar h2 {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 700;
+      color: #ffffff;
+      letter-spacing: 0.02em;
+    }
+
+    .logout {
+      color: white;
+      text-decoration: none;
+      background: #1d4ed8;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      transition: background 0.15s ease;
+      display: inline-block;
+    }
+
+    .logout:hover {
+      background: #1e40af;
     }
 
     .container {
-      max-width: 1400px;
-      margin: 24px auto 48px;
-      padding: 0 24px;
+      max-width: 1100px;
+      margin: 36px auto 50px;
+      padding: 0 20px;
       width: 100%;
       box-sizing: border-box;
     }
@@ -369,11 +385,13 @@
 </head>
 
 <body>
-  <div class="hris-layout">
-    <!-- Main Content Area -->
-    <main class="hris-main">
-      <div class="container" id="dashboard">
-        <div class="welcome-card">
+  <div class="navbar">
+    <h2>HRIS</h2>
+    <a href="logout.php" class="logout">Logout</a>
+  </div>
+
+  <div class="container" id="dashboard">
+    <div class="welcome-card">
           <h2>
             Selamat datang, <?= htmlspecialchars($_SESSION['name']) ?>!
           </h2>
@@ -811,8 +829,6 @@
     <?php else: ?>
       <p class="admin-note">Formulir operasional hanya tersedia untuk akun Admin.</p>
     <?php endif; ?>
-      </div><!-- /.container -->
-    </main><!-- /.hris-main -->
-  </div><!-- /.hris-layout -->
+  </div><!-- /.container -->
 </body>
 </html>
