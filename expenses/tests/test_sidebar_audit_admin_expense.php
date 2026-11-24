@@ -78,9 +78,10 @@ assertTest("1.1 Dashboard menu exists in Admin sidebar", str_contains($adminHtml
 assertTest("1.2 Buat Laporan Baru exists in Admin sidebar", str_contains($adminHtml, 'Buat Laporan Baru'));
 assertTest("1.3 Daftar Laporan exists in Admin sidebar", str_contains($adminHtml, 'Daftar Laporan'));
 assertTest("1.4 Daftar Transaksi REMOVED from Admin sidebar", !str_contains($adminHtml, 'Daftar Transaksi'));
-assertTest("1.5 Manajemen Akun Pengguna exists in Admin sidebar", str_contains($adminHtml, 'Manajemen Akun Pengguna'));
+assertTest("1.5 Manajemen Akun Pengguna REMOVED from Admin sidebar", !str_contains($adminHtml, 'Manajemen Akun Pengguna'));
 assertTest("1.6 Kategori Pengeluaran exists in Admin sidebar", str_contains($adminHtml, 'Kategori Pengeluaran'));
 assertTest("1.7 Analitik & Ekspor exists in Admin sidebar", str_contains($adminHtml, 'Analitik &amp; Ekspor') || str_contains($adminHtml, 'Analitik & Ekspor'));
+assertTest("1.8 Master Data heading exists in Admin sidebar", str_contains($adminHtml, 'Master Data'));
 
 // -----------------------------------------------------------------------------
 // TEST 2: Manager Expense Sidebar Verification (Untouched)

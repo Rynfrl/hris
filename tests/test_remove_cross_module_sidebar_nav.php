@@ -138,8 +138,9 @@ assertTrue(!str_contains($expenseContent, 'Modul Inventory'), "Expense sidebar h
 assertTrue(str_contains($expenseContent, 'Dashboard'), "Expense preserves Dashboard menu");
 assertTrue(str_contains($expenseContent, 'Buat Laporan Baru'), "Expense preserves Buat Laporan Baru menu");
 assertTrue(str_contains($expenseContent, 'Daftar Laporan'), "Expense preserves Daftar Laporan menu");
-assertTrue(str_contains($expenseContent, 'Manajemen Akun Pengguna'), "Expense preserves Manajemen Akun Pengguna menu");
+assertTrue(!str_contains($expenseContent, 'Manajemen Akun Pengguna'), "Expense removes Manajemen Akun Pengguna from sidebar");
 assertTrue(str_contains($expenseContent, 'Kategori Pengeluaran'), "Expense preserves Kategori Pengeluaran menu");
+assertTrue(str_contains($expenseContent, 'Master Data'), "Expense preserves Master Data heading");
 assertTrue(str_contains($expenseContent, 'Menunggu Persetujuan'), "Expense preserves Menunggu Persetujuan menu");
 assertTrue(str_contains($expenseContent, 'Riwayat Persetujuan'), "Expense preserves Riwayat Persetujuan menu");
 assertTrue(str_contains($expenseContent, 'Antrean Pembukuan'), "Expense preserves Antrean Pembukuan menu");
