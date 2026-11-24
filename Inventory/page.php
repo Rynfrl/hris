@@ -88,28 +88,6 @@ if ($role !== 'ADMIN_WAREHOUSE') {
     $content = preg_replace('~<a\b[^>]*\bhref="[^"]*product-form\.html"[^>]*>.*?</a>~is', '', $content);
 }
 
-// Navigasi Terpadu ERP HRIS
-$erpNavHtml = '
-      <div class="nav-section-title">Navigasi ERP</div>
-      <a href="../../dashboard.php" class="nav-item" style="color: #38bdf8;">
-        <svg class="nav-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 8 8 12 12 16"></polyline><line x1="16" y1="12" x2="8" y2="12"></line></svg>
-        <span>Kembali ke HRIS</span>
-      </a>
-      <a href="../../purchasing/dashboard.php" class="nav-item">
-        <svg class="nav-icon" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
-        <span>Modul Purchasing</span>
-      </a>
-      <a href="../../sales/index.php" class="nav-item">
-        <svg class="nav-icon" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
-        <span>Modul Sales</span>
-      </a>
-      <a href="../../expenses/public/dashboard" class="nav-item">
-        <svg class="nav-icon" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg>
-        <span>Modul Expenses</span>
-      </a>
-';
-$content = preg_replace('/<\/nav>/i', $erpNavHtml . '</nav>', $content, 1);
-
 // Ambil preferensi tema dari database agar seluruh halaman langsung sinkron (server-side rendering)
 $themePref = 'light';
 try {

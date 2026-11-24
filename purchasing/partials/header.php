@@ -108,32 +108,6 @@ $navItems = [
                   </li>
                 <?php endif; ?>
               <?php endforeach; ?>
-
-              <li class="nav-header text-uppercase text-secondary small px-3 mt-3 mb-1">Navigasi ERP</li>
-              <li class="nav-item">
-                <a href="../dashboard.php" class="nav-link text-info">
-                  <i class="nav-icon bi bi-arrow-left-circle"></i>
-                  <p>Kembali ke HRIS</p>
-                </a>
-              </li>
-              <li class="nav-item">
-                <a href="../sales/index.php" class="nav-link">
-                  <i class="nav-icon bi bi-graph-up-arrow"></i>
-                  <p>Modul Sales</p>
-                </a>
-              </li>
-              <li class="nav-item">
-                <a href="../Inventory/pages/dashboard.html" class="nav-link">
-                  <i class="nav-icon bi bi-boxes"></i>
-                  <p>Modul Inventory</p>
-                </a>
-              </li>
-              <li class="nav-item">
-                <a href="../expenses/public/dashboard" class="nav-link">
-                  <i class="nav-icon bi bi-wallet2"></i>
-                  <p>Modul Expenses</p>
-                </a>
-              </li>
             </ul>
           </nav>
         </div>
