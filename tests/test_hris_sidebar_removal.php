@@ -44,13 +44,12 @@ assertTrue(!str_contains($dashboardContent, 'id="hrisToggleBtn"'), "Element id '
 assertTrue(!str_contains($dashboardContent, '.hris-sidebar {'), "CSS rule '.hris-sidebar' is removed");
 assertTrue(!str_contains($dashboardContent, '.hris-sidebar-brand {'), "CSS rule '.hris-sidebar-brand' is removed");
 
-// Check new topbar header and navigation bar
-assertTrue(str_contains($dashboardContent, 'class="hris-header"'), "Header container 'hris-header' is present");
-assertTrue(str_contains($dashboardContent, 'class="hris-topbar"'), "Topbar 'hris-topbar' is present");
-assertTrue(str_contains($dashboardContent, 'class="hris-nav-bar"'), "Secondary navbar 'hris-nav-bar' is present");
-assertTrue(str_contains($dashboardContent, 'class="hris-nav-pill'), "Nav pills 'hris-nav-pill' are present");
-assertTrue(str_contains($dashboardContent, 'class="hris-erp-pill"'), "ERP pills 'hris-erp-pill' are present");
-assertTrue(str_contains($dashboardContent, 'logout.php'), "Logout link to logout.php is present");
+// Check complete removal of topbar header and navigation bar
+assertTrue(!str_contains($dashboardContent, 'class="hris-header"'), "Header container 'hris-header' is removed");
+assertTrue(!str_contains($dashboardContent, 'class="hris-topbar"'), "Topbar 'hris-topbar' is removed");
+assertTrue(!str_contains($dashboardContent, 'class="hris-nav-bar"'), "Secondary navbar 'hris-nav-bar' is removed");
+assertTrue(!str_contains($dashboardContent, 'class="hris-nav-pill'), "Nav pills 'hris-nav-pill' are removed");
+assertTrue(!str_contains($dashboardContent, 'class="hris-erp-pill"'), "ERP pills 'hris-erp-pill' are removed");
 assertTrue(str_contains($dashboardContent, 'max-width: 1400px'), "Layout container max-width 1400px is configured");
 assertTrue(str_contains($dashboardContent, '$userDivision'), "Division lookup variable '\$userDivision' is implemented");
 
@@ -100,17 +99,16 @@ $cmdAdmin = 'php -r "'
     . 'include \'dashboard.php\';'
     . '$html = ob_get_clean();'
     . 'assert(!str_contains($html, \'class=\"hris-sidebar\"\'));'
-    . 'assert(str_contains($html, \'HRIS &amp; ERP System\'));'
-    . 'assert(str_contains($html, \'Halo, <strong>Admin Test</strong>\'));'
+    . 'assert(!str_contains($html, \'class=\"hris-header\"\'));'
+    . 'assert(str_contains($html, \'Selamat datang, Admin Test!\'));'
     . 'assert(str_contains($html, \'ADMIN_HR\'));'
-    . 'assert(str_contains($html, \'logout.php\'));'
-    . 'assert(str_contains($html, \'#employees\'));'
-    . 'assert(str_contains($html, \'#payrolls\'));'
+    . 'assert(str_contains($html, \'id=\"employees\"\'));'
+    . 'assert(str_contains($html, \'id=\"payrolls\"\'));'
     . 'echo \'Admin render simulation passed.\';'
     . '"';
 
 $outputAdmin = shell_exec($cmdAdmin);
-assertTrue(str_contains((string)$outputAdmin, 'Admin render simulation passed.'), "Admin session renders cleanly with full navigation and no sidebar");
+assertTrue(str_contains((string)$outputAdmin, 'Admin render simulation passed.'), "Admin session renders cleanly with full operational cards and no header/sidebar");
 
 // 4. Execution Simulation (Employee Session)
 echo "\n--- 4. Simulating Render for Employee User ---\n";
@@ -127,10 +125,9 @@ $cmdEmp = 'php -r "'
     . 'include \'dashboard.php\';'
     . '$html = ob_get_clean();'
     . 'assert(!str_contains($html, \'class=\"hris-sidebar\"\'));'
-    . 'assert(str_contains($html, \'HRIS &amp; ERP System\'));'
-    . 'assert(str_contains($html, \'Halo, <strong>Staff Test</strong>\'));'
-    . 'assert(str_contains($html, \'EMPLOYEE\'));'
-    . 'assert(!str_contains($html, \'#employees\'));'
+    . 'assert(!str_contains($html, \'class=\"hris-header\"\'));'
+    . 'assert(str_contains($html, \'Selamat datang, Staff Test!\'));'
+    . 'assert(!str_contains($html, \'id=\"employees\"\'));'
     . 'assert(str_contains($html, \'Formulir operasional hanya tersedia untuk akun Admin.\'));'
     . 'echo \'Employee render simulation passed.\';'
     . '"';
