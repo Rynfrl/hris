@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Core\View;
+use App\Core\Url;
 ?>
 
 <div class="d-flex align-items-center justify-content-between mb-4">
@@ -14,19 +15,24 @@ use App\Core\View;
 
 <div class="card card-gt mb-4">
     <div class="card-body p-3">
-        <form action="/settings/audit-logs" method="GET" class="row g-2 align-items-center">
+        <form action="<?= Url::to('/settings/audit-logs') ?>" method="GET" class="row g-2 align-items-center">
             <div class="col-md-4">
-                <select name="module" class="form-select form-select-sm">
+                <select name="module" class="form-select form-select-sm" onchange="this.form.submit()">
                     <option value="">Semua Modul</option>
                     <option value="expenses" <?= ($module ?? '') === 'expenses' ? 'selected' : '' ?>>expenses (Pengeluaran)</option>
                     <option value="expense_reports" <?= ($module ?? '') === 'expense_reports' ? 'selected' : '' ?>>expense_reports (Laporan)</option>
                     <option value="reimbursements" <?= ($module ?? '') === 'reimbursements' ? 'selected' : '' ?>>reimbursements (Pembayaran)</option>
-                    <option value="users" <?= ($module ?? '') === 'users' ? 'selected' : '' ?>>users (Pengguna)</option>
+                    <option value="users" <?= ($module ?? '') === 'users' ? 'selected' : '' ?>>users (Pengguna & Akses)</option>
                 </select>
             </div>
             <div class="col-md-2">
                 <button type="submit" class="btn btn-sm btn-primary w-100">Filter</button>
             </div>
+            <?php if (!empty($module)): ?>
+                <div class="col-md-2">
+                    <a href="<?= Url::to('/settings/audit-logs') ?>" class="btn btn-sm btn-outline-secondary w-100">Reset</a>
+                </div>
+            <?php endif; ?>
         </form>
     </div>
 </div>
@@ -36,13 +42,13 @@ use App\Core\View;
         <table class="table table-hover table-gt mb-0">
             <thead>
                 <tr>
-                    <th>Waktu</th>
-                    <th>Pengguna</th>
-                    <th>Aksi</th>
-                    <th>Modul</th>
-                    <th>Record ID</th>
-                    <th>Perubahan (Diff / Nilai Baru)</th>
-                    <th>Alamat IP</th>
+                    <th style="min-width: 150px;">Waktu</th>
+                    <th style="min-width: 140px;">Pengguna</th>
+                    <th style="min-width: 140px;">Aksi</th>
+                    <th style="min-width: 130px;">Modul</th>
+                    <th style="min-width: 90px;">Record ID</th>
+                    <th style="min-width: 250px;">Perubahan / Ringkasan Aktivitas</th>
+                    <th style="min-width: 120px;">Alamat IP</th>
                 </tr>
             </thead>
             <tbody>
@@ -53,21 +59,23 @@ use App\Core\View;
                 <?php else: ?>
                     <?php foreach ($logs as $log): ?>
                         <tr>
-                            <td><?= View::formatDate($log['created_at'], 'd M Y H:i:s') ?></td>
+                            <td class="text-nowrap small text-muted"><?= View::formatDate($log['created_at'], 'd M Y H:i:s') ?></td>
                             <td>
                                 <strong><?= View::e($log['username'] ?? 'Sistem') ?></strong>
                                 <?php if (!empty($log['employee_name'])): ?>
                                     <div class="text-muted small"><?= View::e($log['employee_name']) ?></div>
                                 <?php endif; ?>
                             </td>
-                            <td><span class="badge bg-light text-dark border"><?= View::e($log['action']) ?></span></td>
-                            <td><code><?= View::e($log['module']) ?></code></td>
-                            <td>#<?= (int) $log['record_id'] ?></td>
+                            <td><?= View::auditActionBadge($log['action'] ?? '') ?></td>
+                            <td><span class="badge bg-light text-dark border font-monospace"><?= View::e($log['module'] ?? 'general') ?></span></td>
                             <td>
-                                <div style="max-width: 280px; font-size: 0.75rem;" class="text-truncate font-monospace" title="<?= View::e($log['new_value'] ?? '') ?>">
-                                    <?= View::e($log['new_value'] ?? '-') ?>
-                                </div>
+                                <?php if (!empty($log['record_id'])): ?>
+                                    <span class="badge bg-light text-muted border">#<?= (int) $log['record_id'] ?></span>
+                                <?php else: ?>
+                                    <span class="text-muted">-</span>
+                                <?php endif; ?>
                             </td>
+                            <td><?= View::formatAuditChange($log['summary'] ?? null, $log['old_value'] ?? null, $log['new_value'] ?? null) ?></td>
                             <td><span class="text-muted small"><?= View::e($log['ip_address'] ?? '-') ?></span></td>
                         </tr>
                     <?php endforeach; ?>
@@ -80,15 +88,29 @@ use App\Core\View;
     <?php if ($totalPages > 1): ?>
         <div class="card-footer bg-white border-top py-2 d-flex justify-content-between align-items-center">
             <div class="small text-muted">
-                Halaman <?= $page ?> dari <?= $totalPages ?> (Total <?= $total ?> record)
+                Halaman <?= $page ?> dari <?= $totalPages ?> (Total <?= number_format($total, 0, ',', '.') ?> record)
             </div>
             <nav>
                 <ul class="pagination pagination-sm mb-0">
                     <?php if ($page > 1): ?>
-                        <li class="page-item"><a class="page-link" href="?<?= http_build_query(['module' => $module, 'page' => $page - 1]) ?>">Sebelumnya</a></li>
+                        <li class="page-item"><a class="page-link" href="?<?= http_build_query(array_filter(['module' => $module, 'page' => $page - 1])) ?>">Sebelumnya</a></li>
+                    <?php else: ?>
+                        <li class="page-item disabled"><span class="page-link">Sebelumnya</span></li>
                     <?php endif; ?>
+
+                    <?php
+                    $startPage = max(1, $page - 2);
+                    $endPage = min($totalPages, $page + 2);
+                    for ($p = $startPage; $p <= $endPage; $p++): ?>
+                        <li class="page-item <?= $p === $page ? 'active' : '' ?>">
+                            <a class="page-link" href="?<?= http_build_query(array_filter(['module' => $module, 'page' => $p])) ?>"><?= $p ?></a>
+                        </li>
+                    <?php endfor; ?>
+
                     <?php if ($page < $totalPages): ?>
-                        <li class="page-item"><a class="page-link" href="?<?= http_build_query(['module' => $module, 'page' => $page + 1]) ?>">Selanjutnya</a></li>
+                        <li class="page-item"><a class="page-link" href="?<?= http_build_query(array_filter(['module' => $module, 'page' => $page + 1])) ?>">Selanjutnya</a></li>
+                    <?php else: ?>
+                        <li class="page-item disabled"><span class="page-link">Selanjutnya</span></li>
                     <?php endif; ?>
                 </ul>
             </nav>

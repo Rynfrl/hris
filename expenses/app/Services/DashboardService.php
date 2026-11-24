@@ -203,14 +203,16 @@ class DashboardService
     private function getCompanyMonthlyTrend(): array
     {
         $pdo = Database::pdo();
-        $stmt = $pdo->query('
+        $startDt = (new \DateTime('first day of this month'))->modify('-5 month')->format('Y-m-01 00:00:00');
+        $stmt = $pdo->prepare('
             SELECT DATE_FORMAT(r.created_at, "%Y-%m") as ym, COALESCE(SUM(r.total_amount), 0.00) as total
             FROM expense_reports r
-            WHERE r.created_at >= DATE_SUB(NOW(), INTERVAL 6 MONTH) AND r.status != "CANCELLED"
+            WHERE r.created_at >= :startDate AND r.status != "CANCELLED"
             GROUP BY ym
             ORDER BY ym ASC
         ');
-        return $this->fillLastSixMonths($stmt->fetchAll());
+        $stmt->execute(['startDate' => $startDt]);
+        return $this->fillLastSixMonths($stmt->fetchAll(PDO::FETCH_ASSOC));
     }
 
     private function getCompanyCategoryBreakdown(): array
@@ -235,12 +237,25 @@ class DashboardService
             $mapped[$row['ym']] = (float) $row['total'];
         }
 
+        $monthNames = [
+            1 => 'Jan', 2 => 'Feb', 3 => 'Mar', 4 => 'Apr', 5 => 'Mei', 6 => 'Jun',
+            7 => 'Jul', 8 => 'Agu', 9 => 'Sep', 10 => 'Okt', 11 => 'Nov', 12 => 'Des'
+        ];
+
+        $base = new \DateTime('first day of this month');
         $result = [];
         for ($i = 5; $i >= 0; $i--) {
-            $ym = date('Y-m', strtotime("-{$i} month"));
+            $dt = (clone $base)->modify("-{$i} month");
+            $ym = $dt->format('Y-m');
+            $m = (int) $dt->format('n');
+            $y = $dt->format('Y');
+            $label = ($monthNames[$m] ?? $dt->format('M')) . ' ' . $y;
+
             $result[] = [
                 'ym' => $ym,
-                'total' => $mapped[$ym] ?? 0.00,
+                'label' => $label,
+                'month' => $label,
+                'total' => (float) ($mapped[$ym] ?? 0.00),
             ];
         }
 

@@ -161,4 +161,59 @@ class View
 
         return sprintf('<span class="status-badge %s">%s</span>', $cssClass, $label);
     }
+
+    public static function auditActionBadge(string $action): string
+    {
+        $act = strtoupper($action);
+        $badgeClass = match (true) {
+            str_contains($act, 'APPROVED') || str_contains($act, 'PAID') || str_contains($act, 'SUCCESS') => 'bg-success text-white',
+            str_contains($act, 'REFUSED') || str_contains($act, 'REJECTED') || str_contains($act, 'FAILED') || str_contains($act, 'DELETED') => 'bg-danger text-white',
+            str_contains($act, 'RETRY') || str_contains($act, 'PENDING') || str_contains($act, 'WARNING') => 'bg-warning text-dark',
+            str_contains($act, 'POSTED') || str_contains($act, 'SUBMITTED') || str_contains($act, 'CREATED') => 'bg-primary text-white',
+            str_contains($act, 'LOGIN') || str_contains($act, 'LOGOUT') => 'bg-secondary text-white',
+            default => 'bg-light text-dark border',
+        };
+
+        return sprintf('<span class="badge %s">%s</span>', $badgeClass, self::e($action));
+    }
+
+    public static function formatAuditChange(?string $summary, ?string $oldValue, ?string $newValue): string
+    {
+        $parts = [];
+        if (!empty($summary)) {
+            $parts[] = '<div>' . self::e($summary) . '</div>';
+        }
+
+        $oldArr = !empty($oldValue) ? json_decode($oldValue, true) : null;
+        $newArr = !empty($newValue) ? json_decode($newValue, true) : null;
+
+        if (is_array($newArr) || is_array($oldArr)) {
+            $diffLines = [];
+            $keys = array_unique(array_merge(array_keys($oldArr ?? []), array_keys($newArr ?? [])));
+            foreach ($keys as $k) {
+                $oldVal = $oldArr[$k] ?? null;
+                $newVal = $newArr[$k] ?? null;
+                if ($oldVal !== $newVal) {
+                    $oldStr = is_scalar($oldVal) ? (string) $oldVal : json_encode($oldVal);
+                    $newStr = is_scalar($newVal) ? (string) $newVal : json_encode($newVal);
+                    if ($oldVal === null) {
+                        $diffLines[] = '<strong>' . self::e((string) $k) . '</strong>: ' . self::e($newStr);
+                    } else {
+                        $diffLines[] = '<strong>' . self::e((string) $k) . '</strong>: <del class="text-danger">' . self::e($oldStr) . '</del> &rarr; <ins class="text-success text-decoration-none fw-semibold">' . self::e($newStr) . '</ins>';
+                    }
+                }
+            }
+            if (!empty($diffLines)) {
+                $parts[] = '<div class="small font-monospace text-muted mt-1" style="font-size: 0.75rem;">' . implode('<br>', $diffLines) . '</div>';
+            }
+        } elseif (!empty($newValue) && empty($summary)) {
+            $parts[] = '<div style="max-width: 320px; font-size: 0.75rem;" class="text-truncate font-monospace" title="' . self::e($newValue) . '">' . self::e($newValue) . '</div>';
+        }
+
+        if (empty($parts)) {
+            return '<span class="text-muted">-</span>';
+        }
+
+        return implode('', $parts);
+    }
 }

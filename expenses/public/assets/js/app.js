@@ -79,6 +79,12 @@ window.GTCharts = {
 
     createTrendChart: function (element, labels, data, datasetLabel) {
         if (!element || typeof Chart === 'undefined') return null;
+        if (typeof Chart.getChart === 'function') {
+            const existing = Chart.getChart(element);
+            if (existing) {
+                existing.destroy();
+            }
+        }
         const ctx = element.getContext ? element.getContext('2d') : element;
         return new Chart(ctx, {
             type: 'line',
@@ -127,10 +133,12 @@ window.GTCharts = {
                         beginAtZero: true,
                         ticks: {
                             callback: function (val) {
-                                if (val >= 1000000) {
-                                    return 'Rp ' + (val / 1000000) + ' jt';
+                                if (val >= 1000000000) {
+                                    return 'Rp ' + (val / 1000000000).toLocaleString('id-ID') + ' M';
+                                } else if (val >= 1000000) {
+                                    return 'Rp ' + (val / 1000000).toLocaleString('id-ID') + ' jt';
                                 } else if (val >= 1000) {
-                                    return 'Rp ' + (val / 1000) + ' rb';
+                                    return 'Rp ' + (val / 1000).toLocaleString('id-ID') + ' rb';
                                 }
                                 return 'Rp ' + val;
                             },
@@ -147,6 +155,12 @@ window.GTCharts = {
 
     createBarChart: function (element, labels, data, datasetLabel) {
         if (!element || typeof Chart === 'undefined') return null;
+        if (typeof Chart.getChart === 'function') {
+            const existing = Chart.getChart(element);
+            if (existing) {
+                existing.destroy();
+            }
+        }
         const ctx = element.getContext ? element.getContext('2d') : element;
         return new Chart(ctx, {
             type: 'bar',

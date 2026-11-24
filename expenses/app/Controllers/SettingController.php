@@ -270,7 +270,10 @@ class SettingController
     {
         $this->ensureAdmin();
         $page = max(1, (int) ($_GET['page'] ?? 1));
-        $module = $_GET['module'] ?? null;
+        $module = trim((string) ($_GET['module'] ?? ''));
+        if ($module === '' || $module === 'all') {
+            $module = null;
+        }
         $data = $this->auditRepo->getAuditLogs($page, 25, $module);
 
         return View::render('settings/audit_logs', [

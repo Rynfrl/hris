@@ -56,40 +56,86 @@ class AuditRepository
     public function getAuditLogs(int $page = 1, int $perPage = 25, ?string $module = null): array
     {
         $pdo = Database::pdo();
+
+        $subquery = "
+            SELECT
+                CONCAT('audit_', a.audit_id) AS log_id,
+                a.audit_id AS source_id,
+                'audit_logs' AS source_table,
+                a.user_id,
+                (a.action COLLATE utf8mb4_unicode_ci) AS action,
+                (a.module COLLATE utf8mb4_unicode_ci) AS module,
+                a.record_id,
+                CAST(a.old_value AS CHAR) COLLATE utf8mb4_unicode_ci AS old_value,
+                CAST(a.new_value AS CHAR) COLLATE utf8mb4_unicode_ci AS new_value,
+                CAST(NULL AS CHAR) COLLATE utf8mb4_unicode_ci AS summary,
+                (a.ip_address COLLATE utf8mb4_unicode_ci) AS ip_address,
+                (a.user_agent COLLATE utf8mb4_unicode_ci) AS user_agent,
+                a.created_at
+            FROM audit_logs a
+
+            UNION ALL
+
+            SELECT
+                CONCAT('activity_', act.activity_id) AS log_id,
+                act.activity_id AS source_id,
+                'activity_logs' AS source_table,
+                act.user_id,
+                (act.action COLLATE utf8mb4_unicode_ci) AS action,
+                (CASE
+                    WHEN act.entity_type IN ('expense_report_employees', 'expense_report_items') THEN 'expense_reports'
+                    WHEN act.entity_type = 'expense_reimbursements' THEN 'reimbursements'
+                    WHEN act.entity_type = 'auth' THEN 'users'
+                    WHEN act.entity_type = 'category' THEN 'expenses'
+                    ELSE COALESCE(act.entity_type, 'system')
+                END COLLATE utf8mb4_unicode_ci) AS module,
+                act.entity_id AS record_id,
+                CAST(NULL AS CHAR) COLLATE utf8mb4_unicode_ci AS old_value,
+                CAST(NULL AS CHAR) COLLATE utf8mb4_unicode_ci AS new_value,
+                (act.summary COLLATE utf8mb4_unicode_ci) AS summary,
+                (act.ip_address COLLATE utf8mb4_unicode_ci) AS ip_address,
+                CAST(NULL AS CHAR) COLLATE utf8mb4_unicode_ci AS user_agent,
+                act.created_at
+            FROM activity_logs act
+        ";
+
         $where = ['1=1'];
         $params = [];
 
-        if (!empty($module)) {
-            $where[] = 'a.module = :module';
+        if (!empty($module) && $module !== 'all') {
+            $where[] = 'u.module = :module';
             $params['module'] = $module;
         }
 
         $whereClause = implode(' AND ', $where);
 
-        $countStmt = $pdo->prepare("SELECT COUNT(*) FROM audit_logs a WHERE {$whereClause}");
+        $countStmt = $pdo->prepare("SELECT COUNT(*) FROM ({$subquery}) AS u WHERE {$whereClause}");
         $countStmt->execute($params);
         $total = (int) $countStmt->fetchColumn();
 
-        $offset = max(0, ($page - 1) * $perPage);
+        $page = max(1, $page);
+        $perPage = max(1, $perPage);
+        $offset = ($page - 1) * $perPage;
+
         $sql = "
-            SELECT a.*, u.username, emp.full_name as employee_name
-            FROM audit_logs a
-            LEFT JOIN users u ON u.user_id = a.user_id
-            LEFT JOIN employees emp ON emp.employee_id = u.employee_id
+            SELECT u.*, us.username, emp.full_name AS employee_name
+            FROM ({$subquery}) AS u
+            LEFT JOIN users us ON us.user_id = u.user_id
+            LEFT JOIN employees emp ON emp.employee_id = us.employee_id
             WHERE {$whereClause}
-            ORDER BY a.audit_id DESC
+            ORDER BY u.created_at DESC, u.source_id DESC
             LIMIT {$perPage} OFFSET {$offset}
         ";
         $stmt = $pdo->prepare($sql);
         $stmt->execute($params);
-        $items = $stmt->fetchAll();
+        $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         return [
             'items' => $items,
             'total' => $total,
             'page' => $page,
             'per_page' => $perPage,
-            'total_pages' => ceil($total / $perPage),
+            'total_pages' => (int) ceil($total / $perPage),
         ];
     }
 }

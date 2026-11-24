@@ -445,7 +445,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const trendCanvas = document.getElementById('dashboardTrendChart');
     if (trendCanvas && Array.isArray(trendData) && trendData.length > 0) {
-        const labels = trendData.map(function (d) { return d.label || d.month; });
+        const labels = trendData.map(function (d) { return d.label || d.month || d.ym; });
         const values = trendData.map(function (d) { return parseFloat(d.total) || 0; });
         if (window.GTCharts) {
             window.GTCharts.createTrendChart(trendCanvas, labels, values, 'Pengeluaran');
